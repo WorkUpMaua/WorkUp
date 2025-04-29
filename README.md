@@ -39,15 +39,15 @@ Além de seu propósito funcional, o sistema serve como aplicação prática de 
 
 - **Frontend:** React, TypeScript (TSX), TailwindCSS
 - **Backend:** Node.js, Express, SQL
-- **Comunicação entre serviços: Barramento de Eventos
+- **Comunicação entre serviços**: Barramento de Eventos
 
 ---
 
 ## 🤝 Integrantes
 
-- [João Paulo Bonagurio Ramirez](https://github.com/yJony)   | 22.01247-8
-- [Lucas Milani Thomsen Galhardo](https://github.com/LucasKiller)  | 22.00818-7
+- [João Paulo Bonagurio Ramirez](https://github.com/yJony)           | 22.01247-8
+- [Lucas Milani Thomsen Galhardo](https://github.com/LucasKiller)    | 22.00818-7
 - [Lucas Olivares Borges da Silva](https://github.com/lvcasolivares) | 22.00889-6
-- [Luis Gustavo Gonçalves Machado](https://github.com/luisgmachado) | 21.00322-0
+- [Luis Gustavo Gonçalves Machado](https://github.com/luisgmachado)  | 21.00322-0
 - [Tiago Tadeu de Azevedo](https://github.com/tiagooazevedo)         | 22.00856-0
 - [Victor Augusto de Gasperi](https://github.com/VictorGasperi)      | 22.00765-2
