@@ -14,6 +14,7 @@ type CatalogStates = {
 type roomsType = {
   imgPath: string;
   name: string;
+  id?: string;
 };
 
 export default class Catalog extends React.Component {
@@ -25,21 +26,25 @@ export default class Catalog extends React.Component {
         imgPath:
           "https://images.pexels.com/photos/380768/pexels-photo-380768.jpeg",
         name: "Escritório 1",
+        id: "1",
       },
       {
         imgPath:
           "https://images.pexels.com/photos/380769/pexels-photo-380769.jpeg",
         name: "Escritório 2",
+        id: "2",
       },
       {
         imgPath:
           "https://images.pexels.com/photos/267507/pexels-photo-267507.jpeg",
         name: "Escritório 3",
+        id: "3",
       },
       {
         imgPath:
           "https://images.pexels.com/photos/1181406/pexels-photo-1181406.jpeg",
         name: "Escritório 4",
+        id: "4",
       },
     ],
     filteredRooms: []
@@ -115,7 +120,7 @@ export default class Catalog extends React.Component {
           <div className="grid px-10 place-items-center grid-cols-[repeat(auto-fit,_minmax(320px,1fr))] w-full">
             {this.state.filteredRooms &&
               this.state.filteredRooms.map((room) => (
-                <RoomCard imgPath={room.imgPath} name={room.name} />
+                <RoomCard imgPath={room.imgPath} name={room.name} id={room.id} />
               ))}
           </div>
         </main>
