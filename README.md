@@ -46,7 +46,7 @@ Além de seu propósito funcional, o sistema serve como aplicação prática de 
 ## 🤝 Integrantes
 
 - [João Paulo Bonagurio Ramirez](https://github.com/yJony)           | 22.01247-8
-- [Lucas Milani Thomsen Galhardo](https://github.com/LucasKiller)    | 22.00818-7
+- [Lucas Milani Thomsen Galhardo](https://github.com/LucasKiller)    | 22.00818-7   🤪🔪
 - [Lucas Olivares Borges da Silva](https://github.com/lvcasolivares) | 22.00889-6
 - [Luis Gustavo Gonçalves Machado](https://github.com/luisgmachado)  | 21.00322-0
 - [Tiago Tadeu de Azevedo](https://github.com/tiagooazevedo)         | 22.00856-0
