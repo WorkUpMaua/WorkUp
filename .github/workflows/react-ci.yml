@@ -3,10 +3,12 @@ name: ReactJS CI
 on:
   pull_request:
     types: [opened, synchronize]
+
 jobs:
-  next_js_ci:
+  react_ci:
     name: Run ReactJS CI
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -17,10 +19,13 @@ jobs:
           node-version: 22.x
 
       - name: Install dependencies
+        working-directory: front
         run: npm install
 
       - name: Lint with ESLint and Prettier
+        working-directory: front
         run: npm run lint
 
       - name: Build ReactJS app
+        working-directory: front
         run: npm run build
