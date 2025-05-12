@@ -2,9 +2,11 @@ import React from "react";
 import Logo from "../assets/logo_WorkUp.png";
 import IconNotificacao from "../assets/icon_notificacao.png";
 import RoomCard from "../components/RoomCard";
+import CatalogFilter from "../components/CatalogFilter";
 
 type CatalogStates = {
   sidebarActive: boolean;
+  searchQuery: string;
   roomsMock: roomsType[];
   filteredRooms: roomsType[];
 };
@@ -17,6 +19,7 @@ type roomsType = {
 export default class Catalog extends React.Component {
   state: CatalogStates = {
     sidebarActive: false,
+    searchQuery: '',
     roomsMock: [
       {
         imgPath:
@@ -44,6 +47,26 @@ export default class Catalog extends React.Component {
 
   toggleSidebar = () =>
     this.setState({ sidebarActive: !this.state.sidebarActive });
+
+  componentDidMount = (): void => {
+    this.setState( { filteredRooms: this.state.roomsMock } )
+  }
+
+  setSearchQuery = (newQuery: string): void => this.setState( { searchQuery: newQuery } ) 
+
+  componentDidUpdate(prevState: CatalogStates): void {
+  if (prevState.searchQuery !== this.state.searchQuery) {
+    const filteredRooms = this.state.roomsMock.filter((room) =>
+      room.name.toLowerCase().includes(this.state.searchQuery.toLowerCase())
+    );
+
+    // Verifica se o novo array é diferente do atual
+    if (JSON.stringify(filteredRooms) !== JSON.stringify(this.state.filteredRooms)) {
+      this.setState({ filteredRooms });
+    }
+  }
+}
+
 
   render() {
     return (
@@ -86,9 +109,12 @@ export default class Catalog extends React.Component {
         </div>
 
         <main className="w-full flex flex-col justify-center items-center pt-16 p-4">
-          <div className="grid grid-cols-4 gap-5">
-            {this.state.roomsMock &&
-              this.state.roomsMock.map((room) => (
+
+          <CatalogFilter searchQuery={this.state.searchQuery} setSearchQuery={this.setSearchQuery} />
+
+          <div className="grid px-10 place-items-center grid-cols-[repeat(auto-fit,_minmax(320px,1fr))] w-full">
+            {this.state.filteredRooms &&
+              this.state.filteredRooms.map((room) => (
                 <RoomCard imgPath={room.imgPath} name={room.name} />
               ))}
           </div>
