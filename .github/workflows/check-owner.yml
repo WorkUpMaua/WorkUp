@@ -1,0 +1,30 @@
+name: Check Approve Owner repository
+
+on:
+  workflow_call:
+    inputs:
+      repository:
+        required: true
+        type: string
+        
+jobs: 
+  valid_owner:
+    name: Check & Validate PR Owner 
+    if: github.event.review.state == 'approved'
+    runs-on: ubuntu-latest
+    env:
+      repo: ${{ github.repository }}
+      GITHUB_TOKEN: ${{ github.token }}
+    steps:
+      - name: Validate PR Owner
+        env:
+          author: ${{ github.event.review.user.login }}
+        run: |
+          perm=$(gh api "repos/$repo/collaborators/$author/permission" --jq '.permission')
+          echo "perm=$perm" >> $GITHUB_ENV
+          if [[ $perm != 'admin' ]]; then
+              echo "::error:: Reviewer NÃO é um admin, solicitar review de um Admin para aprovação"
+              exit 1
+          else
+              echo "Reviewer é um admin, PR liberado para ser mergeado."
+          fi
