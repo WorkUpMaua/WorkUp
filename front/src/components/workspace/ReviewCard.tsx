@@ -9,14 +9,7 @@ interface ReviewCardProps {
     comment: string;
 }
 
-export default function ReviewCard({
-    userName,
-    userImage,
-    rating,
-    daysAgo,
-    stayDuration,
-    comment,
-}: ReviewCardProps) {
+export default function ReviewCard(props: ReviewCardProps) {
 
      // Função para gerar estrelas baseadas na nota
     const renderStars = (rating: number) => {
@@ -39,24 +32,24 @@ export default function ReviewCard({
         <div className="flex flex-col gap-2 p-4 border border-gray-200 rounded-lg shadow-sm">
             <div className="flex items-center gap-3">
                 <img
-                    src={userImage}
-                    alt={userName}
+                    src={props.userImage}
+                    alt={props.userName}
                     className="w-12 h-12 rounded-full object-cover"
                 />
                 <div className="flex flex-col">
-                    <span className="font-semibold text-gray-800">{userName}</span>
+                    <span className="font-semibold text-gray-800">{props.userName}</span>
                 </div>
             </div>
 
             <div className="flex items-center gap-2 text-sm text-gray-600">
                 {/* Estrelas */}
-                {renderStars(rating)}
-                <span className="font-semibold">{daysAgo}</span>
+                {renderStars(props.rating)}
+                <span className="font-semibold">{props.daysAgo}</span>
                 <span>·</span>
-                <span className="text-gray-400">{stayDuration}</span>
+                <span className="text-gray-400">{props.stayDuration}</span>
             </div>
 
-            <p className="text-gray-700">{comment}</p>
+            <p className="text-gray-700">{props.comment}</p>
         </div>
     );
 }
