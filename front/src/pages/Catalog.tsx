@@ -3,6 +3,7 @@ import Logo from "../assets/logo_WorkUp.png";
 import RoomCard from "../components/RoomCard";
 import CatalogFilter from "../components/CatalogFilter";
 
+
 type CatalogStates = {
   sidebarActive: boolean;
   searchQuery: string;
