@@ -1,7 +1,7 @@
 import React from "react";
 import Logo from "../assets/logo_WorkUp.png";
 import RoomCard from "../components/RoomCard";
-import CatalogFilter from "../components/CatalogFilter";
+import CatalogFilter from "../components/catalogFilter";
 
 
 type CatalogStates = {
