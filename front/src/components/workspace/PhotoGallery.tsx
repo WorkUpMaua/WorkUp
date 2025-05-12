@@ -4,8 +4,8 @@ interface PhotoGalleryProps {
   photos: string[];
 }
 
-export default function PhotoGallery({ photos }: PhotoGalleryProps) {
-  const [selectedPhoto, setSelectedPhoto] = useState<string>(photos[0]);
+export default function PhotoGallery(props: PhotoGalleryProps) {
+  const [selectedPhoto, setSelectedPhoto] = useState<string>(props.photos[0]);
 
   return (
     <div className="flex flex-col items-center">
@@ -20,7 +20,7 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
 
       {/* Miniaturas */}
       <div className="flex gap-4 justify-center flex-wrap">
-        {photos.map((photo, index) => (
+        {props.photos.map((photo, index) => (
           <img
             key={index}
             src={photo}

@@ -11,7 +11,7 @@ createRoot(document.getElementById('root')!).render(
       <Routes>
         <Route path="/" element={<Navigate to="/catalog" replace />} />
         <Route path="catalog" element={<Catalog />} />
-        <Route path="workspace" element={<Workspace />} />
+        <Route path="/workspace/:officeId" element={<Workspace />} />
       </Routes>
     </Router>
   </StrictMode>,
