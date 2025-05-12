@@ -1,0 +1,37 @@
+name: Check Approve Owner repository
+
+on:
+  pull_request_review:
+    types: [submitted]
+
+jobs: 
+  valid_owner:
+    name: Check & Validate PR Owner
+    if: github.event.review.state == 'approved'
+    runs-on: ubuntu-latest
+
+    env:
+      repo: ${{ github.repository }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Authenticate GitHub CLI
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
+
+      - name: Validate PR Owner
+        env:
+          author: ${{ github.event.review.user.login }}
+        run: |
+          echo "Validating reviewer: $author"
+          perm=$(gh api "repos/$repo/collaborators/$author/permission" --jq '.permission')
+          echo "Permission found: $perm"
+          
+          if [[ "$perm" != "admin" && "$perm" != "maintain" ]]; then
+              echo "::error:: Reviewer NÃO é admin/maintainer. Solicitar aprovação de um Admin!"
+              exit 1
+          else
+              echo "✅ Reviewer é admin/maintainer. PR liberado!"
+          fi
