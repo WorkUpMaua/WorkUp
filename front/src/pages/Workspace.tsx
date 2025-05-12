@@ -1,7 +1,58 @@
 import React from 'react';
 import PhotoGallery from '../components/PhotoGallery';
+import HeaderWorkspace from '../components/HeaderWorkspace';
+import ReviewCard from '../components/ReviewCard';
 
-export default class Workspace extends React.Component {
+interface WorkspaceState {
+    selectedTab: string;
+}
+
+export default class Workspace extends React.Component<{}, WorkspaceState> {
+    constructor(props: {}) {
+        super(props);
+        this.state = {
+            selectedTab: 'Detalhes', // Aba inicial
+        };
+    }
+
+    handleTabClick = (tab: string) => {
+        this.setState({ selectedTab: tab });
+    };
+
+    renderContent = () => {
+        const { selectedTab } = this.state;
+
+        if (selectedTab === 'Detalhes') {
+            return (
+                <p className="text-gray-600 leading-relaxed">
+                    Este espaço é perfeito para reuniões, workshops e eventos corporativos. Localizado no coração de São Paulo, oferece conforto e praticidade para atender às suas necessidades profissionais.
+                </p>
+            );
+        } else if (selectedTab === 'Avaliações') {
+            return (
+                <div className="space-y-4">
+                    <ReviewCard
+                        userName="Lucas Milani"
+                        userImage="https://randomuser.me/api/portraits/women/44.jpg" // ou outra imagem fake
+                        rating={5}
+                        daysAgo="2 semanas atrás"
+                        stayDuration="Utilizou por uma semana"
+                        comment="Bem aconchegante e ótima localização 😊"
+                    />
+                    <ReviewCard
+                        userName="Luketa Milanesa"
+                        userImage="https://randomuser.me/api/portraits/men/32.jpg"
+                        rating={4}
+                        daysAgo="3 dias atrás"
+                        stayDuration="Utilizou por um dia"
+                        comment="Espaço confortável e excelente para mentes criativas!"
+                    />
+                </div>
+            );
+        }
+        return null;
+    };
+
     render() {
         const photoList: string[] = [
             'https://images.pexels.com/photos/267507/pexels-photo-267507.jpeg',
@@ -17,21 +68,18 @@ export default class Workspace extends React.Component {
                 {/* Seção de Conteúdo */}
                 <div className="flex flex-col gap-6">
                     {/* Cabeçalho */}
-                    <div className="space-y-2">
-                        <h1 className="text-3xl font-bold text-gray-800">Sala Comercial</h1>
-                        <p className="text-gray-600">São Paulo, São Paulo</p>
-                        <div className="flex gap-4 font-medium">
-                            <span className="text-blue-600 cursor-pointer hover:text-blue-700">Detalhes</span>
-                            <span className="text-blue-600 cursor-pointer hover:text-blue-700">Avaliações</span>
-                        </div>
-                    </div>
+                    <HeaderWorkspace
+                        title="Sala Comercial"
+                        location="São Paulo, São Paulo"
+                        tabs={['Detalhes', 'Avaliações']}
+                        activeTab={this.state.selectedTab}
+                        onTabClick={this.handleTabClick}
+                    />
 
                     <hr className="border-t border-gray-200" />
 
-                    {/* Descrição */}
-                    <p className="text-gray-600 leading-relaxed">
-                        Este espaço é perfeito para reuniões, workshops e eventos corporativos. Localizado no coração de São Paulo, oferece conforto e praticidade para atender às suas necessidades profissionais.
-                    </p>
+                    {/* Conteúdo de acordo com a aba */}
+                    {this.renderContent()}
 
                     {/* Comodidades */}
                     <div className="space-y-4">
