@@ -30,8 +30,7 @@ export default class Workspace extends React.Component {
 
                     {/* Descrição */}
                     <p className="text-gray-600 leading-relaxed">
-                        Nossa plataforma simplifica a reserva de você, botos e passeios. Basta alguns cliques
-                        para garantir sua viagem dos sonhos. E o melhor? Oferecemos opções para todos os orçamentos.
+                        Este espaço é perfeito para reuniões, workshops e eventos corporativos. Localizado no coração de São Paulo, oferece conforto e praticidade para atender às suas necessidades profissionais.
                     </p>
 
                     {/* Comodidades */}
