@@ -1,0 +1,37 @@
+import { useState } from 'react';
+
+interface PhotoGalleryProps {
+  photos: string[];
+}
+
+export default function PhotoGallery({ photos }: PhotoGalleryProps) {
+  const [selectedPhoto, setSelectedPhoto] = useState<string>(photos[0]);
+
+  return (
+    <div className="flex flex-col items-center">
+      {/* Foto principal */}
+      <div className="mb-6">
+        <img
+          src={selectedPhoto}
+          alt="Selected"
+          className="w-[500px] h-auto object-cover rounded-lg shadow-md"
+        />
+      </div>
+
+      {/* Miniaturas */}
+      <div className="flex gap-4 justify-center flex-wrap">
+        {photos.map((photo, index) => (
+          <img
+            key={index}
+            src={photo}
+            alt={`Thumbnail ${index}`}
+            onClick={() => setSelectedPhoto(photo)}
+            className={`w-24 h-auto cursor-pointer rounded-md shadow-sm transition-transform transform hover:scale-105 ${
+              photo === selectedPhoto ? 'ring-4 ring-blue-400' : 'ring-2 ring-gray-300'
+            }`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
