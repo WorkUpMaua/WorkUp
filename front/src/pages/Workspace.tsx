@@ -4,16 +4,13 @@ import PhotoGallery from '../components/workspace/PhotoGallery';
 import HeaderWorkspace from '../components/workspace/HeaderWorkspace';
 import ReviewCard from '../components/workspace/ReviewCard';
 
-interface WorkspaceState {
+type WorkspaceState = {
     selectedTab: string;
 }
 
-export default class Workspace extends React.Component<{}, WorkspaceState> {
-    constructor(props: {}) {
-        super(props);
-        this.state = {
-            selectedTab: 'Detalhes', // Aba inicial
-        };
+export default class Workspace extends React.Component {
+    state: WorkspaceState = {
+        selectedTab: 'Detalhes'
     }
 
     handleTabClick = (tab: string) => {
