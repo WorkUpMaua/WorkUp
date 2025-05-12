@@ -8,8 +8,8 @@ interface WorkspaceState {
     selectedTab: string;
 }
 
-export default class Workspace extends React.Component<{}, WorkspaceState> {
-    constructor(props: {}) {
+export default class Workspace extends React.Component<Record<string, never>, WorkspaceState> {
+    constructor(props: Record<string, never>) {
         super(props);
         this.state = {
             selectedTab: 'Detalhes', // Aba inicial
