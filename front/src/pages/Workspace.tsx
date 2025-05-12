@@ -8,9 +8,11 @@ type WorkspaceState = {
     selectedTab: string;
 }
 
+
 export default class Workspace extends React.Component {
     state: WorkspaceState = {
         selectedTab: 'Detalhes'
+
     }
 
     handleTabClick = (tab: string) => {
