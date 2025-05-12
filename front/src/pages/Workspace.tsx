@@ -1,7 +1,7 @@
 import React from 'react';
-import PhotoGallery from '../components/PhotoGallery';
-import HeaderWorkspace from '../components/HeaderWorkspace';
-import ReviewCard from '../components/ReviewCard';
+import PhotoGallery from '../components/workspace/PhotoGallery';
+import HeaderWorkspace from '../components/workspace/HeaderWorkspace';
+import ReviewCard from '../components/workspace/ReviewCard';
 
 interface WorkspaceState {
     selectedTab: string;
