@@ -5,7 +5,8 @@
   "scripts": {
     "start:dev": "nodemon",
     "build": "tsc",
-    "start:dist": "node ./dist/index.js"
+    "start:dist": "node ./dist/index.js",
+    "check": "tsc --noEmit"
   },
   "keywords": [],
   "author": "",

@@ -2,7 +2,6 @@ import { CatalogoType } from "../../repo/catalogoRepositoryMock";
 import { CreateCatalogoUsecase } from "./create_catalogo_usecase";
 import { Request, Response } from 'express'
 import axios from 'axios'
-import { create } from "domain";
 
 export class CreateCatalogoController {
 

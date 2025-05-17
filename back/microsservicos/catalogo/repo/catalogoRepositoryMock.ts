@@ -21,6 +21,10 @@ export class CatalogoRepositoryMock {
         return this.baseCatalogo
     }
 
+    public getCatalogo(id: string): CatalogoType {
+        return this.baseCatalogo[id]
+    }
+
     public createCatalogo(props: CatalogoType): CatalogoType {
 
         const id = uuidv4()
