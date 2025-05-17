@@ -35,7 +35,10 @@ export class CatalogoRepositoryMock {
             price: props.price
         }
 
+        this.baseCatalogo[id] = room
+
         return room
+
     }
 
 }
