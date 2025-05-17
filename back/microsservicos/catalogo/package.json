@@ -4,7 +4,8 @@
   "main": "index.js",
   "scripts": {
     "start:dev": "nodemon",
-    "start": "tsc || node ./disc/index.js"
+    "build": "tsc",
+    "start:dist": "node ./dist/index.js"
   },
   "keywords": [],
   "author": "",
