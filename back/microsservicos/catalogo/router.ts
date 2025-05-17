@@ -6,6 +6,6 @@ import { createCatalogoController } from "./app/create_catalogo/create_catalogo_
 const router: Router = Router()
 
 router.get('/catalogo', (req, res) => getAllCatalogoController.handle(req, res))
-router.post('/catalogo', (req, res) => createCatalogoController.handle(req, res))
+router.post('/catalogo', async (req, res) => await createCatalogoController.handle(req, res))
 
 export { router,  }
