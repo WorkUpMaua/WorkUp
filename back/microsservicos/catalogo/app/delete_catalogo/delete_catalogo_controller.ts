@@ -17,8 +17,6 @@ export class DeleteCatalogoController {
 
             const deletedCatalogo = this.usecase.execute(id)
 
-            if (!deletedCatalogo) throw new Error('ID não encontrado')
-
             // manda para o barramento de eventos
             await axios.post('http://localhost:10001/events', {
                 type: 'CatalogoDeleted',
