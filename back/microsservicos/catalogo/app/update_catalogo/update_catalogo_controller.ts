@@ -1,7 +1,7 @@
 import axios from "axios";
+import { Request, Response } from 'express'
 import { updateCatalogoProps } from "../../repo/catalogoRepositoryMock";
 import { UpdateCatalogoUsecase } from "./update_catalogo_usecase";
-import { Request, Response } from 'express'
 
 export class UpdateCatalogoController {
 
