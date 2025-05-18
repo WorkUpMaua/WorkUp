@@ -63,4 +63,14 @@ export class CatalogoRepositoryMock {
         
     }
 
+    public deleteCatalogo(id: string): CatalogoType {
+        
+        const room_to_delete = this.getCatalogo(id)
+
+        delete this.baseCatalogo[id]
+
+        return room_to_delete
+
+    }
+
 }
