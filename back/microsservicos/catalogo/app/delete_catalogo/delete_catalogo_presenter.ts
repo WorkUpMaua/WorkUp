@@ -1,0 +1,7 @@
+import { Environments } from "../../environments";
+import { DeleteCatalogoController } from "./delete_catalogo_controller";
+import { DeleteCatalogoUsecase } from "./delete_catalogo_usecase";
+
+const repo = Environments.instance.repo
+const usecase = new DeleteCatalogoUsecase(repo)
+export const deleteCatalogoController = new DeleteCatalogoController(usecase)
