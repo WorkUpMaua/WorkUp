@@ -10,6 +10,9 @@ export type CatalogoType = {
     price: number
 }
 
+// Deixa id obrigatoria e o resto opcional
+export type updateCatalogoProps = Pick<CatalogoType, 'id'> & Partial<Omit<CatalogoType, 'id'>>
+
 type baseCatalogoType = { 
     [key: string]: CatalogoType 
 }
@@ -43,6 +46,21 @@ export class CatalogoRepositoryMock {
 
         return room
 
+    }
+
+    public updateCatalogo(props: updateCatalogoProps): CatalogoType {
+
+        const room_to_update = this.getCatalogo(props.id)
+
+        if(props.name) room_to_update.name = props.name
+        if(props.description) room_to_update.description = props.description
+        if(props.address) room_to_update.address = props.address
+        if(props.comodities) room_to_update.comodities = props.comodities
+        if(props.pictures && props.pictures.length > 0) room_to_update.pictures = props.pictures
+        if(props.price) room_to_update.price = props.price
+        
+        return room_to_update
+        
     }
 
 }
