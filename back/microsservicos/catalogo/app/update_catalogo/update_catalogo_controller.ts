@@ -11,11 +11,12 @@ export class UpdateCatalogoController {
 
         try {
 
-            const body = req.body
+            const id = req.params.id;
 
-            if (body.id === undefined) throw new Error('Missing room id')
+            if (id === undefined) throw new Error('ID não informado')
+            if (id.length !== 36) throw new Error('ID inválido')
 
-            const props = body as updateCatalogoProps
+            const props: updateCatalogoProps = { id, ...req.body };
 
             const room_updated = this.usecase.execute(props)
 
@@ -26,7 +27,10 @@ export class UpdateCatalogoController {
             })
             .then()
             .catch( (err) => { throw err })
-            .finally( () => res.json(room_updated) )
+            .finally( () => res.json({
+                "room": room_updated,
+                "message": "A sala foi atualizada com sucesso!"
+            }) )
 
         } catch (err) {
             res.status(500).json({
