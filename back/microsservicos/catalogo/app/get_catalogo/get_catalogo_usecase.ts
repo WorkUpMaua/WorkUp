@@ -1,6 +1,6 @@
 import { CatalogoRepositoryMock } from "../../repo/catalogoRepositoryMock";
 
-export class CreateCatalogoUsecase {
+export class GetCatalogoUsecase {
 
     constructor(private repo: CatalogoRepositoryMock) {}
 

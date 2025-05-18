@@ -1,14 +1,22 @@
-import { GetAllCatalogoUsecase } from "../get_all_catalogo/get_all_catalogo_usecase";
-import { Request, Response } from 'express'
+import { Request, Response } from "express";
+import { GetCatalogoUsecase } from "./get_catalogo_usecase";
 
 export class GetCatalogoController {
+  constructor(private usecase: GetCatalogoUsecase) {}
 
-    constructor(private usecase: GetAllCatalogoUsecase) {}
+  public handle(req: Request, res: Response): void {
+    try {
+      const { id } = req.params;
 
-    public handle(req: Request, res: Response): void {
+      if (id === undefined) throw new Error("Missing room id");
 
-        
+      const room = this.usecase.exectute(id);
 
+      res.json(room);
+    } catch (err) {
+        res.status(500).json({
+            message: err instanceof Error ? err.message : String(err)
+        })
     }
-
+  }
 }
