@@ -31,9 +31,7 @@ export class CreateCatalogoController {
             })
             .then()
             .catch( (err) => { throw err } )
-            .finally( () => res.status(201).json(createdRoom) )
-
-            res.status(201).json(createdRoom)
+            .finally(() => res.status(201).json(createdRoom))
 
         } catch (err) {
             res.status(500).json({
