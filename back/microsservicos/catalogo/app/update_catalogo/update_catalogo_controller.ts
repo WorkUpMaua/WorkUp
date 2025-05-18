@@ -26,8 +26,12 @@ export class UpdateCatalogoController {
             })
             .then()
             .catch( (err) => { throw err })
-            .finally()
+            .finally( () => res.json(room_updated) )
 
+        } catch (err) {
+            res.status(500).json({
+                message: err instanceof Error ? err.message : String(err)
+            })
         }
 
     }
