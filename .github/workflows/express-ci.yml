@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  compile-microservices:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        service:
+          - catalogo
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+
+      - name: Install dependencies for ${{ matrix.service }}
+        working-directory: ./back/microsservicos/${{ matrix.service }}
+        run: npm install
+
+      - name: Check ${{ matrix.service }}
+        working-directory: ./back/microsservicos/${{ matrix.service }}
+        run: npm run check
