@@ -1,6 +1,6 @@
-import { DeleteCatalogoUsecase } from "./delete_catalogo_usecase"
 import { Request, Response } from 'express'
 import axios from 'axios'
+import { DeleteCatalogoUsecase } from "./delete_catalogo_usecase"
 
 export class DeleteCatalogoController {
 
