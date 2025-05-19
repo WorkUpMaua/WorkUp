@@ -1,4 +1,4 @@
-import React from "react";
+/*import React from "react";
 import Logo from "../assets/logo_WorkUp.png";
 import RoomCard from "../components/RoomCard";
 import CatalogFilter from "../components/CatalogFilter";
@@ -127,4 +127,4 @@ export default class Catalog extends React.Component {
       </div>
     );
   }
-}
+}*/
