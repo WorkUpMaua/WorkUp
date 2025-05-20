@@ -1,0 +1,131 @@
+/*@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .user-profile-container {
+    @apply flex justify-center p-10 px-5 bg-gray-50 min-h-screen font-sans;
+  }
+
+  .profile-card {
+    @apply bg-white rounded-2xl p-8 max-w-[900px] w-full shadow-lg relative;
+  }
+
+  .profile-header {
+    @apply flex items-start mb-8 border-b-2 border-gray-100 pb-5 relative;
+  }
+
+  .profile-avatar {
+    @apply w-[100px] h-[100px] mr-6 rounded-full border-4 border-primary bg-gray-100 object-cover;
+  }
+
+  .profile-header h2 {
+    @apply m-0 text-secondary text-2xl;
+  }
+
+  .profile-header p {
+    @apply mt-1.5 mb-0 text-text-gray text-sm;
+  }
+
+  .back-button {
+    @apply absolute top-0 right-0 text-primary no-underline font-medium flex items-center gap-1.5 hover:underline;
+  }
+
+  .profile-info h3 {
+    @apply my-6 mt-0 text-secondary border-l-4 border-primary pl-2.5 text-lg;
+  }
+
+  .info-row {
+    @apply flex flex-wrap gap-5 my-3 my-0 mb-6;
+  }
+
+  .input-group {
+    @apply flex-1 flex-[1_1_40%] min-w-[250px] flex flex-col gap-1.5;
+  }
+
+  .info-row input[type="text"],
+  .info-row input[type="email"],
+  .info-row input[type="tel"],
+  .info-row input[type="password"] {
+    @apply flex-1 flex-[1_1_40%] px-4 py-3 border border-gray-200 rounded-lg text-base transition-colors duration-300 min-w-[250px];
+  }
+
+  .info-row input:disabled {
+    @apply bg-gray-50 text-gray-600 border-gray-100;
+  }
+
+  .info-row input:focus {
+    @apply border-primary outline-none shadow-[0_0_0_2px_rgba(0,151,167,0.2)];
+  }
+
+  .error-input {
+    @apply border-red-500;
+  }
+
+  .error-message {
+    @apply text-red-500 text-sm -mt-2.5 mb-2.5;
+  }
+
+  .info-row label {
+    @apply flex items-center gap-2 text-base text-gray-700 cursor-pointer flex-1 flex-[1_1_100%] py-1.5;
+  }
+
+  .info-row input[type="checkbox"] {
+    @apply w-[18px] h-[18px] accent-primary;
+  }
+
+  .form-actions {
+    @apply flex justify-end gap-4 mt-8 pt-5 border-t border-gray-100;
+  }
+
+  .edit-button,
+  .save-button,
+  .cancel-button {
+    @apply px-6 py-3 rounded-lg text-base cursor-pointer transition-all duration-200 font-medium;
+  }
+
+  .edit-button {
+    @apply bg-primary text-white border-none hover:bg-primary-dark hover:-translate-y-0.5;
+  }
+
+  .save-button {
+    @apply bg-primary text-white border-none hover:bg-primary-dark hover:-translate-y-0.5;
+  }
+
+  .cancel-button {
+    @apply bg-transparent text-text-gray border border-gray-300 hover:bg-gray-50 hover:-translate-y-0.5;
+  }
+
+  .success-message {
+    @apply bg-green-500 text-white px-5 py-3 rounded-lg mb-5 text-center animate-[fadeIn_0.3s];
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 768px) {
+  .profile-header {
+    @apply flex-col items-center text-center;
+  }
+  
+  .profile-avatar {
+    @apply mr-0 mb-4;
+  }
+  
+  .back-button {
+    @apply static mt-4 justify-center;
+  }
+  
+  .form-actions {
+    @apply flex-col;
+  }
+  
+  .edit-button,
+  .save-button,
+  .cancel-button {
+    @apply w-full;
+  }
+} */
