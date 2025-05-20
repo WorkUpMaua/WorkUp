@@ -21,7 +21,7 @@ export default function ListingCard({ listing }: ListingCardProps) {
         <span className="absolute top-4 left-4 bg-primary text-white px-4 py-2 rounded-full font-bold text-sm z-[1]">
           R$ {listing.price.toLocaleString('pt-BR')}/dia
         </span>
-        <button className="absolute top-4 right-4 bg-white text-text-gray border-none w-9 h-9 rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 z-[1] hover:text-red-500 hover:scale-110">
+        <button className="absolute top-4 right-4 bg-blue-500 text-text-gray border-none w-9 h-9 rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 z-[1] hover:text-red-500 hover:scale-110">
           <i className="far fa-heart"></i>
         </button>
       </div>

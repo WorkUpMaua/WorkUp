@@ -1,17 +1,18 @@
 import React from 'react';
+import { HomeFiltersType } from '../pages/Home';
 
 interface HomeSearchFormProps {
   searchQuery: string;
   setSearchQuery: (value: string) => void;
-  filters: any;
-  setFilters: (filters: any) => void;
+  filters: HomeFiltersType;
+  setFilters: React.Dispatch<React.SetStateAction<HomeFiltersType>>;
   onSubmit: (e: React.FormEvent) => void;
 }
 
 export default function HomeSearchForm({ searchQuery, setSearchQuery, filters, setFilters, onSubmit }: HomeSearchFormProps) {
   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFilters((prev: any) => ({
+    setFilters((prev: HomeFiltersType) => ({
       ...prev,
       [name]: value
     }));
