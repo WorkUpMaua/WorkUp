@@ -8,6 +8,7 @@ export type CatalogoType = {
     comodities: string[]
     pictures: string[]
     price: number
+    capacity: number
 }
 
 // Deixa id obrigatoria e o resto opcional
@@ -39,7 +40,8 @@ export class CatalogoRepositoryMock {
             address: props.address,
             comodities: props.comodities,
             pictures: props.pictures,
-            price: props.price
+            price: props.price,
+            capacity: props.capacity
         }
 
         this.baseCatalogo[id] = room
@@ -58,6 +60,7 @@ export class CatalogoRepositoryMock {
         if(props.comodities) room_to_update.comodities = props.comodities
         if(props.pictures && props.pictures.length > 0) room_to_update.pictures = props.pictures
         if(props.price) room_to_update.price = props.price
+        if(props.capacity) room_to_update.capacity = props.capacity
         
         return room_to_update
         
