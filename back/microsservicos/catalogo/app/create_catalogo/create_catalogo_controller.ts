@@ -19,6 +19,7 @@ export class CreateCatalogoController {
             if (body.comodities === undefined) throw new Error('Missing catalogo comodities')
             if (body.pictures === undefined) throw new Error('Missing catalogo pictures')
             if (body.price === undefined) throw new Error('Missing catalogo price')
+            if (body.capacity === undefined) throw new Error('Missing catalogo capacity')
     
             const roomProps = body as CatalogoType
 

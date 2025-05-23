@@ -8,6 +8,8 @@ export class GetCatalogoUsecase {
         
         const room = this.repo.getCatalogo(id)
 
+        if(!room) throw new Error('ID não encontrado')
+
         return room
 
     }
