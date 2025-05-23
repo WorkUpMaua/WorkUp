@@ -9,7 +9,7 @@ export default function SidebarMenu({ active, onClose }: SidebarMenuProps) {
       {active && (
         <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 transition-opacity" onClick={onClose}></div>
       )}
-      <div className={`fixed top-0 left-0 w-[280px] h-full bg-secondary text-white py-5 -translate-x-full transition-transform duration-300 z-50 shadow-lg flex flex-col ${active ? 'translate-x-0' : ''}`}>
+      <div className={`fixed top-0 left-0 w-[280px] h-full bg-[#34495e] text-white py-5 -translate-x-full transition-transform duration-300 z-50 shadow-lg flex flex-col ${active ? 'translate-x-0' : ''}`}>
         <div className="p-5 text-center border-b border-white/10 mb-5">
           <h2 className="text-2xl font-semibold">WorkUp</h2>
         </div>

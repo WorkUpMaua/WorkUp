@@ -4,7 +4,6 @@ import Logo from '../assets/logo_WorkUp.png';
 import Notificacao from '../assets/icon_notificacao.png';
 import ProfilePersonalInfo from '../components/ProfilePersonalInfo';
 import ProfilePreferences from '../components/ProfilePreferences';
-import ProfileSecurity from '../components/ProfileSecurity';
 
 interface FormData {
   name: string;
@@ -13,9 +12,6 @@ interface FormData {
   company: string;
   notifications: boolean;
   newsletter: boolean;
-  currentPassword: string;
-  newPassword: string;
-  confirmPassword: string;
 }
 
 interface FormErrors {
@@ -30,9 +26,6 @@ function UserProfile(): React.ReactElement {
     company: 'Tech Solutions',
     notifications: true,
     newsletter: false,
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: ''
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
@@ -40,8 +33,8 @@ function UserProfile(): React.ReactElement {
   const [successMessage, setSuccessMessage] = useState<string>('');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type } = e.target as HTMLInputElement;
-    const checked = type === 'checkbox' ? (e.target as HTMLInputElement).checked : undefined;
+    const { name, value, type } = e.target;
+    const checked = type === 'checkbox' ? e.target.checked : undefined;
     setFormData(prev => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value
@@ -67,14 +60,6 @@ function UserProfile(): React.ReactElement {
     if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = 'Email inválido';
     }
-    if (formData.newPassword) {
-      if (formData.newPassword.length < 6) {
-        newErrors.newPassword = 'A senha deve ter pelo menos 6 caracteres';
-      }
-      if (formData.newPassword !== formData.confirmPassword) {
-        newErrors.confirmPassword = 'As senhas não coincidem';
-      }
-    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -92,7 +77,7 @@ function UserProfile(): React.ReactElement {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-bg-light to-gray-100">
-      <header className="fixed top-0 left-0 w-full h-20 bg-primary text-white flex items-center justify-between px-8 z-40 shadow-md">
+      <header className="fixed top-0 left-0 w-full h-20 bg-[#34495e] text-white flex items-center justify-between px-8 z-40 shadow-md">
         <div className="flex items-center">
           <Link to="/" className="flex items-center gap-2.5 text-base bg-white/20 border-none cursor-pointer transition-all duration-300 px-4 py-2 rounded-lg hover:bg-white/30">
             <i className="fas fa-arrow-left"></i>
@@ -100,7 +85,7 @@ function UserProfile(): React.ReactElement {
           </Link>
         </div>
         <div className="flex items-center justify-center">
-          <img src={Logo} alt="WorkUp Logo" className="h-11 filter brightness-0 invert" />
+          <img src={Logo} alt="WorkUp Logo" className="h-14 filter brightness-0 invert" />
         </div>
         <div className="flex items-center justify-end gap-6">
           <div className="relative cursor-pointer">
@@ -147,12 +132,6 @@ function UserProfile(): React.ReactElement {
                 <div className="space-y-6">
                   <ProfilePreferences
                     formData={formData}
-                    isEditing={isEditing}
-                    handleChange={handleChange}
-                  />
-                  <ProfileSecurity
-                    formData={formData}
-                    errors={errors}
                     isEditing={isEditing}
                     handleChange={handleChange}
                   />

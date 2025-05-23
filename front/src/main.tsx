@@ -5,7 +5,7 @@ import "./styles/index.css";
 import Home from "./pages/Home";
 import Workspace from "./pages/Workspace";
 import UserProfile from "./pages/UserProfile";
-
+import 'flatpickr/dist/themes/material_blue.css';
 // // Add Font Awesome
 // const fontAwesomeScript = document.createElement('script')
 // fontAwesomeScript.src = 'https://kit.fontawesome.com/your-kit-code.js'

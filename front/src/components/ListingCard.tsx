@@ -18,7 +18,7 @@ export default function ListingCard({ listing }: ListingCardProps) {
     <div className="bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300 flex flex-col relative hover:-translate-y-1 hover:shadow-xl">
       <div className="relative w-full h-[220px] overflow-hidden">
         <img src={listing.image} alt={listing.title} className="w-full h-full object-cover transition-all duration-300 group-hover:scale-105" />
-        <span className="absolute top-4 left-4 bg-primary text-white px-4 py-2 rounded-full font-bold text-sm z-[1]">
+        <span className="absolute top-4 left-4 bg-primary text-[#black] px-4 py-2 rounded-full font-bold text-sm z-[1]">
           R$ {listing.price.toLocaleString('pt-BR')}/dia
         </span>
         <button className="absolute top-4 right-4 bg-blue-500 text-text-gray border-none w-9 h-9 rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 z-[1] hover:text-red-500 hover:scale-110">

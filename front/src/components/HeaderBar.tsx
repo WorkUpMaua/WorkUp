@@ -8,7 +8,7 @@ interface HeaderBarProps {
 
 export default function HeaderBar({ onMenuClick }: HeaderBarProps) {
   return (
-    <header className="fixed top-0 left-0 w-full h-20 bg-[#3498db] text-white flex items-center justify-between px-8 z-40 shadow-md">
+    <header className="fixed top-0 left-0 w-full h-20 bg-[#34495e] text-white flex items-center justify-between px-8 z-40 shadow-md">
       <div className="flex items-center">
         <button
           className="flex items-center gap-2.5 text-base bg-white/20 border-none cursor-pointer transition-all duration-300 px-4 py-2 rounded-lg hover:bg-white/30"
@@ -19,7 +19,7 @@ export default function HeaderBar({ onMenuClick }: HeaderBarProps) {
         </button>
       </div>
       <div className="flex items-center justify-center">
-        <img src={Logo} alt="WorkUp Logo" className="h-11 filter brightness-0 invert" />
+        <img src={Logo} alt="WorkUp Logo" className="h-14 filter brightness-0 invert" />
       </div>
       <div className="flex items-center justify-end gap-6">
         <div className="relative cursor-pointer">

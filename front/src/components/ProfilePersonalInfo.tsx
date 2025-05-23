@@ -1,8 +1,22 @@
 import React from 'react';
 
+interface FormData {
+  name: string;
+  email: string;
+  phone: string;
+  company: string;
+}
+
+interface Errors {
+  name?: string;
+  email?: string;
+  phone?: string;
+  company?: string;
+}
+
 interface Props {
-  formData: any;
-  errors: any;
+  formData: FormData;
+  errors: Errors;
   isEditing: boolean;
   handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }

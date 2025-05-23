@@ -1,8 +1,17 @@
 import React from 'react';
 
+interface FormData {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}  
+interface Errors {
+  newPassword?: string;
+  confirmPassword?: string;
+}
 interface Props {
-  formData: any;
-  errors: any;
+  formData: FormData;
+  errors: Errors;
   isEditing: boolean;
   handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }

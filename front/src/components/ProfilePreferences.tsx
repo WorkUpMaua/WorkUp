@@ -1,7 +1,12 @@
 import React from 'react';
 
+
+interface FormData {
+  notifications: boolean;
+  newsletter: boolean;
+} 
 interface Props {
-  formData: any;
+  formData: FormData;
   isEditing: boolean;
   handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
