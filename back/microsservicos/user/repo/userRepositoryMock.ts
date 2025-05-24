@@ -1,4 +1,8 @@
-type informationType = {
+import { v4 as uuidv4 } from 'uuid';
+import bcrypt from 'bcrypt';
+
+export type informationType = {
+    id: string
     name: string
     email: string
     cpf: string
@@ -6,14 +10,22 @@ type informationType = {
     phone: string
 }
 
-type authType = {
+export type authType = {
     username: string
     password: string
 }
 
-interface User {
+export interface User {
     auth: authType
     information: informationType
+}
+
+// Deixa o id opcional e o resto obrigatorio
+export type informationWithoutID = Omit<informationType, 'id'> & Partial<Pick<informationType, 'id'>>
+
+export type createUserPropsType = {
+    auth: authType
+    information: informationWithoutID
 }
 
 type baseUserType = {
@@ -24,8 +36,43 @@ export class UserRepositoryMock {
 
     private baseUser: baseUserType = {}
 
+    private encryptPass(pass: string): string {
+        const saltRounds = 8
+        const hash = bcrypt.hashSync(pass, saltRounds)
+        return hash
+    }
+
     public getAllUser(): baseUserType {
         return this.baseUser
+    }
+
+    public createUser(props: createUserPropsType): informationType {
+
+        const id = uuidv4()
+
+        const auth: authType = {
+            username: props.auth.username,
+            password: this.encryptPass(props.auth.password)
+        } 
+
+        const information: informationType = {
+            id,
+            name: props.information.name,
+            email: props.information.email,
+            cpf: props.information.cpf,
+            birth: props.information.birth,
+            phone: props.information.phone
+        }
+
+        const user: User = {
+            auth,
+            information
+        } 
+
+        this.baseUser[id] = user
+
+        return information
+
     }
 
 }
