@@ -44,6 +44,10 @@ export class UserRepositoryMock {
     return hash;
   }
 
+  private comparePass(pass: string, hash: string): boolean {
+    return bcrypt.compareSync(pass, hash)
+  }
+
   private checkDuplicateUser(username: string): boolean {
     return Object.values(this.baseUser).some(
       (user) => user.auth.username === username
@@ -62,6 +66,16 @@ export class UserRepositoryMock {
 
   public getUser(id: string): informationType {
     return this.baseUser[id].information;
+  }
+
+  public loginUser(props: authType): string | undefined {
+
+    const user: User | undefined = Object.values(this.baseUser).find( user => user.auth.username === props.username)
+
+    if(!user) throw new Error('User not found')
+
+    if(this.comparePass(props.password, user.auth.password)) return user.information.id
+
   }
 
   public createUser(props: createUserPropsType): informationType {
