@@ -37,10 +37,8 @@ export class CreateUserUsecase {
   }
 
   public execute(props: createUserPropsType) {
-
-    // Validar se o usuario ja existe com o get_user
-
-    if(!this.validateEmail(props.information.email)) throw new Error('Field email is invalid')
+    
+    if(!this.validateEmail(props.auth.username)) throw new Error('Field email is invalid')
 
     if(!this.validateCPF(props.information.cpf)) throw new Error('Field cpf is invalid')
 

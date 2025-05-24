@@ -17,7 +17,6 @@ export class CreateUserController {
             if(body.username === undefined) throw new Error('Missing user username')
             if(body.password === undefined) throw new Error('Missing user password')
             if(body.name === undefined) throw new Error('Missing user name')
-            if(body.email === undefined) throw new Error('Missing user email')
             if(body.cpf === undefined) throw new Error('Missing user cpf')
             if(body.birth === undefined) throw new Error('Missing user birth')
             if(body.phone === undefined) throw new Error('Missing user phone')
@@ -29,8 +28,8 @@ export class CreateUserController {
 
             const information: informationWithoutID = {
                 name: body.name as string,
-                email: body.email as string,
                 cpf: body.cpf as string,
+                email: body.username as string,
                 birth: body.birth as number,
                 phone: body.phone as string
             }
