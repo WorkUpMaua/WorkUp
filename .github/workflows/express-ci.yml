@@ -13,6 +13,7 @@ jobs:
       matrix:
         service:
           - catalogo
+          - user
 
     steps:
       - uses: actions/checkout@v3

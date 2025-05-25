@@ -1,13 +1,13 @@
-import { CatalogoType } from "../../repo/catalogoRepositoryMock";
 import { CreateCatalogoUsecase } from "./create_catalogo_usecase";
 import { Request, Response } from 'express'
 import axios from 'axios'
+import { Catalogo } from "../../shared/interfaces";
 
 export class CreateCatalogoController {
 
     constructor(private usecase: CreateCatalogoUsecase) {}
 
-    public async handle(req: Request, res: Response): Promise<void> {
+    public handle(req: Request, res: Response): void {
 
         try {
 
@@ -21,17 +21,17 @@ export class CreateCatalogoController {
             if (body.price === undefined) throw new Error('Missing catalogo price')
             if (body.capacity === undefined) throw new Error('Missing catalogo capacity')
     
-            const roomProps = body as CatalogoType
+            const roomProps = body as Catalogo
 
             const createdRoom = this.usecase.execute(roomProps)
 
             // manda para o barramento de eventos
-            await axios.post('http://localhost:10001/events', {
+            axios.post('http://localhost:10001/events', {
                 type: 'CatalogoCreated',
                 payload: roomProps
             })
             .then()
-            .catch( (err) => { throw err } )
+            .catch( (err) => console.log(err) )
             .finally(() => res.status(201).json(createdRoom))
 
         } catch (err) {

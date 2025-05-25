@@ -1,4 +1,5 @@
-import { CatalogoRepositoryMock, updateCatalogoProps } from "../../repo/catalogoRepositoryMock";
+import { CatalogoRepositoryMock } from "../../shared/repo/catalogoRepositoryMock";
+import { updateCatalogoProps } from "../../shared/types";
 
 export class UpdateCatalogoUsecase {
 

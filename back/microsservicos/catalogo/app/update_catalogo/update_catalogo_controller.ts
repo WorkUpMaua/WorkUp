@@ -1,13 +1,13 @@
 import axios from "axios";
 import { Request, Response } from 'express'
-import { updateCatalogoProps } from "../../repo/catalogoRepositoryMock";
 import { UpdateCatalogoUsecase } from "./update_catalogo_usecase";
+import { updateCatalogoProps } from "../../shared/types";
 
 export class UpdateCatalogoController {
 
     constructor(private usecase: UpdateCatalogoUsecase) {}
 
-    public async handle(req: Request, res: Response): Promise<void> {
+    public handle(req: Request, res: Response): void {
 
         try {
 
@@ -21,12 +21,12 @@ export class UpdateCatalogoController {
             const room_updated = this.usecase.execute(props)
 
             // manda para o barramento de eventos
-            await axios.post('http://localhost:10001/events', {
+            axios.post('http://localhost:10001/events', {
                 type: 'CatalogoUpdated',
                 payload: props
             })
             .then()
-            .catch( (err) => { throw err })
+            .catch( (err) => console.log(err))
             .finally( () => res.json({
                 "room": room_updated,
                 "message": "A sala foi atualizada com sucesso!"
