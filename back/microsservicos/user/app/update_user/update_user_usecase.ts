@@ -1,7 +1,6 @@
-import { validate } from "uuid";
 import { UserRepositoryMock } from "../../shared/repo/userRepositoryMock";
-import { updateUserPropsType } from "../../shared/types/Routes";
 import { userInfoValidation } from "../../shared/validations/userInfoValidation";
+import { updateUserPropsType } from "../../shared/types";
 
 export class UpdateUserUsecase {
   constructor(private repo: UserRepositoryMock) {}

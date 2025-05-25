@@ -1,5 +1,5 @@
-import { UserRepositoryMock } from "../../shared/repo/userRepositoryMock";
-import { createUserPropsType } from "../../shared/types/Routes";
+import { createUserPropsType, UserRepositoryMock } from "../../shared/repo/userRepositoryMock";
+
 import { userInfoValidation } from "../../shared/validations/userInfoValidation";
 
 export class CreateUserUsecase {

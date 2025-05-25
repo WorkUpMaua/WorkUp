@@ -1,7 +1,8 @@
 import axios from "axios";
-import { updateUserPropsType } from "../../shared/types/Routes";
+
 import { UpdateUserUsecase } from "./update_user_usecase";
 import { Request, Response } from "express";
+import { updateUserPropsType } from "../../shared/types";
 
 export class UpdateUserController {
   constructor(private usecase: UpdateUserUsecase) {}

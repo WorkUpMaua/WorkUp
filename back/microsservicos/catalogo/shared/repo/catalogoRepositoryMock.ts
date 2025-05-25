@@ -1,18 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
+import { CatalogoType } from '../types/Catalogo';
+import { updateCatalogoProps } from '../types';
 
-export type CatalogoType = {
-    id: string
-    name: string
-    description: string
-    address: string
-    comodities: string[]
-    pictures: string[]
-    price: number
-    capacity: number
-}
-
-// Deixa id obrigatoria e o resto opcional
-export type updateCatalogoProps = Pick<CatalogoType, 'id'> & Partial<Omit<CatalogoType, 'id'>>
 
 type baseCatalogoType = { 
     [key: string]: CatalogoType 

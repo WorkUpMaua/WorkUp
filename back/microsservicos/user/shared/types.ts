@@ -1,4 +1,16 @@
-import { authType, informationType } from "./User";
+export type informationType = {
+  id: string;
+  name: string;
+  email: string;
+  cpf: string;
+  birth: number;
+  phone: string;
+};
+
+export type authType = {
+  username: string;
+  password: string;
+};
 
 export type getAllUserReturnType = { [key: string]: informationType };
 
@@ -12,4 +24,5 @@ export type createUserPropsType = {
 };
 
 // Deixa o id obrigatorio e o resto opcional, com excessao do email
-export type updateUserPropsType = Pick<informationType, 'id'> & Partial<Omit<informationType, 'id' | 'email'>>
+export type updateUserPropsType = Pick<informationType, "id"> &
+  Partial<Omit<informationType, "id" | "email">>;

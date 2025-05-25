@@ -1,11 +1,8 @@
 import { v4 as uuidv4 } from "uuid";
 import bcrypt from "bcrypt";
-import { authType, informationType, User } from "../types/User";
-import {
-  createUserPropsType,
-  getAllUserReturnType,
-  updateUserPropsType,
-} from "../types/Routes";
+import { User } from "../interfaces";
+import { authType, createUserPropsType, getAllUserReturnType, informationType, updateUserPropsType } from "../types";
+
 
 type baseUserType = {
   [key: string]: User;

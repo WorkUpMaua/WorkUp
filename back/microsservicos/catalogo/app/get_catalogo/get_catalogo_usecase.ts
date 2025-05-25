@@ -1,4 +1,4 @@
-import { CatalogoRepositoryMock } from "../../repo/catalogoRepositoryMock";
+import { CatalogoRepositoryMock } from "../../shared/repo/catalogoRepositoryMock";
 
 export class GetCatalogoUsecase {
 

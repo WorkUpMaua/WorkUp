@@ -6,7 +6,7 @@ export class DeleteCatalogoController {
 
     constructor(private usecase: DeleteCatalogoUsecase) {}
     
-    public async handle(request: Request, response: Response): Promise<void> {
+    public handle(request: Request, response: Response): void {
         
         try {
 
@@ -18,12 +18,12 @@ export class DeleteCatalogoController {
             const deletedCatalogo = this.usecase.execute(id)
 
             // manda para o barramento de eventos
-            await axios.post('http://localhost:10001/events', {
+            axios.post('http://localhost:10001/events', {
                 type: 'CatalogoDeleted',
                 payload: deletedCatalogo
             })
             .then()
-            .catch( (err) => { throw err } )
+            .catch( (err) => console.log(err) )
             .finally(() => response.status(200).json({
                 "room": deletedCatalogo,
                 "message": "A sala foi deletada com sucesso!"
