@@ -108,6 +108,18 @@ export class UserRepositoryMock {
 
     return user_to_updade.information;
   }
+
+  public deleteUser(id: string): informationType {
+
+    if(!this.doesUserExistsByID(id)) throw new Error("User not found")
+
+    const user_to_delete = this.getUser(id)
+
+    delete this.baseUser[id]
+
+    return user_to_delete
+
+  }
 }
 export { authType, createUserPropsType };
 
