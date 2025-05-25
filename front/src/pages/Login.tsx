@@ -27,7 +27,7 @@ export default function Login() {
     };
 
     const handleRegister = () => {
-        navigate('/register');
+        navigate('/cadastro');
     };
 
     return (
