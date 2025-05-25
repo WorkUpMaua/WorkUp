@@ -6,7 +6,7 @@ import { Request, Response } from "express";
 export class UpdateUserController {
   constructor(private usecase: UpdateUserUsecase) {}
 
-  public async handle(req: Request, res: Response): Promise<void> {
+  public handle(req: Request, res: Response): void {
     try {
       const { id } = req.params;
       const body = req.body;
@@ -24,12 +24,12 @@ export class UpdateUserController {
       const updatedUser = this.usecase.execute(props)
 
       // manda para o barramento de eventos
-      await axios.post('http://localhost:10001/events', {
+      axios.post('http://localhost:10001/events', {
         type: 'UserUpdated',
         payload: updatedUser
       })
       .then()
-      .catch( (err) => { throw err })
+      .catch( (err) => console.log(err) )
       .finally(() => res.json({
         updatedUser,
         message: 'The user was updated'

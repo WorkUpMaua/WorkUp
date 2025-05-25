@@ -9,7 +9,7 @@ export class CreateUserController {
 
     constructor(private usecase: CreateUserUsecase) {}
 
-    public async handle(req: Request, res: Response): Promise<void> {
+    public handle(req: Request, res: Response): void {
 
         try {
 
@@ -43,12 +43,12 @@ export class CreateUserController {
             const createdUser = this.usecase.execute(userProps)
 
             // manda para o barramento de eventos
-            await axios.post('http://localhost:10001/events', {
+            axios.post('http://localhost:10001/events', {
                 type: 'UserCreated',
                 payload: createdUser
             })
             .then()
-            .catch( (err) => { throw err } )
+            .catch( (err) => console.log(err) )
             .finally(() => res.status(201).json({
                 createdUser,
                 message: 'The user was created'
