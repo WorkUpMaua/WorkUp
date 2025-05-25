@@ -1,7 +1,7 @@
 import {
-  informationType,
   UserRepositoryMock,
-} from "../../repo/userRepositoryMock";
+} from "../../shared/repo/userRepositoryMock";
+import { informationType } from "../../shared/types/User";
 
 export class GetUserUsecase {
   constructor(private repo: UserRepositoryMock) {}

@@ -1,4 +1,4 @@
-import { authType } from "../../repo/userRepositoryMock";
+import { authType } from "../../shared/repo/userRepositoryMock";
 import { LoginUserUsecase } from "./login_user_usecase";
 import { Request, Response } from 'express'
 

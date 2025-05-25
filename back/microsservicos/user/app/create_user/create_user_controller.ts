@@ -1,8 +1,9 @@
 import { Request, Response } from 'express'
 
 import { CreateUserUsecase } from "./create_user_usecase";
-import { authType, createUserPropsType, informationWithoutID, informationType } from '../../repo/userRepositoryMock';
+import { authType, createUserPropsType } from '../../shared/repo/userRepositoryMock';
 import axios from 'axios';
+import { informationWithoutID } from '../../shared/types/Routes';
 
 export class CreateUserController {
 

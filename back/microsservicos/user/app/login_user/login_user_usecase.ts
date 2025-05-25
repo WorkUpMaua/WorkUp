@@ -1,4 +1,4 @@
-import { authType, UserRepositoryMock } from "../../repo/userRepositoryMock";
+import { authType, UserRepositoryMock } from "../../shared/repo/userRepositoryMock";
 
 export class LoginUserUsecase {
 

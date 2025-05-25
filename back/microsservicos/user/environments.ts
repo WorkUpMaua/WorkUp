@@ -1,4 +1,4 @@
-import { UserRepositoryMock } from "./repo/userRepositoryMock";
+import { UserRepositoryMock } from "./shared/repo/userRepositoryMock";
 
 export class Environments {
   private static _instance: Environments;

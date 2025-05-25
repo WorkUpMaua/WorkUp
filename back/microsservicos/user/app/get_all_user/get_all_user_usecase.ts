@@ -1,4 +1,4 @@
-import { UserRepositoryMock } from "../../repo/userRepositoryMock";
+import { UserRepositoryMock } from "../../shared/repo/userRepositoryMock";
 
 export class GetAllUserUsecase {
 
