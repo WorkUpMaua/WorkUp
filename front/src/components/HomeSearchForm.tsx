@@ -60,7 +60,7 @@ export default function HomeSearchForm({
                 startDate: date ? (date as Date).toISOString().slice(0, 10) : '',
               }))
             }
-            render={({ defaultValue, ...props }, ref) => (
+            render={(props, ref) => (
               <input
                 {...props}
                 ref={ref}
@@ -92,7 +92,7 @@ export default function HomeSearchForm({
                 endDate: date ? (date as Date).toISOString().slice(0, 10) : '',
               }))
             }
-            render={({ defaultValue, ...props }, ref) => (
+            render={(props, ref) => (
               <input
                 {...props}
                 ref={ref}
