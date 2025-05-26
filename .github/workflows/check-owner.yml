@@ -12,7 +12,6 @@ jobs:
 
     env:
       repo: ${{ github.repository }}
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
       - name: Checkout code
