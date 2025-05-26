@@ -30,7 +30,7 @@ export default function Register() {
                 <img src={Logo} alt="Logo WorkUp" className="w-16" />
             </header>
 
-            <div className="max-w-md mx-auto mt-10 p-6 border rounded-xl shadow-md flex flex-col items-center">
+            <div className="max-w-md mx-auto my-10 p-6 border rounded-xl shadow-md flex flex-col items-center">
                 <h2 className="text-2xl font-bold mb-6 text-center">Cadastro</h2>
 
                 <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full">
