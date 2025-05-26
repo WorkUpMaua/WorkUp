@@ -5,14 +5,15 @@ import './styles/index.css'
 import Catalog from './pages/Catalog.tsx'
 import Cadastro from './pages/Cadastro.tsx'
 import Workspace from './pages/Workspace.tsx'
+import Login from './pages/Login.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Router>
       <Routes>
-        <Route path="/" element={<Navigate to="/cadastro" replace />} />
+        <Route path="/" element={<Navigate to="/Login" replace />} />
         <Route path="catalog" element={<Catalog />} />
-        <Route path="/cadastro" element={<Cadastro />} />
+        <Route path="login" element={<Login />} />
         <Route path="/workspace/:officeId" element={<Workspace />} />
       </Routes>
     </Router>
