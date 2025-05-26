@@ -12,7 +12,7 @@ createRoot(document.getElementById('root')!).render(
     <Router>
       <Routes>
         <Route path="/" element={<Login />} />
-        <Route path="/signup" element={<Cadastro />} />
+        <Route path="/cadastro" element={<Cadastro />} />
         <Route path="catalog" element={<Catalog />} />
         <Route path="/workspace/:officeId" element={<Workspace />} />
       </Routes>
