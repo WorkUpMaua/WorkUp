@@ -1,7 +1,6 @@
 {
   "name": "common",
   "version": "1.0.0",
-  "description": "Este guia descreve os passos necessários para configurar rapidamente uma instância do RabbitMQ utilizando Docker.",
   "main": "rabbitmq.ts",
   "scripts": {
     "build": "tsc"
