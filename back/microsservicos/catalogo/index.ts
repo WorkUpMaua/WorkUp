@@ -1,21 +1,12 @@
-import { closeRabbitMQConnection, consumeEvents } from 'common'
-import { App } from './app'
+import { closeRabbitMQConnection } from 'common'
+
 import dotenv from 'dotenv'
 import path from 'path'
-import { eventHandler } from './shared/eventsHandler'
+import { startQueue } from './shared/eventsHandler'
+import { App } from './shared/server/app'
 dotenv.config({
     path: path.resolve(__dirname, '..', '..', '.env')
 })
-
-const startQueue = async () => {
-    try {
-        await consumeEvents('catalogo_queue', '#.updated', eventHandler)
-        await consumeEvents('catalogo_queue', '#.deleted', eventHandler)
-    } catch (err) {
-        console.error('Couldn\'t start the service queues')
-        process.exit(1)
-    }
-}
 
 const port = process.env.CATALOG_MSS_PORT
 new App().server.listen(port, () => {

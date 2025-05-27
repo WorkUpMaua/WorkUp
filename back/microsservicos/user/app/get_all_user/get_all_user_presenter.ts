@@ -1,4 +1,4 @@
-import { Environments } from "../../environments";
+import { Environments } from "../../shared/environments";
 import { GetAllUserController } from "./get_all_user_controller";
 import { GetAllUserUsecase } from "./get_all_user_usecase";
 

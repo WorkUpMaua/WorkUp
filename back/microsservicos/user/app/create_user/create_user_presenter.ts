@@ -1,4 +1,4 @@
-import { Environments } from "../../environments";
+import { Environments } from "../../shared/environments";
 import { CreateUserController } from "./create_user_controller";
 import { CreateUserUsecase } from "./create_user_usecase";
 

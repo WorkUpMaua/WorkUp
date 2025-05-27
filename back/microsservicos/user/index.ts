@@ -1,6 +1,7 @@
-import { App } from './app'
+
 import dotenv from 'dotenv'
 import path from 'path'
+import { App } from './shared/server/app'
 dotenv.config({
     path: path.resolve(__dirname, '..', '..', '.env')
 })
