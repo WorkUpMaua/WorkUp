@@ -1,10 +1,11 @@
 import { Router } from "express";
-import { getAllUserController } from "./app/get_all_user/get_all_user_presenter";
-import { getUserController } from "./app/get_user/get_user_presenter";
-import { createUserController } from "./app/create_user/create_user_presenter";
-import { loginUserController } from "./app/login_user/login_user_presenter";
-import { updateUserController } from "./app/update_user/update_user_presenter";
-import { deleteUserController } from "./app/delete_user/delete_user_presenter";
+import { getAllUserController } from "../../app/get_all_user/get_all_user_presenter";
+import { getUserController } from "../../app/get_user/get_user_presenter";
+import { loginUserController } from "../../app/login_user/login_user_presenter";
+import { createUserController } from "../../app/create_user/create_user_presenter";
+import { updateUserController } from "../../app/update_user/update_user_presenter";
+import { deleteUserController } from "../../app/delete_user/delete_user_presenter";
+
 
 const router: Router = Router()
 
