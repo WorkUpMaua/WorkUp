@@ -43,6 +43,12 @@ Além de seu propósito funcional, o sistema serve como aplicação prática de 
 
 ---
 
+## 📚 Documentação da API
+
+A coleção completa de endpoints, exemplos de requisições e esquemas de resposta está disponível no Postman:
+
+[Documentação](https://documenter.getpostman.com/view/31820328/2sB2qXk31Q)
+
 ## 🤝 Integrantes
 
 - [João Paulo Bonagurio Ramirez](https://github.com/yJony)           | 22.01247-8

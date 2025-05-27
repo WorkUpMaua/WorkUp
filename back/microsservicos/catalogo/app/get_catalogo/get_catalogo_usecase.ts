@@ -1,4 +1,4 @@
-import { CatalogoRepositoryMock } from "../../repo/catalogoRepositoryMock";
+import { CatalogoRepositoryMock } from "../../shared/repo/catalogoRepositoryMock";
 
 export class GetCatalogoUsecase {
 
@@ -7,6 +7,8 @@ export class GetCatalogoUsecase {
     public exectute(id: string) {
         
         const room = this.repo.getCatalogo(id)
+
+        if(!room) throw new Error('ID não encontrado')
 
         return room
 
