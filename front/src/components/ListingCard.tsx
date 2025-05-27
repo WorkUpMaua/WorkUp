@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { useState, useEffect } from 'react'; // 1. Importar hooks do React
+import { useState, useEffect } from 'react'; 
 
 interface Listing {
   id: string;
@@ -15,14 +15,11 @@ interface ListingCardProps {
 }
 
 export default function ListingCard({ listing }: ListingCardProps) {
-  // 2. Estado para armazenar o número aleatório de pessoas
   const [numberOfPeople, setNumberOfPeople] = useState(0);
 
   useEffect(() => {
-    // Gera um número aleatório (por exemplo, entre 1 e 9) quando o componente é montado
     setNumberOfPeople(Math.floor(Math.random() * 9) + 1);
-  }, []); // O array de dependências vazio garante que isso execute apenas uma vez
-
+  }, []); 
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300 flex flex-col relative hover:-translate-y-1 hover:shadow-xl">
       <div className="relative w-full h-[220px] overflow-hidden">
@@ -50,7 +47,7 @@ export default function ListingCard({ listing }: ListingCardProps) {
         </div>
         <Link
           to={`/workspace/${listing.id}`}
-          className="mt-auto bg-transparent border border-primary text-primary px-4 py-2.5 rounded-lg cursor-pointer font-medium text-sm transition-all duration-300 flex items-center justify-center gap-2 hover:bg-primary hover:text-white hover:-translate-y-0.5"
+          className="mt-auto bg-transparent border border-primary text-primary px-4 py-2.5 rounded-lg cursor-pointer font-medium text-sm transition-all duration-300 flex items-center justify-center gap-2 hover:bg-primary hover:-translate-y-0.5"
         >
           Ver detalhes <i className="fas fa-arrow-right"></i>
         </Link>

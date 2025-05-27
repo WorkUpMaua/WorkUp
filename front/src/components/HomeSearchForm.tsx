@@ -29,7 +29,6 @@ export default function HomeSearchForm({
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-8 w-full mx-auto bg-white p-8 rounded-lg shadow-md">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
-        {/* Pesquisa */}
         <div className="relative flex-1 min-w-[200px]">
           <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-text-gray"></i>
           <input
@@ -48,7 +47,6 @@ export default function HomeSearchForm({
             Pesquisar imóveis
           </label>
         </div>
-        {/* Check-in */}
         <div className="relative flex-1 min-w-[200px]">
           <i className="far fa-calendar-alt absolute left-4 top-1/2 -translate-y-1/2 text-text-gray z-[2] text-base"></i>
           <Flatpickr
@@ -80,7 +78,6 @@ export default function HomeSearchForm({
             Check-in
           </label>
         </div>
-        {/* Check-out */}
         <div className="relative flex-1 min-w-[200px]">
           <i className="far fa-calendar-alt absolute left-4 top-1/2 -translate-y-1/2 text-text-gray z-[2] text-base"></i>
           <Flatpickr
@@ -112,14 +109,12 @@ export default function HomeSearchForm({
             Check-out
           </label>
         </div>
-        {/* Pessoas */}
         <div className="relative flex-1 min-w-[200px]">
           <i className="fas fa-users absolute left-4 top-1/2 -translate-y-1/2 text-text-gray"></i>
           <input
             type="number"
             name="guests"
             id="guests"
-            min={1}
             value={filters.guests}
             onChange={handleFilterChange}
             placeholder=" "
@@ -133,7 +128,6 @@ export default function HomeSearchForm({
             Pessoas
           </label>
         </div>
-        {/* Preço mínimo */}
         <div className="relative flex-1 min-w-[200px]">
           <i className="fas fa-dollar-sign absolute left-4 top-1/2 -translate-y-1/2 text-text-gray"></i>
           <input
@@ -153,7 +147,6 @@ export default function HomeSearchForm({
             Preço mínimo
           </label>
         </div>
-        {/* Preço máximo */}
         <div className="relative flex-1 min-w-[200px]">
           <i className="fas fa-dollar-sign absolute left-4 top-1/2 -translate-y-1/2 text-text-gray"></i>
           <input
@@ -173,7 +166,6 @@ export default function HomeSearchForm({
             Preço máximo
           </label>
         </div>
-        {/* Botão Buscar */}
         <div className="flex items-center justify-center col-span-1 md:col-span-3 mt-2">
           <button
             type="submit"
