@@ -17,7 +17,7 @@ createRoot(document.getElementById("root")!).render(
         <Route path="/workspace/:id" element={<Workspace />} />
         <Route path="/user-profile" element={<UserProfile />} />
         <Route path="/cadastro" element={<Cadastro />} />
-        <Route path="/home" element={<Home />} />
+        <Route path="/catalog" element={<Home />} />
       </Routes>
     </Router>
   </StrictMode>
