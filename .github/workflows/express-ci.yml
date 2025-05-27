@@ -24,11 +24,11 @@ jobs:
           node-version: "18"
 
       - name: Install dependencies for ${{ matrix.service }}
-  working-directory: ./back/microsservicos/${{ matrix.service }}
-  run: |
-    npm install
-    cd node_modules/common
-    npm install
+        working-directory: ./back/microsservicos/${{ matrix.service }}
+        run: |
+            npm install
+            cd node_modules/common
+            npm install
 
       - name: Check ${{ matrix.service }}
         working-directory: ./back/microsservicos/${{ matrix.service }}
