@@ -6,6 +6,7 @@ import Workspace from './pages/Workspace'
 import Login from './pages/Login'
 import Home from "./pages/Home";
 import UserProfile from "./pages/UserProfile";
+import CreatePropriedades from './pages/CreatePropriedades'
 import 'flatpickr/dist/themes/material_blue.css';
 import './styles/index.css'
 
@@ -18,6 +19,7 @@ createRoot(document.getElementById("root")!).render(
         <Route path="/user-profile" element={<UserProfile />} />
         <Route path="/cadastro" element={<Cadastro />} />
         <Route path="/catalog" element={<Home />} />
+        <Route path="/cadastro-sala" element={<CreatePropriedades />} />
       </Routes>
     </Router>
   </StrictMode>
