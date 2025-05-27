@@ -3,7 +3,7 @@ import { AiFillStar, AiOutlineStar } from 'react-icons/ai';
 interface ReviewCardProps {
     userName: string;
     userImage: string;
-    rating: number; // de 0 a 5
+    rating: number; 
     daysAgo: string;
     stayDuration: string;
     comment: string;
@@ -11,7 +11,6 @@ interface ReviewCardProps {
 
 export default function ReviewCard(props: ReviewCardProps) {
 
-     // Função para gerar estrelas baseadas na nota
     const renderStars = (rating: number) => {
         const fullStars = Math.floor(rating);
         const emptyStars = 5 - fullStars;
@@ -42,7 +41,6 @@ export default function ReviewCard(props: ReviewCardProps) {
             </div>
 
             <div className="flex items-center gap-2 text-sm text-gray-600">
-                {/* Estrelas */}
                 {renderStars(props.rating)}
                 <span className="font-semibold">{props.daysAgo}</span>
                 <span>·</span>

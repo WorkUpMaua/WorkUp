@@ -9,7 +9,6 @@ export default function PhotoGallery(props: PhotoGalleryProps) {
 
   return (
     <div className="flex flex-col items-center">
-      {/* Foto principal */}
       <div className="mb-6">
         <img
           src={selectedPhoto}
@@ -18,7 +17,6 @@ export default function PhotoGallery(props: PhotoGalleryProps) {
         />
       </div>
 
-      {/* Miniaturas */}
       <div className="flex gap-4 justify-center flex-wrap">
         {props.photos.map((photo, index) => (
           <img
