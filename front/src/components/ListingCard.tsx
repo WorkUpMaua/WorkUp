@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react'; // 1. Importar hooks do React
 
 interface Listing {
   id: string;
@@ -14,15 +15,25 @@ interface ListingCardProps {
 }
 
 export default function ListingCard({ listing }: ListingCardProps) {
+  // 2. Estado para armazenar o número aleatório de pessoas
+  const [numberOfPeople, setNumberOfPeople] = useState(0);
+
+  useEffect(() => {
+    // Gera um número aleatório (por exemplo, entre 1 e 9) quando o componente é montado
+    setNumberOfPeople(Math.floor(Math.random() * 9) + 1);
+  }, []); // O array de dependências vazio garante que isso execute apenas uma vez
+
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300 flex flex-col relative hover:-translate-y-1 hover:shadow-xl">
       <div className="relative w-full h-[220px] overflow-hidden">
         <img src={listing.image} alt={listing.title} className="w-full h-full object-cover transition-all duration-300 group-hover:scale-105" />
-        <span className="absolute top-4 left-4 bg-primary text-[#black] px-4 py-2 rounded-full font-bold text-sm z-[1]">
+        <span className="absolute top-4 left-4 bg-primary text-white px-4 py-2 rounded-full font-bold text-sm z-[1] border-header bg-[#34495e]">
           R$ {listing.price.toLocaleString('pt-BR')}/dia
         </span>
-        <button className="absolute top-4 right-4 bg-blue-500 text-text-gray border-none w-9 h-9 rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 z-[1] hover:text-red-500 hover:scale-110">
-          <i className="far fa-heart"></i>
+        <button className="absolute top-4 right-4 bg-[#34495e] text-white border-none w-9 h-9 rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 z-[1] hover:text-white ">
+          {numberOfPeople > 0 && (
+            <span className="font-bold text-sm">{numberOfPeople}</span>
+          )}
         </button>
       </div>
       <div className="p-5 flex-grow flex flex-col">

@@ -18,7 +18,8 @@ export default function HeaderBar({ onMenuClick }: HeaderBarProps) {
           <span className="font-medium md:inline hidden">Menu</span>
         </button>
       </div>
-      <div className="flex items-center justify-center">
+      {/* Logo centralizada absolutamente */}
+      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center">
         <img src={Logo} alt="WorkUp Logo" className="h-14 filter brightness-0 invert" />
       </div>
       <div className="flex items-center justify-end gap-6">
