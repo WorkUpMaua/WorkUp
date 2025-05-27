@@ -10,7 +10,7 @@ const router: Router = Router()
 router.get('/catalogo', (req, res) => getAllCatalogoController.handle(req, res))
 router.get('/catalogo/:id', (req, res) => getCatalogoController.handle(req, res))
 router.post('/catalogo', async (req, res) => await createCatalogoController.handle(req, res))
-router.delete('/catalogo/:id', (req, res) => deleteCatalogoController.handle(req, res))
-router.patch('/catalogo/:id', (req, res) => updateCatalogoController.handle(req, res))
+router.delete('/catalogo/:id', async (req, res) => await deleteCatalogoController.handle(req, res))
+router.patch('/catalogo/:id', async (req, res) => await updateCatalogoController.handle(req, res))
 
 export { router,  }
