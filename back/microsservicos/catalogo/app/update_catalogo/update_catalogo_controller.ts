@@ -23,7 +23,7 @@ export class UpdateCatalogoController {
             // manda para o barramento de eventos
             axios.post('http://localhost:10001/events', {
                 type: 'CatalogoUpdated',
-                payload: props
+                payload: room_updated
             })
             .then()
             .catch( (err) => console.log(err))

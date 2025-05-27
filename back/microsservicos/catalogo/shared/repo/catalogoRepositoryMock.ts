@@ -1,10 +1,11 @@
 import { v4 as uuidv4 } from 'uuid';
-import { CatalogoType } from '../types/Catalogo';
+
 import { updateCatalogoProps } from '../types';
+import { Catalogo } from '../interfaces';
 
 
 type baseCatalogoType = { 
-    [key: string]: CatalogoType 
+    [key: string]: Catalogo 
 }
 export class CatalogoRepositoryMock {
 
@@ -14,15 +15,15 @@ export class CatalogoRepositoryMock {
         return this.baseCatalogo
     }
 
-    public getCatalogo(id: string): CatalogoType {
+    public getCatalogo(id: string): Catalogo {
         return this.baseCatalogo[id]
     }
 
-    public createCatalogo(props: CatalogoType): CatalogoType {
+    public createCatalogo(props: Catalogo): Catalogo {
 
         const id = uuidv4()
 
-        const room: CatalogoType = {
+        const room: Catalogo = {
             id,
             name: props.name,
             description: props.description,
@@ -39,7 +40,7 @@ export class CatalogoRepositoryMock {
 
     }
 
-    public updateCatalogo(props: updateCatalogoProps): CatalogoType {
+    public updateCatalogo(props: updateCatalogoProps): Catalogo {
 
         const room_to_update = this.getCatalogo(props.id)
 
@@ -55,7 +56,7 @@ export class CatalogoRepositoryMock {
         
     }
 
-    public deleteCatalogo(id: string): CatalogoType {
+    public deleteCatalogo(id: string): Catalogo {
         
         const room_to_delete = this.getCatalogo(id)
 

@@ -1,13 +1,17 @@
 import { CreateCatalogoUsecase } from "./create_catalogo_usecase";
 import { Request, Response } from 'express'
-import axios from 'axios'
 import { Catalogo } from "../../shared/interfaces";
+
+
+import { publishEvent } from 'common/rabbitmq'
+import { CatalogoEvents } from "common/enums";
+import { CatalogoCreatedEvent } from 'common/interfaces'
 
 export class CreateCatalogoController {
 
     constructor(private usecase: CreateCatalogoUsecase) {}
 
-    public handle(req: Request, res: Response): void {
+    public async handle(req: Request, res: Response): Promise<void> {
 
         try {
 
@@ -25,14 +29,30 @@ export class CreateCatalogoController {
 
             const createdRoom = this.usecase.execute(roomProps)
 
+            const catalogoCreatedEvent: CatalogoCreatedEvent = {
+                eventType: CatalogoEvents.CatalogoCreated,
+                payload: createdRoom
+            }
+
             // manda para o barramento de eventos
-            axios.post('http://localhost:10001/events', {
-                type: 'CatalogoCreated',
-                payload: roomProps
-            })
-            .then()
-            .catch( (err) => console.log(err) )
-            .finally(() => res.status(201).json(createdRoom))
+            // axios.post('http://localhost:10001/events', {
+            //     type: 'CatalogoCreated',
+            //     payload: roomProps
+            // })
+            // .then()
+            // .catch( (err) => console.log(err) )
+            // .finally(() => res.status(201).json(createdRoom))
+
+            const published = await publishEvent("catalogo.created", catalogoCreatedEvent)
+
+            if(published) {
+                res.status(201).json({
+                    room: createdRoom,
+                    message: 'The room was created'
+                })
+            } else {
+                throw new Error('Could not publish the event: ' + JSON.stringify(catalogoCreatedEvent))
+            }
 
         } catch (err) {
             res.status(500).json({
