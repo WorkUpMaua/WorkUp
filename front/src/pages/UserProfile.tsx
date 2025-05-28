@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import Logo from "../assets/logo_WorkUp.png";
-import Notificacao from "../assets/icon_notificacao.png";
+import { useNavigate } from "react-router-dom";
 import {
   FormData,
   ProfilePersonalInfo,
