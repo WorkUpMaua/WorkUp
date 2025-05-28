@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Logo from '../assets/logo_WorkUp.png';
+import { getCookie } from '../utils/cookies';
 
 export default function Login() {
     const navigate = useNavigate();
@@ -26,9 +27,10 @@ export default function Login() {
         navigate('/catalog');
     };
 
-    const handleRegister = () => {
-        navigate('/cadastro');
-    };
+    useEffect(() => {
+        const token = getCookie('token')
+        if(token) navigate('/')
+    }, [])
 
     return (
         <div className="min-h-screen bg-white">
@@ -75,7 +77,7 @@ export default function Login() {
                 </form>
 
                 <button
-                    onClick={handleRegister}
+                    onClick={() => navigate('/signup')}
                     className="text-[#34495e] py-2 rounded-xl cursor-pointer mt-4"
                 >
                     Criar Conta
