@@ -3,6 +3,8 @@ import SidebarMenu from "../components/SidebarMenu";
 import HeaderBar from "../components/HeaderBar";
 import HomeSearchForm from "../components/HomeSearchForm";
 import ListingGrid from "../components/ListingGrid";
+import { useNavigate } from "react-router-dom";
+import { getCookie } from "../utils/cookies";
 
 interface Listing {
   id: string;
@@ -70,13 +72,12 @@ export default function Home(): React.ReactElement {
     minPrice: "",
     maxPrice: "",
   });
+  const navigate = useNavigate();
 
   useEffect(() => {
-    document.body.style.overflowX = "hidden";
-    return () => {
-      document.body.style.overflowX = "";
-    };
-  }, []);
+    const token = getCookie('token')
+    if(!token) navigate('/login')
+  }, [navigate]);
 
   useEffect(() => {
     const results = listingsData.filter((listing) => {
@@ -96,7 +97,7 @@ export default function Home(): React.ReactElement {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-bg-light to-gray-100">
+    <div className="min-h-screen overflow-x-hidden bg-gradient-to-br from-bg-light to-gray-100">
       <SidebarMenu
         active={sidebarActive}
         onClose={() => setSidebarActive(false)}
