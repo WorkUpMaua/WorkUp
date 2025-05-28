@@ -67,7 +67,7 @@ export default function Login() {
   useEffect(() => {
     const token = getCookie("token");
     if (token) navigate("/");
-  }, []);
+  }, [navigate]);
 
   return (
     <div className="min-h-screen bg-white">

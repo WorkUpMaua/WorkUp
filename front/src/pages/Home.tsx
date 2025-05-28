@@ -77,7 +77,7 @@ export default function Home(): React.ReactElement {
   useEffect(() => {
     const token = getCookie('token')
     if(!token) navigate('/login')
-  }, []);
+  }, [navigate]);
 
   useEffect(() => {
     const results = listingsData.filter((listing) => {

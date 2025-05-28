@@ -153,7 +153,7 @@ function UserProfile(): React.ReactElement {
     };
 
     fetchUser();
-  }, []);
+  }, [navigate]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-bg-light to-gray-100">

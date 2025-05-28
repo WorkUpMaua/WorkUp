@@ -12,10 +12,10 @@ export const Alert: React.FC<AlertProps> = ({ message, type, onClose }) => {
   }
 
   let alertClasses = "relative p-4 mb-4 border rounded-lg text-sm";
-  let iconContainerClasses = "flex items-center";
+  const iconContainerClasses = "flex items-center";
   let iconSvgPath = "";
   let iconSrText = "";
-  let closeButtonBaseClasses = "absolute top-3 right-3 -mx-1.5 -my-1.5 rounded-lg focus:ring-2 p-1.5 inline-flex h-8 w-8";
+  const closeButtonBaseClasses = "absolute top-3 right-3 -mx-1.5 -my-1.5 rounded-lg focus:ring-2 p-1.5 inline-flex h-8 w-8";
   let closeButtonSpecificClasses = "";
 
   if (type === 'error') {
