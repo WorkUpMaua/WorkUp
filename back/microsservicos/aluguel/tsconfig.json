@@ -1,14 +1,32 @@
 {
   "compilerOptions": {
-    "target": "es5",                          
-    "module": "commonjs",                    
-    "lib": ["es6"],                     
+    "target": "es5",
+    "module": "commonjs",
+    "lib": [
+      "es6"
+    ],
     "allowJs": true,
-    "outDir": "dist",                          
-    "rootDir": "",
-    "strict": true,         
+    "outDir": "dist",
+    "rootDirs": [
+      ".",
+      "../catalogo",
+      "../user"
+    ],
+    "strict": true,
     "noImplicitAny": true,
     "esModuleInterop": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "baseUrl": ".",
+    "paths": {
+      "@aluguel/*": [
+        "./*"
+      ],
+      "@catalogo/*": [
+        "../catalogo/*"
+      ],
+      "@user/*": [
+        "../user/*"
+      ],
+    }
   }
 }
