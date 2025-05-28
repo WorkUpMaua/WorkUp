@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Logo from "../assets/logo_WorkUp.png";
+import { IMaskInput } from "react-imask";
 import userClient from "../utils/userClient";
 import { getCookie } from "../utils/cookies";
+import { Alert } from "../components/Alert";
+import { AxiosError } from "axios";
 
 export default function Register() {
   const navigate = useNavigate();
@@ -12,6 +15,10 @@ export default function Register() {
   const [password, setPassword] = useState("");
   const [cpf, setCpf] = useState("");
   const [birthdateString, setBirthdateString] = useState("");
+  const [apiAlert, setApiAlert] = useState<{
+    message: string;
+    type: "success" | "error";
+  } | null>(null);
 
   const [phone, setPhone] = useState("");
 
@@ -20,21 +27,33 @@ export default function Register() {
 
     try {
       const response = await userClient.post("/user", {
-        body: {
-          username: email,
-          password: password,
-          name: name,
-          cpf: cpf,
-          birthdate: new Date(birthdateString).getTime(),
-          phone: phone,
-        },
+        username: email,
+        password: password,
+        name: name,
+        cpf: cpf,
+        birth: new Date(birthdateString).getTime(),
+        phone: phone,
       });
 
-      console.log(response);
-
-      navigate("/login");
-    } catch (err) {
-        console.error(err)
+      if (response.status !== 500) {
+        setApiAlert({ message: "Cadastro efetuado!", type: "success" });
+        setTimeout(() => {
+          navigate("/login");
+        }, 1000);
+      }
+    } catch (err: unknown) {
+      const axiosErr = err instanceof AxiosError ? (err as AxiosError) : err;
+      const messageFromBack =
+        (axiosErr as AxiosError).response?.data &&
+        typeof (axiosErr as AxiosError).response?.data === "object"
+          ? ((axiosErr as AxiosError).response?.data as { message?: string })
+              .message
+          : undefined;
+      setApiAlert({
+        message:
+          "ERRO: " + (messageFromBack !== undefined ? messageFromBack : "NULL"),
+        type: "error",
+      });
     }
   };
 
@@ -48,6 +67,18 @@ export default function Register() {
       <header className="w-full bg-[#34495e] flex justify-center items-center py-4 shadow-md">
         <img src={Logo} alt="Logo WorkUp" className="w-16" />
       </header>
+
+      {apiAlert && (
+        <div className="max-w-md m-auto mt-10">
+          <Alert
+            message={apiAlert.message}
+            type={apiAlert.type}
+            onClose={() => {
+              setApiAlert(null)
+            }}
+          />
+        </div>
+      )}
 
       <div className="max-w-md mx-auto my-10 p-6 border rounded-xl shadow-md flex flex-col items-center">
         <h2 className="text-2xl font-bold mb-6 text-center">Cadastro</h2>
@@ -91,13 +122,14 @@ export default function Register() {
 
           <div>
             <label className="block mb-1">CPF</label>
-            <input
-              type="text"
+            <IMaskInput
+              mask="000.000.000-00"
               value={cpf}
-              onChange={(e) => setCpf(e.target.value)}
-              required
-              className="w-full px-4 py-2 border rounded-lg"
+              unmask={false}
+              onAccept={(value) => setCpf(value)}
               placeholder="000.000.000-00"
+              className="w-full px-4 py-2 border rounded-lg"
+              required
             />
           </div>
 
@@ -114,13 +146,16 @@ export default function Register() {
 
           <div>
             <label className="block mb-1">Telefone</label>
-            <input
-              type="tel"
+
+            <IMaskInput
+              id="telefone-input"
+              mask="(00) 00000-0000"
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              required
+              unmask={false}
+              onAccept={(value) => setPhone(value)}
+              placeholder="(00) 00000-0000"
               className="w-full px-4 py-2 border rounded-lg"
-              placeholder="(11) 91234-5678"
+              required
             />
           </div>
 
