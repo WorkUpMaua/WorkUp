@@ -19,7 +19,7 @@ createRoot(document.getElementById("root")!).render(
         <Route path="/user-profile" element={<UserProfile />} />
         <Route path="/cadastro" element={<Cadastro />} />
         <Route path="/catalog" element={<Home />} />
-        <Route path="/cadastro-sala" element={<CreatePropriedades />} />
+        <Route path="/create-propriedades" element={<CreatePropriedades />} />
       </Routes>
     </Router>
   </StrictMode>

@@ -38,10 +38,10 @@ export default function ListingCard({ listing }: ListingCardProps) {
         <p className="text-text-gray text-sm mb-4 flex items-center gap-1.5">
           <i className="fas fa-map-marker-alt text-primary"></i> {listing.address}
         </p>
-        <div className="flex flex-wrap gap-2 mt-4 mb-5">
+        <div className="flex flex-wrap gap-0.5 mt-4 mb-5">
           {listing.amenities.map((amenity, index) => (
-            <span key={index} className="bg-primary/10 px-3 py-1.5 rounded-full text-xs text-primary flex items-center gap-1.5">
-              <i className="fas fa-check text-[0.7rem]"></i> {amenity}
+            <span key={index} className="bg-primary/10 px-1 py-1.5 rounded-full text-xs text-primary flex items-center gap-1.5">
+              <p key={index} className="bg-gray-100 px-4 py-2 rounded-full text-gray-700 text-[0.7rem]">{amenity}</p>
             </span>
           ))}
         </div>

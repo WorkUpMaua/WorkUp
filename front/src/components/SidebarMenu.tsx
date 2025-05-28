@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom'; // Adicione este import
+
 interface SidebarMenuProps {
   active: boolean;
   onClose: () => void;
@@ -22,6 +24,12 @@ export default function SidebarMenu({ active, onClose }: SidebarMenuProps) {
           </li>
           <li className="px-6 py-4 cursor-pointer transition-all duration-300 flex items-center gap-4 text-sm hover:bg-white/10 hover:pl-8">
             <i className="fas fa-cog w-5 text-center"></i> Configurações
+          </li>
+          {/* Adicione o link para criar propriedades */}
+          <li className="px-6 py-4 transition-all duration-300 flex items-center gap-4 text-sm hover:bg-white/10 hover:pl-8">
+            <Link to="/create-propriedades" className="flex items-center gap-4 w-full h-full" onClick={onClose}>
+              <i className="fas fa-plus w-5 text-center"></i> Criar Sala
+            </Link>
           </li>
           <li className="px-6 py-4 cursor-pointer transition-all duration-300 flex items-center gap-4 text-sm hover:bg-white/10 hover:pl-8">
             <i className="fas fa-sign-out-alt w-5 text-center"></i> Sair

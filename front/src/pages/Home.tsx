@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
+import { Routes, Route } from "react-router-dom";
 import SidebarMenu from "../components/SidebarMenu";
 import HeaderBar from "../components/HeaderBar";
 import HomeSearchForm from "../components/HomeSearchForm";
 import ListingGrid from "../components/ListingGrid";
+import CreatePropriedades from "../pages/CreatePropriedades";
 
 interface Listing {
   id: string;
@@ -17,7 +19,7 @@ export type HomeFiltersType = {
   startDate: string;
   endDate: string;
   address: string;
-  guests: number;
+  guests: string | number;
   minPrice: string;
   maxPrice: string;
 };
@@ -66,7 +68,7 @@ export default function Home(): React.ReactElement {
     startDate: "",
     endDate: "",
     address: "",
-    guests: 1,
+    guests: '',
     minPrice: "",
     maxPrice: "",
   });
@@ -128,6 +130,9 @@ export default function Home(): React.ReactElement {
           </div>
         </div>
       </main>
+      <Routes>
+        <Route path="/create-propriedades" element={<CreatePropriedades />} />
+      </Routes>
     </div>
   );
 }
