@@ -13,7 +13,7 @@ export default function PhotoGallery(props: PhotoGalleryProps) {
         <img
           src={selectedPhoto}
           alt="Selected"
-          className="w-[500px] h-auto object-cover rounded-lg shadow-md"
+          className="w-full max-w-[350px] h-48 object-cover rounded-lg shadow-md"
         />
       </div>
 
