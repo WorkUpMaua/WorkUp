@@ -116,7 +116,14 @@ export default function HomeSearchForm({
             name="guests"
             id="guests"
             value={filters.guests}
-            onChange={handleFilterChange}
+            min={1}
+            onChange={e => {
+              const val = e.target.value;
+              setFilters(prev => ({
+                ...prev,
+                guests: val === '' ? '' : Math.max(1, Number(val)),
+              }));
+            }}
             placeholder=" "
             className="peer w-full border border-gray-200 rounded-lg px-10 py-4 bg-white text-base text-text-dark shadow-sm transition-all duration-300 h-[50px] focus:border-primary focus:outline-none"
           />
@@ -136,6 +143,7 @@ export default function HomeSearchForm({
             id="minPrice"
             placeholder=" "
             value={filters.minPrice}
+            min={1}
             onChange={handleFilterChange}
             className="peer w-full border border-gray-200 rounded-lg px-10 py-4 bg-white text-base text-text-dark shadow-sm transition-all duration-300 h-[50px] focus:border-primary focus:outline-none"
           />
@@ -155,6 +163,7 @@ export default function HomeSearchForm({
             id="maxPrice"
             placeholder=" "
             value={filters.maxPrice}
+            min={1}
             onChange={handleFilterChange}
             className="peer w-full border border-gray-200 rounded-lg px-10 py-4 bg-white text-base text-text-dark shadow-sm transition-all duration-300 h-[50px] focus:border-primary focus:outline-none"
           />

@@ -47,7 +47,7 @@ export default function ListingCard({ listing }: ListingCardProps) {
         </div>
         <Link
           to={`/workspace/${listing.id}`}
-          className="mt-auto bg-transparent border border-primary text-primary px-4 py-2.5 rounded-lg cursor-pointer font-medium text-sm transition-all duration-300 flex items-center justify-center gap-2 hover:bg-primary hover:-translate-y-0.5"
+          className="mt-auto bg-transparent border border-primary text-primary px-4 py-2.5 rounded-lg cursor-pointer font-medium text-sm transition-all duration-300 flex items-center justify-center gap-2 hover:bg-[#34495e] hover:text-white hover:border-[#34495e] hover:-translate-y-0.5"
         >
           Ver detalhes <i className="fas fa-arrow-right"></i>
         </Link>
