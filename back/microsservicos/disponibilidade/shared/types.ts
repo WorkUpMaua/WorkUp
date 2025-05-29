@@ -7,6 +7,8 @@ export type BookingsType = {
     endTime: number
 }
 
-export type getAllDisponibilidadeType = Pick<BookingsType, 'startTime' | 'endTime'>
+export type getAllDisponibilidadeProps = Pick<BookingsType, 'startTime' | 'endTime'>
+
+export type getDisponbilidadeProps = Pick<UnifiedCatalogo, 'id'> & Pick<BookingsType, 'startTime' | 'endTime'>
 
 export type createDisponibilidadeProps = Omit<UnifiedCatalogo, 'id' | 'confirmedBookings' >

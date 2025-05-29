@@ -1,5 +1,5 @@
 import { UnifiedCatalogo } from "../../shared/interfaces";
-import { getAllDisponibilidadeType } from "../../shared/types";
+import { getAllDisponibilidadeProps } from "../../shared/types";
 import { GetAllDisponibilidadeUsecase } from "./get_all_disponibilidade_usecase";
 import { Request, Response } from "express";
 
@@ -18,7 +18,7 @@ export class GetAllDisponibilidadeController {
       if (!startDate && !endDate) {
         catalogs = this.usecase.execute();
       } else {
-        const props: getAllDisponibilidadeType = {
+        const props: getAllDisponibilidadeProps = {
           startTime: Number(startDate),
           endTime: Number(endDate),
         };

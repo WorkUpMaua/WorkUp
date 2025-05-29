@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 import { UnifiedCatalogo } from "../interfaces";
-import { BookingsType, createDisponibilidadeProps, getAllDisponibilidadeType } from "../types";
+import { BookingsType, createDisponibilidadeProps, getAllDisponibilidadeProps, getDisponbilidadeProps } from "../types";
 
 type baseDisponibilidadeType = {
   [key: string]: UnifiedCatalogo;
@@ -35,7 +35,7 @@ export class DisponibilidadeRepositoryMock {
     }
   };
 
-  public getAllDisponibilidade(props?: getAllDisponibilidadeType): baseDisponibilidadeType {
+  public getAllDisponibilidade(props?: getAllDisponibilidadeProps): baseDisponibilidadeType {
     if (!props) {
       return this.baseDisponibilidade;
     }
@@ -57,6 +57,21 @@ export class DisponibilidadeRepositoryMock {
         acc[catalog.id] = catalog
         return acc
     }, {} as baseDisponibilidadeType)
+
+  }
+
+  // Pergunta quantos lugares disponiveis tem a sala
+  public getDisponibilidade(props: getDisponbilidadeProps): number {
+
+    const { id, startTime, endTime } = props
+
+    const catalog = this.baseDisponibilidade[id]
+
+    const overlappings = catalog.confirmedBookings.filter(
+      booking => startTime > booking.startTime && endTime < booking.endTime
+    ).length
+
+    return catalog.capacity - overlappings < 0 ? 0 : catalog.capacity - overlappings
 
   }
 
