@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useNavigate } from "react-router-dom";
 import SidebarMenu from "../components/SidebarMenu";
 import HeaderBar from "../components/HeaderBar";
 import HomeSearchForm from "../components/HomeSearchForm";
 import ListingGrid from "../components/ListingGrid";
 import CreatePropriedades from "../pages/CreatePropriedades";
+import { getCookie } from "../utils/cookies";
 
 interface Listing {
   id: string;
