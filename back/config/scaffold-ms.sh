@@ -25,7 +25,6 @@ done
 for f in app.ts router.ts; do
   : > "$ROOT/shared/server/$f"
 done
-: > "$ROOT/index.ts"
 
 echo "📄  Criando app.ts em shared/server…"
 cat > "$ROOT/shared/server/app.ts" << 'EOF'
@@ -68,7 +67,7 @@ import { App } from './shared/server/app'
 
 const port = ${PORT}
 new App().server.listen(port, () => {
-  console.log(\`[${SERVICE}] Porta: \${port}\`)
+  console.log('${SERVICE}. Porta ' + port)
 })
 EOF
 
@@ -93,6 +92,7 @@ cat > "$ROOT/package.json" << 'EOF'
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "uuid": "^11.1.0",
+    "common": "file:../../common"
   },
   "devDependencies": {
     "@types/express": "^5.0.2",

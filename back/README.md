@@ -12,6 +12,8 @@ Este diretório reúne todos os seus microsserviços em TypeScript/Express/Rabbi
     - Em Unix-like:
     ```
     sudo chmod +x ../config/scaffold-ms.sh
+    ```
+    ```
     ../config/scaffold-ms.sh <nome-do-servico> <numero-da-porta>
     ```
     - Em Windows:
