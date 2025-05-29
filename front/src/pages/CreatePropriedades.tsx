@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import HeaderBar from '../components/HeaderBar';
 import SidebarMenu from '../components/SidebarMenu';
 import RoomCard from '../components/RoomCard';
 import PhotoGallery from '../components/workspace/PhotoGallery';
 import Commodities from '../components/Commodities';
+import { getCookie } from '../utils/cookies';
+import { useNavigate } from 'react-router-dom';
 
 interface RoomFormData {
   name: string;
@@ -42,6 +44,7 @@ export default function CreatePropriedades() {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [successMessage, setSuccessMessage] = useState('');
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const navigate = useNavigate()
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, files } = e.target;
@@ -118,6 +121,11 @@ export default function CreatePropriedades() {
     }
   };
 
+  useEffect(() => {
+      const token = getCookie('token')
+      if(!token) navigate('/login')
+    }, [navigate]);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-bg-light to-gray-100">
       <HeaderBar onMenuClick={() => setSidebarActive(true)} />
@@ -157,7 +165,7 @@ export default function CreatePropriedades() {
                   </div>
 
                   <div className="relative">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Preço por Dia</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Preço por Hora</label>
                     <div className="relative">
                       <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">R$</span>
                       <input

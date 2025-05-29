@@ -1,14 +1,22 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import HeaderBar from "../components/HeaderBar";
 import SidebarMenu from "../components/SidebarMenu";
 import ListingCard from "../components/ListingCard";
 import { properties, propertyToListing } from "../data/propertyData";
+import { useNavigate } from "react-router-dom";
+import { getCookie } from "../utils/cookies";
 
 export default function TelaPropriedades() {
   const [sidebarActive, setSidebarActive] = useState(false);
 
   const activeProperties = properties.filter((p) => p.status === "active");
   const pastProperties = properties.filter((p) => p.status === "past");
+  const navigate = useNavigate();
+
+   useEffect(() => {
+        const token = getCookie('token')
+        if(!token) navigate('/login')
+      }, [navigate]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-bg-light to-gray-100">
