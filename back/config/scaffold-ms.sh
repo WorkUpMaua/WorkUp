@@ -1,10 +1,5 @@
 #!/usr/bin/env bash
 
-# scaffold-ms.sh — cria a estrutura de um microserviço TS+Express+RabbitMQ
-# Uso:
-#   chmod +x scaffold-ms.sh
-#   ./scaffold-ms.sh nome-do-servico
-
 SERVICE=$1
 
 if [[ -z "$SERVICE" ]]; then
@@ -20,6 +15,9 @@ mkdir -p "$ROOT"/{app,shared/{repo,server}}
 echo "📄  Criando arquivos vazios em shared e index.ts…"
 for f in environments.ts eventHandler.ts interfaces.ts types.ts; do
   : > "$ROOT/shared/$f"
+done
+for f in app.ts router.ts; do
+  : > "$ROOT/shared/server/$f"
 done
 : > "$ROOT/index.ts"
 
