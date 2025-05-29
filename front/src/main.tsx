@@ -9,17 +9,19 @@ import UserProfile from "./pages/UserProfile";
 import CreatePropriedades from './pages/CreatePropriedades'
 import 'flatpickr/dist/themes/material_blue.css';
 import './styles/index.css'
+import TelaPropriedades from './pages/TelaPropriedades'
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <Router>
       <Routes>
-        <Route path="/" element={<Login />} />
+        <Route path="/login" element={<Login />} />
         <Route path="/workspace/:id" element={<Workspace />} />
         <Route path="/user-profile" element={<UserProfile />} />
-        <Route path="/cadastro" element={<Cadastro />} />
-        <Route path="/catalog" element={<Home />} />
-        <Route path="/create-propriedades" element={<CreatePropriedades />} />
+        <Route path="/signup" element={<Cadastro />} />
+        <Route path="/" element={<Home />} />
+        <Route path="/create-property" element={<CreatePropriedades />} />
+        <Route path="/properties" element={<TelaPropriedades />}/>
       </Routes>
     </Router>
   </StrictMode>
