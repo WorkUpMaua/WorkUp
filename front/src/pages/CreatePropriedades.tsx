@@ -6,7 +6,7 @@ import PhotoGallery from '../components/workspace/PhotoGallery';
 import Commodities from '../components/Commodities';
 import { getCookie } from '../utils/cookies';
 import { useNavigate } from 'react-router-dom';
-import { IMask, IMaskInput } from 'react-imask';
+import { IMaskInput } from 'react-imask';
 
 interface RoomFormData {
   name: string;
