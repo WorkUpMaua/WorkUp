@@ -14,7 +14,6 @@ jobs:
         service:
           - catalogo
           - user
-          - aluguel
           - disponibilidade
 
     steps:
