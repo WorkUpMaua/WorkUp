@@ -6,10 +6,11 @@ import PhotoGallery from '../components/workspace/PhotoGallery';
 import Commodities from '../components/Commodities';
 import { getCookie } from '../utils/cookies';
 import { useNavigate } from 'react-router-dom';
+import { IMask, IMaskInput } from 'react-imask';
 
 interface RoomFormData {
   name: string;
-  images: File[]; 
+  images: File[];
   price: string;
   address: string;
   amenities: string;
@@ -23,7 +24,7 @@ interface RoomFormErrors {
 interface Room {
   id: string;
   name: string;
-  images: string[]; 
+  images: string[];
   price: number;
   address: string;
   amenities: string[];
@@ -52,7 +53,7 @@ export default function CreatePropriedades() {
       const fileArray = Array.from(files);
       setFormData(prev => ({
         ...prev,
-        images: [...prev.images, ...fileArray], 
+        images: [...prev.images, ...fileArray],
       }));
       setImagePreviews(prev => [
         ...prev,
@@ -94,7 +95,7 @@ export default function CreatePropriedades() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
-      const imageUrls = imagePreviews; 
+      const imageUrls = imagePreviews;
       const newRoom: Room = {
         id: Date.now().toString(),
         name: formData.name,
@@ -122,9 +123,9 @@ export default function CreatePropriedades() {
   };
 
   useEffect(() => {
-      const token = getCookie('token')
-      if(!token) navigate('/login')
-    }, [navigate]);
+    const token = getCookie('token')
+    if (!token) navigate('/login')
+  }, [navigate]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-bg-light to-gray-100">
@@ -141,7 +142,7 @@ export default function CreatePropriedades() {
                 Cadastre seu espaço de trabalho com todas as informações necessárias para que os clientes possam encontrá-lo facilmente.
               </p>
             </div>
-            
+
             <form onSubmit={handleSubmit} className="p-8">
               {successMessage && (
                 <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg relative mb-6 animate-fade-in">
@@ -168,13 +169,27 @@ export default function CreatePropriedades() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">Preço por Hora</label>
                     <div className="relative">
                       <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">R$</span>
-                      <input
-                        type="text"
-                        name="price"
+                      <IMaskInput
+                        mask={Number}
+                        radix=","
+                        scale={2}
+                        min={0}
+                        thousandsSeparator="."
+                        padFractionalZeros={true}
+                        normalizeZeros={true}
+                        mapToRadix={["."]} 
                         value={formData.price}
-                        onChange={handleChange}
+                        onAccept={(value) =>
+                          handleChange({
+                            target: {
+                              name: "price",
+                              value,
+                            },
+                          } as unknown as React.ChangeEvent<HTMLInputElement>)
+                        }
                         placeholder="0,00"
                         className={`w-full border ${errors.price ? 'border-red-500' : 'border-gray-200'} rounded-lg pl-10 pr-4 py-3 bg-white text-base text-text-dark shadow-sm transition-all duration-300 focus:border-primary focus:outline-none focus:shadow-[0_0_0_2px_rgba(52,152,219,0.2)]`}
+
                       />
                     </div>
                     {errors.price && <p className="text-red-500 text-sm mt-1">{errors.price}</p>}

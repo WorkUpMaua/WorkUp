@@ -28,8 +28,6 @@ jobs:
         working-directory: ./back/microsservicos/${{ matrix.service }}
         run: |
             npm install
-            cd node_modules/common
-            npm install
 
       - name: Check ${{ matrix.service }}
         working-directory: ./back/microsservicos/${{ matrix.service }}
