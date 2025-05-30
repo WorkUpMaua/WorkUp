@@ -4,8 +4,10 @@ import {
   BookingsType,
   createBookingProps,
   createDisponibilidadeProps,
+  DeleteBookingProps,
   getAllDisponibilidadeProps,
   getDisponbilidadeProps,
+  updateBookingProps,
   updateDisponibilidadeProps,
 } from "../types";
 
@@ -91,7 +93,6 @@ export class DisponibilidadeRepositoryMock {
   public createDisponibilidade(
     props: createDisponibilidadeProps
   ): UnifiedCatalogo {
-
     const new_catalog_disponibilidade: UnifiedCatalogo = {
       id: props.id,
       name: props.name,
@@ -140,27 +141,65 @@ export class DisponibilidadeRepositoryMock {
   }
 
   public createBooking(props: createBookingProps): BookingsType {
-    
-    const { id, catalogID, bookingID, userID, startTime, endTime } = props
+    const { id, catalogID, bookingID, userID, startTime, endTime } = props;
 
     if (!this.baseDisponibilidade[id])
       throw new Error("Sala não encontrada na base consolidada");
 
-    const catalog = this.baseDisponibilidade[id]
+    const catalog = this.baseDisponibilidade[id];
 
     const booking: BookingsType = {
       catalogID,
       bookingID,
       userID,
       startTime,
-      endTime
-    }
+      endTime,
+    };
 
-    catalog.confirmedBookings.push(booking)
+    catalog.confirmedBookings.push(booking);
 
-    return booking
-
+    return booking;
   }
 
+  public updateBooking(props: updateBookingProps): BookingsType {
+    const { id, catalogID, bookingID, userID, startTime, endTime } = props;
 
+    if (!this.baseDisponibilidade[id])
+      throw new Error("Sala não encontrada na base consolidada");
+
+    const catalogo = this.baseDisponibilidade[id];
+
+    const bookingToUpdateIndex = catalogo.confirmedBookings.findIndex(
+      (booking) => booking.bookingID === bookingID
+    );
+
+    if (catalogID)
+      catalogo.confirmedBookings[bookingToUpdateIndex].catalogID = catalogID;
+    if (userID)
+      catalogo.confirmedBookings[bookingToUpdateIndex].userID = userID;
+    if (startTime)
+      catalogo.confirmedBookings[bookingToUpdateIndex].startTime = startTime;
+    if (endTime)
+      catalogo.confirmedBookings[bookingToUpdateIndex].endTime = endTime;
+
+    return catalogo.confirmedBookings[bookingToUpdateIndex];
+  }
+
+  public deleteBooking(props: DeleteBookingProps): BookingsType {
+    const { id, bookingID } = props;
+
+    if (!this.baseDisponibilidade[id])
+      throw new Error("Sala não encontrada na base consolidada");
+
+    const catalogo = this.baseDisponibilidade[id];
+
+    const booking_to_delete_index = catalogo.confirmedBookings.findIndex(
+      (booking) => booking.bookingID === bookingID
+    );
+
+    const booking_to_delete = catalogo.confirmedBookings.splice(booking_to_delete_index, 1)
+
+    return booking_to_delete[0]
+      
+  }
 }
