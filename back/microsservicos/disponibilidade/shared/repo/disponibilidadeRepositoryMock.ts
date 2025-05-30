@@ -2,9 +2,11 @@ import { v4 as uuidv4 } from "uuid";
 import { UnifiedCatalogo } from "../interfaces";
 import {
   BookingsType,
+  createBookingProps,
   createDisponibilidadeProps,
   getAllDisponibilidadeProps,
   getDisponbilidadeProps,
+  updateDisponibilidadeProps,
 } from "../types";
 
 type baseDisponibilidadeType = {
@@ -24,6 +26,7 @@ export class DisponibilidadeRepositoryMock {
       confirmedBookings: [
         {
           // Dia 28, das 10 ate as 18
+          catalogID: "idUnico",
           bookingID: "idUnico da reserva",
           userID: "idUnico do usuario",
           startTime: 1748437200,
@@ -31,6 +34,7 @@ export class DisponibilidadeRepositoryMock {
         },
         {
           // Dia 29, das 10, ate as 18
+          catalogID: "idUnico",
           bookingID: "idUnico da reserva",
           userID: "idUnico do usuario",
           startTime: 1748523600,
@@ -87,10 +91,9 @@ export class DisponibilidadeRepositoryMock {
   public createDisponibilidade(
     props: createDisponibilidadeProps
   ): UnifiedCatalogo {
-    const id = uuidv4();
 
     const new_catalog_disponibilidade: UnifiedCatalogo = {
-      id,
+      id: props.id,
       name: props.name,
       address: props.address,
       comodities: props.comodities,
@@ -100,20 +103,64 @@ export class DisponibilidadeRepositoryMock {
       confirmedBookings: [],
     };
 
-    this.baseDisponibilidade[id] = new_catalog_disponibilidade;
+    this.baseDisponibilidade[props.id] = new_catalog_disponibilidade;
 
     return new_catalog_disponibilidade;
+  }
+
+  public updateDisponibilidade(
+    props: updateDisponibilidadeProps
+  ): UnifiedCatalogo {
+    const { id, name, address, comodities, pictures, price, capacity } = props;
+
+    if (!this.baseDisponibilidade[id])
+      throw new Error("Sala não encontrada na base consolidada");
+
+    const disponibilidade_to_update = this.baseDisponibilidade[id];
+
+    if (name) disponibilidade_to_update.name = name;
+    if (address) disponibilidade_to_update.address = address;
+    if (comodities) disponibilidade_to_update.comodities = comodities;
+    if (pictures) disponibilidade_to_update.pictures = pictures;
+    if (price) disponibilidade_to_update.price = price;
+    if (capacity) disponibilidade_to_update.capacity = capacity;
+
+    return disponibilidade_to_update;
   }
 
   public deleteDisponibilidade(id: string): UnifiedCatalogo {
     if (!this.baseDisponibilidade[id])
       throw new Error("Sala não encontrada na base consolidada");
 
-    const disponibilidade_to_delete = this.baseDisponibilidade[id]
+    const disponibilidade_to_delete = this.baseDisponibilidade[id];
 
-    delete this.baseDisponibilidade[id]
+    delete this.baseDisponibilidade[id];
 
-    return disponibilidade_to_delete
+    return disponibilidade_to_delete;
+  }
+
+  public createBooking(props: createBookingProps): BookingsType {
+    
+    const { id, catalogID, bookingID, userID, startTime, endTime } = props
+
+    if (!this.baseDisponibilidade[id])
+      throw new Error("Sala não encontrada na base consolidada");
+
+    const catalog = this.baseDisponibilidade[id]
+
+    const booking: BookingsType = {
+      catalogID,
+      bookingID,
+      userID,
+      startTime,
+      endTime
+    }
+
+    catalog.confirmedBookings.push(booking)
+
+    return booking
 
   }
+
+
 }
