@@ -1,1 +1,0 @@
-import { CatalogoType } from "./Catalogo";

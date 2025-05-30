@@ -26,7 +26,10 @@ jobs:
 
       - name: Install dependencies for ${{ matrix.service }}
         working-directory: ./back/microsservicos/${{ matrix.service }}
-        run: npm install
+        run: |
+            npm install
+            cd node_modules/common
+            npm install
 
       - name: Check ${{ matrix.service }}
         working-directory: ./back/microsservicos/${{ matrix.service }}

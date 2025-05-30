@@ -2,12 +2,16 @@ import axios from "axios";
 import { Request, Response } from 'express'
 import { UpdateCatalogoUsecase } from "./update_catalogo_usecase";
 import { updateCatalogoProps } from "../../shared/types";
+import { publishEvent } from "common";
+
+import { CatalogoEventNames } from "common/enums";
+import { CatalogoEvent } from "common/interfaces";
 
 export class UpdateCatalogoController {
 
     constructor(private usecase: UpdateCatalogoUsecase) {}
 
-    public handle(req: Request, res: Response): void {
+    public async handle(req: Request, res: Response): Promise<void> {
 
         try {
 
@@ -20,17 +24,21 @@ export class UpdateCatalogoController {
 
             const room_updated = this.usecase.execute(props)
 
-            // manda para o barramento de eventos
-            axios.post('http://localhost:10001/events', {
-                type: 'CatalogoUpdated',
-                payload: props
-            })
-            .then()
-            .catch( (err) => console.log(err))
-            .finally( () => res.json({
-                "room": room_updated,
-                "message": "A sala foi atualizada com sucesso!"
-            }) )
+            const catalogoUpdatedEvent: CatalogoEvent = {
+                eventType: CatalogoEventNames.CatalogoUpdated,
+                payload: room_updated
+            }
+
+            const published = await publishEvent("catalogo.updated", catalogoUpdatedEvent)
+
+            if(published) {
+                res.json({
+                    room: room_updated,
+                    message: 'The room was updated'
+                })
+            } else {
+                throw new Error('Could not publish the event: ' + JSON.stringify(catalogoUpdatedEvent))
+            }
 
         } catch (err) {
             res.status(500).json({
