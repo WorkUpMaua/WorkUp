@@ -1,4 +1,4 @@
-export type CatalogoType = {
+export type catalogo = {
     id: string
     name: string
     description: string
@@ -8,3 +8,12 @@ export type CatalogoType = {
     price: number
     capacity: number
 }
+
+export type userInformation = {
+  id: string;
+  name: string;
+  email: string;
+  cpf: string;
+  birth: number;
+  phone: string;
+};

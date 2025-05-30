@@ -1,4 +1,4 @@
-import { Environments } from "../../environments";
+import { Environments } from "../../shared/environments";
 import { UpdateUserController } from "./update_user_controller";
 import { UpdateUserUsecase } from "./update_user_usecase";
 
