@@ -9,6 +9,8 @@ export class CreateDisponibilidadeController {
     try {
       const body = req.body;
 
+      if(body.id === undefined)
+        throw new Error("O campo id deve ser definido");
       if (body.name === undefined)
         throw new Error("O campo name deve ser definido");
       if (body.address === undefined)
@@ -23,6 +25,7 @@ export class CreateDisponibilidadeController {
         throw new Error("O campo capacity deve ser definido");
 
       const props: createDisponibilidadeProps = {
+        id: body.id as string,
         name: body.name as string,
         address: body.address as string,
         comodities: body.comodities as string[],

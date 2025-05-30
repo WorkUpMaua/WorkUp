@@ -3,5 +3,5 @@ import { UpdateDisponibilidadeController } from "./update_disponibilidade_contro
 import { UpdateDisponibilidadeUsecase } from "./update_disponibilidade_usecase";
 
 const repo = Environments.instance.repo
-const usecase = new UpdateDisponibilidadeUsecase(repo)
-export const updateDisponibilidadeController = new UpdateDisponibilidadeController(usecase)
+export const updateDisponibilidadeUsecase = new UpdateDisponibilidadeUsecase(repo)
+export const updateDisponibilidadeController = new UpdateDisponibilidadeController(updateDisponibilidadeUsecase)

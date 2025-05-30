@@ -24,18 +24,6 @@ export class DeleteCatalogoController {
                 eventType: CatalogoEventNames.CatalogoDeleted,
                 payload: deletedCatalogo
             }
-
-            // // manda para o barramento de eventos
-            // axios.post('http://localhost:10001/events', {
-            //     type: 'CatalogoDeleted',
-            //     payload: deletedCatalogo
-            // })
-            // .then()
-            // .catch( (err) => console.log(err) )
-            // .finally(() => response.status(200).json({
-            //     "room": deletedCatalogo,
-            //     "message": "A sala foi deletada com sucesso!"
-            // }))
         
             const published = await publishEvent("catalogo.deleted", catalogoDeletedEvent)
 

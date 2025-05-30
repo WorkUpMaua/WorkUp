@@ -15,6 +15,7 @@ jobs:
           - catalogo
           - user
           - aluguel
+          - disponibilidade
 
     steps:
       - uses: actions/checkout@v3

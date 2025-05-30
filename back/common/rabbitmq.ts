@@ -75,39 +75,63 @@ export const publishEvent = async <T extends object>(
  * @param callback A função assíncrona para processar a mensagem.
  */
 export const consumeEvents = async <T extends object>(
-    queueName: string,
-    bindingKey: string,
-    callback: (event: T) => Promise<void>
+  queueName: string,
+  bindingKey: string,
+  callback: (event: T) => Promise<void>
 ): Promise<void> => {
-    try {
-        const currentChannel = await connectRabbitMQ();
-        await currentChannel.assertExchange(EXCHANGE_NAME, 'topic', { durable: true });
+  try {
 
-        const q = await currentChannel.assertQueue(queueName, { durable: true });
+    const channel: Channel = await connectRabbitMQ();
 
-        await currentChannel.bindQueue(q.queue, EXCHANGE_NAME, bindingKey);
 
-        console.log(`[CONSUMER] Listening for Topic messages in queue '${q.queue}' from '${EXCHANGE_NAME}' with binding key '${bindingKey}'.`);
+    await channel.assertExchange(EXCHANGE_NAME, 'topic', {
+      durable: true,
+    });
 
-        currentChannel.consume(q.queue, async (msg) => {
-            if (msg) {
-                try {
-                    const content: T = JSON.parse(msg.content.toString());
-                    console.log(`[CONSUMER] Received message from queue '${q.queue}':`, content);
-                    await callback(content);
-                    currentChannel.ack(msg);
-                } catch (error) {
-                    console.error(`[CONSUMER] Error processing message from queue '${q.queue}':`, error);
-                    currentChannel.nack(msg, false, false);
-                }
-            }
-        }, { noAck: false });
-    } catch (error) {
-        console.error('[CONSUMER] Error setting up consumer:', error);
-        throw error;
-    }
+
+    await channel.assertQueue(queueName, {
+      durable: true,
+      exclusive: false,
+      autoDelete: false,
+    });
+
+    await channel.prefetch(1);
+
+    await channel.bindQueue(queueName, EXCHANGE_NAME, bindingKey);
+
+    console.log(
+      `[CONSUMER] Listening on queue '${queueName}' with binding '${bindingKey}'`
+    );
+
+
+    await channel.consume(
+      queueName,
+      async (msg) => {
+        if (!msg) return;
+
+        try {
+          const payload: T = JSON.parse(msg.content.toString());
+          console.log(`[CONSUMER] Received:`, payload);
+
+
+          await callback(payload);
+
+
+          channel.ack(msg);
+        } catch (err) {
+          console.error(`[CONSUMER] Error processing message:`, err);
+
+  
+          channel.nack(msg, false, false);
+        }
+      },
+      { noAck: false }
+    );
+  } catch (err) {
+    console.error('[CONSUMER] Error setting up consumer:', err);
+    throw err;
+  }
 };
-
 export const closeRabbitMQConnection = async (): Promise<void> => {
     if (channel) {
         try {
