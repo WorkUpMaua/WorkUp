@@ -6,14 +6,16 @@ import HomeSearchForm from "../components/HomeSearchForm";
 import ListingGrid from "../components/ListingGrid";
 import CreatePropriedades from "../pages/CreatePropriedades";
 import { getCookie } from "../utils/cookies";
+import disponibilidadeClient from "../utils/disponibilidadeClient";
 
-interface Listing {
+export interface Listing {
     id: string;
-    title: string;
-    image: string;
-    price: number;
+    name: string;
     address: string;
-    amenities: string[];
+    comodities: string[];
+    pictures: string;
+    price: number;
+    capacity: number;
 }
 
 export type HomeFiltersType = {
@@ -46,13 +48,45 @@ export default function Home(): React.ReactElement {
         const token = getCookie("token");
         if (!token) navigate("/login");
 
-        
+        const fetchAllDisponibilidade = async () => {
+            try{
+
+                const response = await disponibilidadeClient.get('/availability');
+
+                const { rooms } = response.data
+
+                for(const room of (Object.values(rooms) as Listing[])) {
+
+                    const listing: Listing = {
+                        id: room.id,
+                        name: room.name,
+                        address: room.address,
+                        comodities: room.comodities,
+                        pictures: room.pictures,
+                        price: room.price,
+                        capacity: room.capacity
+                    }
+
+                    listingsData.push(listing)
+
+                }
+
+                console.log(listingsData)
+                setFilteredListings(listingsData)
+
+            } catch(err) {
+
+            }
+        } 
+
+        fetchAllDisponibilidade()
+
     }, [navigate]);
 
     useEffect(() => {
         const results = listingsData.filter((listing) => {
             const matchesSearch =
-                listing.title
+                listing.name
                     .toLowerCase()
                     .includes(searchQuery.toLowerCase()) ||
                 listing.address

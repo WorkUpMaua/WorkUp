@@ -1,13 +1,5 @@
+import { Listing } from '../pages/Home';
 import ListingCard from './ListingCard';
-
-interface Listing {
-  id: string;
-  title: string;
-  image: string;
-  price: number;
-  address: string;
-  amenities: string[];
-}
 
 interface ListingGridProps {
   listings: Listing[];

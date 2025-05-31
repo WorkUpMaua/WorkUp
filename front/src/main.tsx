@@ -12,7 +12,6 @@ import './styles/index.css'
 import TelaPropriedades from './pages/TelaPropriedades'
 
 createRoot(document.getElementById("root")!).render(
-  <StrictMode>
     <Router>
       <Routes>
         <Route path="/login" element={<Login />} />
@@ -24,5 +23,4 @@ createRoot(document.getElementById("root")!).render(
         <Route path="/properties" element={<TelaPropriedades />}/>
       </Routes>
     </Router>
-  </StrictMode>
 );
