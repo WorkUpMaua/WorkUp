@@ -74,21 +74,21 @@ export class DisponibilidadeRepositoryMock {
 
   // Pergunta quantos lugares disponiveis tem a sala
   public getDisponibilidade(props: getDisponbilidadeProps): number {
-    const { id, startTime, endTime } = props;
+  const { id, startTime, endTime } = props;
 
-    if (!this.baseDisponibilidade[id])
-      throw new Error("Sala não encontrada na base consolidada");
-
-    const catalog = this.baseDisponibilidade[id];
-
-    const overlappings = catalog.confirmedBookings.filter(
-      (booking) => startTime > booking.startTime && endTime < booking.endTime
-    ).length;
-
-    return catalog.capacity - overlappings < 0
-      ? 0
-      : catalog.capacity - overlappings;
+  if (!this.baseDisponibilidade[id]) {
+    throw new Error("Sala não encontrada na base consolidada");
   }
+
+  const catalog = this.baseDisponibilidade[id];
+
+  const overlappings = catalog.confirmedBookings.filter((booking) =>
+    booking.startTime < endTime && booking.endTime > startTime
+  ).length;
+
+  const disponivel = catalog.capacity - overlappings;
+  return disponivel < 0 ? 0 : disponivel;
+}
 
   public createDisponibilidade(
     props: createDisponibilidadeProps
