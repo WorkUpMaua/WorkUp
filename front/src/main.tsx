@@ -9,6 +9,7 @@ import UserProfile from "./pages/UserProfile";
 import CreatePropriedades from './pages/CreatePropriedades'
 import 'flatpickr/dist/themes/material_blue.css';
 import './styles/index.css'
+import TelaAluguel from './pages/TelaAluguel'
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -20,6 +21,7 @@ createRoot(document.getElementById("root")!).render(
         <Route path="/cadastro" element={<Cadastro />} />
         <Route path="/catalog" element={<Home />} />
         <Route path="/create-propriedades" element={<CreatePropriedades />} />
+        <Route path="/tela-aluguel" element={<TelaAluguel />} />
       </Routes>
     </Router>
   </StrictMode>
