@@ -9,10 +9,10 @@ export class GetAllAluguelController {
 
         try {
 
-            const rooms = this.usecase.execute()
+            const alugueis = this.usecase.execute()
 
             res.status(200).json({
-                rooms,
+                alugueis,
                 "message": "Os alugueis foram recuperados"
             });
 

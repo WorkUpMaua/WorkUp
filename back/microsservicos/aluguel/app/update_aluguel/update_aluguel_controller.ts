@@ -12,13 +12,15 @@ export class UpdateAluguelController {
         try {
 
             const id = req.params.id;
+            const typesStatus = ["PENDING", "CONFIRMED", "CANCELED"];
 
             if (id === undefined) throw new Error('ID não informado')
             if (id.length !== 36) throw new Error('ID inválido')
+            if (!typesStatus.includes(req.body.status)) throw new Error('Status inválido')
 
             const props: updateAluguelProps = { id, ...req.body };
 
-            const room_updated = this.usecase.execute(props)
+            const aluguelUpdated = this.usecase.execute(props)
 
             // manda para o barramento de eventos
             axios.post('http://localhost:10001/events', {
@@ -28,7 +30,7 @@ export class UpdateAluguelController {
             .then()
             .catch( (err) => console.log(err))
             .finally( () => res.json({
-                "room": room_updated,
+                "aluguel": aluguelUpdated,
                 "message": "A reserva foi atualizada com sucesso!"
             }) )
 
