@@ -1,4 +1,4 @@
-import { AluguelType } from "@aluguel/shared/types";
+import { AluguelType } from "../../shared/types";
 import { CreateAluguelUsecase } from "./create_aluguel_usecase";
 import { Request, Response } from "express";
 import axios from "axios";
@@ -18,20 +18,6 @@ export class CreateAluguelController {
             if (body.startDate === undefined) throw new Error('Missing start date');
             if (body.endDate === undefined) throw new Error('Missing end date');
             if (body.capacity === undefined) throw new Error('Missing capacity');
-            
-
-            // const aluguelProps: AluguelType = {
-            //     id: '',
-            //     userId: body.userId as string,
-            //     workspaceId: body.workspaceId as string,
-            //     finalPrice: 0, // Será calculado no usecase
-            //     status: "PENDING", // Status inicial
-            //     createdAt: 0, // Será atualizado no usecase
-            //     updatedAt: 0, // Será atualizado no usecase
-            //     startDate: body.startDate as number,
-            //     endDate: body.endDate as number,
-            //     capacity: body.capacity as number
-            // };
 
             const aluguelProps = body as AluguelType;
 
