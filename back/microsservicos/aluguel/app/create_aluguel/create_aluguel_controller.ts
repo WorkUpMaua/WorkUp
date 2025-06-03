@@ -12,12 +12,17 @@ export class CreateAluguelController {
         try {
 
             const body = req.body;
+            const typesStatus = ["PENDING", "CONFIRMED", "CANCELED"];
 
-            if (body.userId === undefined) throw new Error('Missing user ID');
-            if (body.workspaceId === undefined) throw new Error('Missing workspace ID');
-            if (body.startDate === undefined) throw new Error('Missing start date');
-            if (body.endDate === undefined) throw new Error('Missing end date');
-            if (body.capacity === undefined) throw new Error('Missing capacity');
+            if (body.userId === undefined) throw new Error('ID do usuário não informado');
+            if (body.workspaceId === undefined) throw new Error('ID do espaço de trabalho não informado');
+            if (body.startDate === undefined) throw new Error('check-in não informado');
+            if (body.endDate === undefined) throw new Error('check-out não informado');
+            if (body.capacity === undefined) throw new Error('capacidade não informada');
+            if (body.finalPrice === undefined) throw new Error('preço final não informado');
+            if (req.body.capacity <= 0 || typeof req.body.capacity !== 'number') throw new Error('Capacidade inválida')
+            if (req.body.finalPrice <= 0 || typeof req.body.finalPrice !== 'number') throw new Error('Preço final inválido')
+            if (!typesStatus.includes(req.body.status)) throw new Error('Status inválido')
 
             const aluguelProps = body as AluguelType;
 

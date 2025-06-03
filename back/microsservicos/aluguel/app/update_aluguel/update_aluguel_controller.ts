@@ -17,6 +17,8 @@ export class UpdateAluguelController {
             if (id === undefined) throw new Error('ID não informado')
             if (id.length !== 36) throw new Error('ID inválido')
             if (!typesStatus.includes(req.body.status)) throw new Error('Status inválido')
+            if (req.body.capacity <= 0 || typeof req.body.capacity !== 'number') throw new Error('Capacidade inválida')
+            if (req.body.finalPrice <= 0 || typeof req.body.finalPrice !== 'number') throw new Error('Preço final inválido')
 
             const props: updateAluguelProps = { id, ...req.body };
 
