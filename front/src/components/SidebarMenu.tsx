@@ -50,6 +50,19 @@ export default function SidebarMenu({ active, onClose }: SidebarMenuProps) {
             </a>
           </li>
 
+           <li className="px-6 py-4 transition-all duration-300 flex items-center gap-4 text-sm hover:bg-white/10 hover:pl-8">
+            <i className="fas fa-plus w-5 text-center"></i>{" "}
+            <a
+              className="cursor-pointer"
+              onClick={() => {
+                navigate("/rent");
+                onClose();
+              }}
+            >
+              Minhas Reservas
+            </a>
+          </li>
+
           {/* <li className="px-6 py-4 cursor-pointer transition-all duration-300 flex items-center gap-4 text-sm hover:bg-white/10 hover:pl-8">
             <i className="fas fa-cog w-5 text-center"></i> Configurações
           </li> */}
