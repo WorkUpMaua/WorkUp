@@ -27,12 +27,12 @@ export class DisponibilidadeRepositoryMock {
       capacity: 1,
       confirmedBookings: [
         {
-          // Dia 28, das 10 ate as 18
+          // Dia 5 de junho, das 10 ate as 18
           catalogID: "idUnico",
           bookingID: "idUnico da reserva",
           userID: "idUnico do usuario",
-          startTime: 1748437200,
-          endTime: 1748466000,
+          startTime: 1749128400,
+          endTime: 1749157200,
         },
         {
           // Dia 29, das 10, ate as 18

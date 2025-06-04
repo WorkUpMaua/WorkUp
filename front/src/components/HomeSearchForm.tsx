@@ -1,7 +1,15 @@
-import Flatpickr from 'react-flatpickr';
-import 'flatpickr/dist/themes/material_blue.css';
-import React from 'react';
-import { HomeFiltersType } from '../pages/Home';
+import React from "react";
+import Flatpickr from "react-flatpickr";
+import "flatpickr/dist/themes/material_blue.css";
+import { Portuguese } from "flatpickr/dist/l10n/pt.js";
+
+export interface HomeFiltersType {
+  startDate: Date | null;
+  endDate: Date | null;
+  guests: string | number;
+  minPrice: string;
+  maxPrice: string;
+}
 
 interface HomeSearchFormProps {
   searchQuery: string;
@@ -20,14 +28,17 @@ export default function HomeSearchForm({
 }: HomeSearchFormProps) {
   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFilters((prev: HomeFiltersType) => ({
+    setFilters(prev => ({
       ...prev,
       [name]: value,
     }));
   };
 
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-8 w-full mx-auto bg-white p-8 rounded-lg shadow-md">
+    <form
+      onSubmit={onSubmit}
+      className="flex flex-col gap-8 w-full mx-auto bg-white p-8 rounded-lg shadow-md"
+    >
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
         <div className="relative flex-1 min-w-[200px]">
           <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-text-gray"></i>
@@ -35,27 +46,37 @@ export default function HomeSearchForm({
             type="text"
             id="searchQuery"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={e => setSearchQuery(e.target.value)}
             placeholder=" "
             className="peer w-full border border-gray-200 rounded-lg px-10 py-4 bg-white text-base text-text-dark shadow-sm transition-all duration-300 h-[50px] focus:border-primary focus:outline-none"
           />
           <label
             htmlFor="searchQuery"
-            className="absolute top-1/2 left-10 -translate-y-1/2 pointer-events-none text-text-gray transition-all duration-300 bg-white px-1.5 text-sm
-              peer-focus:opacity-0 peer-placeholder-shown:opacity-100 opacity-0"
+            className="absolute top-1/2 left-10 -translate-y-1/2 pointer-events-none text-text-gray transition-all duration-300 bg-white px-1.5 text-sm peer-focus:opacity-0 peer-placeholder-shown:opacity-100 opacity-0"
           >
             Pesquisar imóveis
           </label>
         </div>
+
         <div className="relative flex-1 min-w-[200px]">
           <i className="far fa-calendar-alt absolute left-4 top-1/2 -translate-y-1/2 text-text-gray z-[2] text-base"></i>
           <Flatpickr
-            options={{ dateFormat: 'Y-m-d' }}
-            value={filters.startDate}
+            value={filters.startDate || undefined}
+            options={{
+              locale: Portuguese,
+              enableTime: true,
+              time_24hr: true,
+              dateFormat: "d/m/Y - H:i",
+              minDate: "today",
+            }}
             onChange={([date]) =>
-              setFilters((prev) => ({
+              setFilters(prev => ({
                 ...prev,
-                startDate: date ? (date as Date).toISOString().slice(0, 10) : '',
+                startDate: date || null,
+                endDate:
+                  prev.endDate && date && prev.endDate < date
+                    ? null
+                    : prev.endDate,
               }))
             }
             render={(props, ref) => (
@@ -72,21 +93,27 @@ export default function HomeSearchForm({
           />
           <label
             htmlFor="startDate"
-            className="absolute top-1/2 left-10 -translate-y-1/2 pointer-events-none text-text-gray transition-all duration-300 bg-white px-1.5 text-sm
-              peer-focus:opacity-0 peer-placeholder-shown:opacity-100 opacity-0"
+            className="absolute top-1/2 left-10 -translate-y-1/2 pointer-events-none text-text-gray transition-all duration-300 bg-white px-1.5 text-sm peer-focus:opacity-0 peer-placeholder-shown:opacity-100 opacity-0"
           >
             Check-in
           </label>
         </div>
+
         <div className="relative flex-1 min-w-[200px]">
           <i className="far fa-calendar-alt absolute left-4 top-1/2 -translate-y-1/2 text-text-gray z-[2] text-base"></i>
           <Flatpickr
-            options={{ dateFormat: 'Y-m-d' }}
-            value={filters.endDate}
+            value={filters.endDate || undefined}
+            options={{
+              locale: Portuguese,
+              enableTime: true,
+              time_24hr: true,
+              dateFormat: "d/m/Y - H:i",
+              minDate: filters.startDate || "today",
+            }}
             onChange={([date]) =>
-              setFilters((prev) => ({
+              setFilters(prev => ({
                 ...prev,
-                endDate: date ? (date as Date).toISOString().slice(0, 10) : '',
+                endDate: date || null,
               }))
             }
             render={(props, ref) => (
@@ -103,12 +130,12 @@ export default function HomeSearchForm({
           />
           <label
             htmlFor="endDate"
-            className="absolute top-1/2 left-10 -translate-y-1/2 pointer-events-none text-text-gray transition-all duration-300 bg-white px-1.5 text-sm
-              peer-focus:opacity-0 peer-placeholder-shown:opacity-100 opacity-0"
+            className="absolute top-1/2 left-10 -translate-y-1/2 pointer-events-none text-text-gray transition-all duration-300 bg-white px-1.5 text-sm peer-focus:opacity-0 peer-placeholder-shown:opacity-100 opacity-0"
           >
             Check-out
           </label>
         </div>
+
         <div className="relative flex-1 min-w-[200px]">
           <i className="fas fa-users absolute left-4 top-1/2 -translate-y-1/2 text-text-gray"></i>
           <input
@@ -121,7 +148,7 @@ export default function HomeSearchForm({
               const val = e.target.value;
               setFilters(prev => ({
                 ...prev,
-                guests: val === '' ? '' : Math.max(1, Number(val)),
+                guests: val === "" ? "" : Math.max(1, Number(val)),
               }));
             }}
             placeholder=" "
@@ -129,12 +156,13 @@ export default function HomeSearchForm({
           />
           <label
             htmlFor="guests"
-            className="absolute top-1/2 left-10 -translate-y-1/2 pointer-events-none text-text-gray transition-all duration-300 bg-white px-1.5 text-sm
-              peer-focus:opacity-0 peer-placeholder-shown:opacity-100 opacity-0"
+            className="absolute top-1/2 left-10 -translate-y-1/2 pointer-events-none text-text-gray transition-all duration-300 bg-white px-1.5 text-sm peer-focus:opacity-0 peer-placeholder-shown:opacity-100 opacity-0"
           >
             Pessoas
           </label>
         </div>
+
+
         <div className="relative flex-1 min-w-[200px]">
           <i className="fas fa-dollar-sign absolute left-4 top-1/2 -translate-y-1/2 text-text-gray"></i>
           <input
@@ -149,12 +177,12 @@ export default function HomeSearchForm({
           />
           <label
             htmlFor="minPrice"
-            className="absolute top-1/2 left-10 -translate-y-1/2 pointer-events-none text-text-gray transition-all duration-300 bg-white px-1.5 text-sm
-              peer-focus:opacity-0 peer-placeholder-shown:opacity-100 opacity-0"
+            className="absolute top-1/2 left-10 -translate-y-1/2 pointer-events-none text-text-gray transition-all duration-300 bg-white px-1.5 text-sm peer-focus:opacity-0 peer-placeholder-shown:opacity-100 opacity-0"
           >
             Preço mínimo
           </label>
         </div>
+
         <div className="relative flex-1 min-w-[200px]">
           <i className="fas fa-dollar-sign absolute left-4 top-1/2 -translate-y-1/2 text-text-gray"></i>
           <input
@@ -169,12 +197,12 @@ export default function HomeSearchForm({
           />
           <label
             htmlFor="maxPrice"
-            className="absolute top-1/2 left-10 -translate-y-1/2 pointer-events-none text-text-gray transition-all duration-300 bg-white px-1.5 text-sm
-              peer-focus:opacity-0 peer-placeholder-shown:opacity-100 opacity-0"
+            className="absolute top-1/2 left-10 -translate-y-1/2 pointer-events-none text-text-gray transition-all duration-300 bg-white px-1.5 text-sm peer-focus:opacity-0 peer-placeholder-shown:opacity-100 opacity-0"
           >
             Preço máximo
           </label>
         </div>
+
         <div className="flex items-center justify-center col-span-1 md:col-span-3 mt-2">
           <button
             type="submit"
