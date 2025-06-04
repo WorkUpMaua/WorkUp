@@ -25,40 +25,7 @@ export type HomeFiltersType = {
   maxPrice: string;
 };
 
-const listingsData: Listing[] = [
-  {
-    id: "1",
-    title: "Escritório Moderno no Centro",
-    image: "https://images.pexels.com/photos/380768/pexels-photo-380768.jpeg",
-    price: 1200,
-    address: "Av. Paulista, 1000 - São Paulo/SP",
-    amenities: ["Wi-Fi", "Ar Condicionado", "Cozinha"],
-  },
-  {
-    id: "2",
-    title: "Sala Comercial Premium",
-    image: "https://images.pexels.com/photos/380769/pexels-photo-380769.jpeg",
-    price: 1800,
-    address: "Rua Oscar Freire, 2000 - São Paulo/SP",
-    amenities: ["Wi-Fi", "Ar Condicionado", "Estacionamento"],
-  },
-  {
-    id: "3",
-    title: "Coworking Espaçoso",
-    image: "https://images.pexels.com/photos/267507/pexels-photo-267507.jpeg",
-    price: 900,
-    address: "Alameda Santos, 500 - São Paulo/SP",
-    amenities: ["Wi-Fi", "Cafeteria", "Sala de Reuniões"],
-  },
-  {
-    id: "4",
-    title: "Escritório com Vista",
-    image: "https://images.pexels.com/photos/1181406/pexels-photo-1181406.jpeg",
-    price: 2500,
-    address: "Brooklin Novo, 300 - São Paulo/SP",
-    amenities: ["Wi-Fi", "Ar Condicionado", "Varanda", "Limpeza Diária"],
-  },
-];
+const listingsData: Listing[] = [];
 
 export default function Home(): React.ReactElement {
   const [sidebarActive, setSidebarActive] = useState<boolean>(false);
@@ -78,6 +45,7 @@ export default function Home(): React.ReactElement {
   useEffect(() => {
     const token = getCookie('token')
     if(!token) navigate('/login')
+
   }, [navigate]);
 
   useEffect(() => {
