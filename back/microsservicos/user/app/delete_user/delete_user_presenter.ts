@@ -1,4 +1,4 @@
-import { Environments } from "../../environments";
+import { Environments } from "../../shared/environments";
 import { DeleteUserController } from "./delete_user_controller";
 import { DeleteUserUsecase } from "./delete_user_usecase";
 

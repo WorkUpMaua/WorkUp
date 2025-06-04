@@ -6,17 +6,22 @@
     "start:dev": "nodemon",
     "build": "tsc",
     "start:dist": "node ./dist/index.js",
-    "check": "tsc --noEmit"
+    "check": "tsc --noEmit",
+    "postinstall": "cd node_modules/common && npm install"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@types/cors": "^2.8.18",
     "axios": "^1.9.0",
     "bcrypt": "^6.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
     "express": "^5.1.0",
-    "uuid": "^11.1.0"
+    "uuid": "^11.1.0",
+    "common": "file:../../common"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",

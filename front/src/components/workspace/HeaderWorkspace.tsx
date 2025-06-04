@@ -3,7 +3,7 @@ interface HeaderWorkspaceProps {
     location: string;
     tabs?: string[];
     activeTab: string;
-    onTabClick: (tab: string) => void; // Função chamada ao clicar em uma aba
+    onTabClick: (tab: string) => void; 
 }
 
 export default function HeaderWorkspace(props: HeaderWorkspaceProps) {
