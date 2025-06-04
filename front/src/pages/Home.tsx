@@ -27,11 +27,12 @@ export type HomeFiltersType = {
     maxPrice: string;
 };
 
-const listingsData: Listing[] = [];
+// const listingsData: Listing[] = [];
 
 export default function Home(): React.ReactElement {
     const [sidebarActive, setSidebarActive] = useState<boolean>(false);
     const [searchQuery, setSearchQuery] = useState<string>("");
+    const [listingsData, setListingsData] = useState<Listing[]>([]);
     const [filteredListings, setFilteredListings] =
         useState<Listing[]>(listingsData);
     const [filters, setFilters] = useState<HomeFiltersType>({
@@ -48,39 +49,40 @@ export default function Home(): React.ReactElement {
         const token = getCookie("token");
         if (!token) navigate("/login");
 
+        /**
+         * @todo: entender o pq quando eu atualizo a pagina ele perde as salas 
+         */
+
         const fetchAllDisponibilidade = async () => {
-            try{
+            try {
+                const response = await disponibilidadeClient.get(
+                    "/availability"
+                );
 
-                const response = await disponibilidadeClient.get('/availability');
+                const { rooms } = response.data;
 
-                const { rooms } = response.data
+                const auxListingArray: Listing[] = (
+                    Object.values(rooms) as Listing[]
+                ).map((room) => ({
+                    id: room.id,
+                    name: room.name,
+                    address: room.address,
+                    comodities: room.comodities,
+                    pictures: room.pictures,
+                    price: room.price,
+                    capacity: room.capacity,
+                }));
 
-                for(const room of (Object.values(rooms) as Listing[])) {
+                setListingsData(auxListingArray);
 
-                    const listing: Listing = {
-                        id: room.id,
-                        name: room.name,
-                        address: room.address,
-                        comodities: room.comodities,
-                        pictures: room.pictures,
-                        price: room.price,
-                        capacity: room.capacity
-                    }
+                console.log(listingsData);
+                
+                setFilteredListings(listingsData);
 
-                    listingsData.push(listing)
+            } catch (err) {}
+        };
 
-                }
-
-                console.log(listingsData)
-                setFilteredListings(listingsData)
-
-            } catch(err) {
-
-            }
-        } 
-
-        fetchAllDisponibilidade()
-
+        fetchAllDisponibilidade();
     }, [navigate]);
 
     useEffect(() => {
