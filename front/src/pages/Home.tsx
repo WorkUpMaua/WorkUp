@@ -13,7 +13,7 @@ export interface Listing {
   name: string;
   address: string;
   comodities: string[];
-  pictures: string;
+  pictures: string[];
   price: number;
   capacity: number;
 }

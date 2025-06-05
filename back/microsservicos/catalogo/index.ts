@@ -1,5 +1,4 @@
 import { closeRabbitMQConnection } from 'common'
-
 import dotenv from 'dotenv'
 import path from 'path'
 import { startQueue } from './shared/eventsHandler'

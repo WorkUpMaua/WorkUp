@@ -206,7 +206,7 @@ export default function HomeSearchForm({
         <div className="flex items-center justify-center col-span-1 md:col-span-3 mt-2">
           <button
             type="submit"
-            className="bg-blue-600 text-white border-none px-9 py-4 rounded-lg cursor-pointer font-semibold text-base transition-all duration-300 flex items-center gap-2.5 min-w-[200px] justify-center hover:bg-blue-700 hover:-translate-y-1 hover:shadow-lg"
+            className="bg-[#34495e] text-white border-none px-9 py-4 rounded-lg cursor-pointer font-semibold text-base transition-all duration-300 flex items-center gap-2.5 min-w-[200px] justify-center hover:bg-blue-700 hover:-translate-y-1 hover:shadow-lg"
           >
             <i className="fas fa-search"></i> Buscar
           </button>
