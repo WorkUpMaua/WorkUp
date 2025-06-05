@@ -8,7 +8,13 @@ export type BookingsType = {
     endTime: number
 }
 
-export type getAllDisponibilidadeProps = Pick<BookingsType, 'startTime' | 'endTime'>
+export interface getAllDisponibilidadeProps {
+  startTime?: number;
+  endTime?: number;
+  minPrice?: number;
+  maxPrice?: number;
+  capacity?: number;
+}
 
 export type getDisponbilidadeProps = Pick<UnifiedCatalogo, 'id'> & Pick<BookingsType, 'startTime' | 'endTime'>
 

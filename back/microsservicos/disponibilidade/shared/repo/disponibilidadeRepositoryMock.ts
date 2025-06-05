@@ -1,4 +1,3 @@
-import { v4 as uuidv4 } from "uuid";
 import { UnifiedCatalogo } from "../interfaces";
 import {
   BookingsType,
@@ -47,30 +46,49 @@ export class DisponibilidadeRepositoryMock {
   };
 
   public getAllDisponibilidade(
-    props?: getAllDisponibilidadeProps
-  ): baseDisponibilidadeType {
-    if (!props) {
-      return this.baseDisponibilidade;
-    }
-
-    const catalogos_info = this.baseDisponibilidade;
-
-    // Filtra as salas que estao disponiveis
-    const filteredCatalogos = Object.values(catalogos_info).filter(
-      (catalog) => {
-        const overlappings = catalog.confirmedBookings.filter(
-          (b) => props.endTime > b.startTime && props.startTime < b.endTime
-        ).length;
-        return overlappings < catalog.capacity;
-      }
-    );
-
-    // Volta para o json
-    return filteredCatalogos.reduce((acc, catalog) => {
-      acc[catalog.id] = catalog;
-      return acc;
-    }, {} as baseDisponibilidadeType);
+  props?: getAllDisponibilidadeProps
+): baseDisponibilidadeType {
+  if (!props) {
+    return this.baseDisponibilidade;
   }
+
+  const useDateFilter = props.startTime != null && props.endTime != null;
+
+  const filtrados: UnifiedCatalogo[] = Object.values(this.baseDisponibilidade).filter(
+    catalog => {
+
+      if (useDateFilter) {
+        const overlaps = catalog.confirmedBookings.filter(b =>
+          props.endTime! > b.startTime && props.startTime! < b.endTime
+        ).length;
+        if (overlaps >= catalog.capacity) {
+          return false;
+        }
+      }
+
+      if (props.minPrice != null && catalog.price < props.minPrice) {
+        return false;
+      }
+      if (props.maxPrice != null && catalog.price > props.maxPrice) {
+        return false;
+      }
+
+      if (props.capacity != null && catalog.capacity < props.capacity) {
+        return false;
+      }
+
+      return true;
+    }
+  );
+
+  // 5) Reconstrói o objeto de saída
+  const resultado: baseDisponibilidadeType = {};
+  for (const cat of filtrados) {
+    resultado[cat.id] = cat; // ou qualquer chave única que você use
+  }
+
+  return resultado;
+}
 
   // Pergunta quantos lugares disponiveis tem a sala
   public getDisponibilidade(props: getDisponbilidadeProps): number {

@@ -8,23 +8,31 @@ export class GetAllDisponibilidadeController {
 
   public handle(req: Request, res: Response): void {
     try {
-      const { startDate, endDate } = req.query;
-
-      let catalogs = {};
+      const { startDate, endDate, minPrice, maxPrice, capacity } = req.query;
 
       if ((!startDate && endDate) || (startDate && !endDate))
         throw new Error("Os campos startDate e endDate devem vir juntos");
 
-      if (!startDate && !endDate) {
-        catalogs = this.usecase.execute();
-      } else {
-        const props: getAllDisponibilidadeProps = {
-          startTime: Number(startDate),
-          endTime: Number(endDate),
-        };
+      // if (!startDate && !endDate) {
+      //   catalogs = this.usecase.execute();
+      // } else {
+      //   const props: getAllDisponibilidadeProps = {
+      //     startTime: Number(startDate),
+      //     endTime: Number(endDate),
+      //   };
 
-        catalogs = this.usecase.execute(props);
+      //   catalogs = this.usecase.execute(props);
+      // }
+
+      const props: getAllDisponibilidadeProps = {
+        startTime: Number(startDate),
+        endTime: Number(endDate),
+        minPrice: Number(minPrice),
+        maxPrice: Number(maxPrice),
+        capacity: Number(capacity)
       }
+
+      const catalogs = this.usecase.execute(props)
 
       // mandar para o barramento de eventos
 
