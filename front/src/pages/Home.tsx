@@ -74,18 +74,44 @@ export default function Home(): React.ReactElement {
         ? Math.floor(filters.endDate.getTime() / 1000)
         : undefined;
 
+    const parseMoney = (str: string): number => {
+      const normalized = str.replace(/\./g, "").replace(",", ".");
+      return parseFloat(normalized);
+    };
+
     const params: Record<string, string | number> = {};
-    if (startTs !== undefined) params.startDate = startTs;
-    if (endTs !== undefined) params.endDate = endTs;
-    if (searchQuery.trim() !== "") params.name = searchQuery.trim();
+    if (startTs !== undefined) {
+      params.startTime = startTs;
+      params.endTime = endTs!;
+    }
+
+    if (filters.minPrice && filters.minPrice.trim() !== "") {
+      const valorMin = parseMoney(filters.minPrice);
+      if (!isNaN(valorMin)) {
+        params.minPrice = valorMin;
+      }
+    }
+
+    if (filters.maxPrice && filters.maxPrice.trim() !== "") {
+      const valorMax = parseMoney(filters.maxPrice);
+      if (!isNaN(valorMax)) {
+        params.maxPrice = valorMax;
+      }
+    }
+
+    if (String(filters.guests).trim() !== "") {
+      const capacityNum = Number(filters.guests);
+      if (!isNaN(capacityNum)) {
+        params.capacity = capacityNum;
+      }
+    }
 
     try {
       const response = await disponibilidadeClient.get("/availability", {
         params,
       });
       const { rooms } = response.data;
-
-      const availableRooms: Listing[] = (Object.values(rooms) as any[]).map(
+      let availableRooms: Listing[] = (Object.values(rooms) as any[]).map(
         (room) => ({
           id: room.id,
           name: room.name,
@@ -96,6 +122,13 @@ export default function Home(): React.ReactElement {
           capacity: room.capacity,
         })
       );
+
+      if (searchQuery.trim() !== "") {
+        const lowerQuery = searchQuery.trim().toLowerCase();
+        availableRooms = availableRooms.filter((room) =>
+          room.name.toLowerCase().includes(lowerQuery)
+        );
+      }
 
       setFilteredListings(availableRooms);
     } catch (err) {

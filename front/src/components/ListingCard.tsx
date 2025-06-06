@@ -8,36 +8,34 @@ interface ListingCardProps {
 export default function ListingCard({ listing }: ListingCardProps) {
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300 flex flex-col relative hover:-translate-y-1 hover:shadow-xl">
-      {/* Imagem principal */}
       <div className="relative w-full h-[220px] overflow-hidden">
-        {/* Supondo que `listing.pictures` seja um array de URLs */}
         <img
           src={listing.pictures[0]}
           alt={listing.name}
           className="w-full h-full object-cover transition-all duration-300 group-hover:scale-105"
         />
-        {/* Badge de preço */}
+
         <span className="absolute top-4 left-4 bg-primary text-white px-4 py-2 rounded-full font-bold text-sm z-[1] border-header bg-[#34495e]">
-          R$ {listing.price.toLocaleString("pt-BR")}/dia
+          R$ {listing.price.toLocaleString("pt-BR")}/hora
         </span>
-        {/* Badge de capacidade */}
+
         <button className="absolute top-4 right-4 bg-[#34495e] text-white border-none w-9 h-9 rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 z-[1] hover:text-white">
           <span className="font-bold text-sm">{listing.capacity}</span>
         </button>
       </div>
 
-      {/* Conteúdo textual */}
+
       <div className="p-5 flex-grow flex flex-col">
-        {/* Nome do espaço */}
+
         <h3 className="text-xl font-semibold text-secondary mb-2.5">
           {listing.name}
         </h3>
-        {/* Endereço */}
+
         <p className="text-text-gray text-sm mb-4 flex items-center gap-1.5">
           <i className="fas fa-map-marker-alt text-primary"></i>
           {listing.address}
         </p>
-        {/* Comodidades em tags */}
+
         <div className="flex flex-wrap gap-0.5 mt-4 mb-5">
           {listing.comodities.map((comodity, index) => (
             <span

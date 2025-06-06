@@ -20,7 +20,7 @@ export default function BackButton({ onClick }: BackButtonProps) {
     <div>
       <button
         onClick={handleClick}
-        className="flex items-center gap-2 text-blue-600 hover:text-blue-800 font-semibold py-2 group cursor-pointer"
+        className="flex items-center gap-2 text-[#34495e] hover:text-[#34495e]/85 font-semibold py-2 group cursor-pointer"
       >
         <AiOutlineArrowLeft className="text-xl transform group-hover:-translate-x-1 transition-transform duration-300" />
         <span>Voltar</span>

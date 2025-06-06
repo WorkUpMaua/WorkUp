@@ -26,21 +26,13 @@ export class DisponibilidadeRepositoryMock {
       capacity: 1,
       confirmedBookings: [
         {
-          // Dia 5 de junho, das 10 ate as 18
+          // Dia 10 de junho, das 10 ate as 21
           catalogID: "idUnico",
           bookingID: "idUnico da reserva",
           userID: "idUnico do usuario",
-          startTime: 1749128400,
-          endTime: 1749157200,
-        },
-        {
-          // Dia 29, das 10, ate as 18
-          catalogID: "idUnico",
-          bookingID: "idUnico da reserva",
-          userID: "idUnico do usuario",
-          startTime: 1748523600,
-          endTime: 1748552400,
-        },
+          startTime: 1749560400,
+          endTime: 1749600000,
+        }
       ],
     },
   };
@@ -81,16 +73,15 @@ export class DisponibilidadeRepositoryMock {
     }
   );
 
-  // 5) Reconstrói o objeto de saída
   const resultado: baseDisponibilidadeType = {};
   for (const cat of filtrados) {
-    resultado[cat.id] = cat; // ou qualquer chave única que você use
+    resultado[cat.id] = cat;
   }
 
   return resultado;
 }
 
-  // Pergunta quantos lugares disponiveis tem a sala
+
   public getDisponibilidade(props: getDisponbilidadeProps): number {
   const { id, startTime, endTime } = props;
 

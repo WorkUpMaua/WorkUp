@@ -1,5 +1,5 @@
-// src/pages/Workspace.tsx
-import React, { useEffect, useState } from 'react';
+
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import BackButton from '../components/BackButton';
 import PhotoGallery from '../components/workspace/PhotoGallery';
@@ -59,12 +59,10 @@ export default function Workspace() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-bg-light to-gray-100 flex justify-center">
       <div className="w-full max-w-6xl p-4">
-        {/* Botão “Voltar” */}
         <div className="mb-4">
           <BackButton onClick={() => navigate(-1)} />
         </div>
 
-        {/* Alerta de erro/sucesso */}
         {apiAlert && (
           <div className="max-w-md m-auto mt-4">
             <Alert
@@ -104,9 +102,9 @@ export default function Workspace() {
               <hr className="border-t border-gray-200" />
               <div className="flex justify-between items-center">
                 <div className="text-2xl font-bold text-green-600">
-                  R$ {room.price.toLocaleString('pt-BR')},00
+                  R$ {room.price.toLocaleString('pt-BR')}/hora
                 </div>
-                <button className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold">
+                <button className="bg-[#34495e] text-white px-6 py-3 rounded-lg hover:bg-[#34495e]/85 transition-colors font-semibold cursor-pointer">
                   Reservar Agora
                 </button>
               </div>

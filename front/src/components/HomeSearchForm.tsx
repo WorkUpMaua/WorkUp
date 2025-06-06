@@ -2,6 +2,7 @@ import React from "react";
 import Flatpickr from "react-flatpickr";
 import "flatpickr/dist/themes/material_blue.css";
 import { Portuguese } from "flatpickr/dist/l10n/pt.js";
+import { IMaskInput } from "react-imask";
 
 export interface HomeFiltersType {
   startDate: Date | null;
@@ -26,14 +27,6 @@ export default function HomeSearchForm({
   setFilters,
   onSubmit,
 }: HomeSearchFormProps) {
-  const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFilters(prev => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
   return (
     <form
       onSubmit={onSubmit}
@@ -46,7 +39,7 @@ export default function HomeSearchForm({
             type="text"
             id="searchQuery"
             value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
+            onChange={(e) => setSearchQuery(e.target.value)}
             placeholder=" "
             className="peer w-full border border-gray-200 rounded-lg px-10 py-4 bg-white text-base text-text-dark shadow-sm transition-all duration-300 h-[50px] focus:border-primary focus:outline-none"
           />
@@ -70,7 +63,7 @@ export default function HomeSearchForm({
               minDate: "today",
             }}
             onChange={([date]) =>
-              setFilters(prev => ({
+              setFilters((prev) => ({
                 ...prev,
                 startDate: date || null,
                 endDate:
@@ -111,7 +104,7 @@ export default function HomeSearchForm({
               minDate: filters.startDate || "today",
             }}
             onChange={([date]) =>
-              setFilters(prev => ({
+              setFilters((prev) => ({
                 ...prev,
                 endDate: date || null,
               }))
@@ -144,9 +137,9 @@ export default function HomeSearchForm({
             id="guests"
             value={filters.guests}
             min={1}
-            onChange={e => {
+            onChange={(e) => {
               const val = e.target.value;
-              setFilters(prev => ({
+              setFilters((prev) => ({
                 ...prev,
                 guests: val === "" ? "" : Math.max(1, Number(val)),
               }));
@@ -162,18 +155,28 @@ export default function HomeSearchForm({
           </label>
         </div>
 
-
         <div className="relative flex-1 min-w-[200px]">
-          <i className="fas fa-dollar-sign absolute left-4 top-1/2 -translate-y-1/2 text-text-gray"></i>
-          <input
-            type="number"
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-gray">
+            R$
+          </span>
+          <IMaskInput
+            mask={Number}
+            radix=","
+            scale={2}
+            min={0}
+            thousandsSeparator="."
+            padFractionalZeros={true}
+            normalizeZeros={true}
+            mapToRadix={["."]}
+            unmask={false}
             name="minPrice"
             id="minPrice"
-            placeholder=" "
             value={filters.minPrice}
-            min={1}
-            onChange={handleFilterChange}
-            className="peer w-full border border-gray-200 rounded-lg px-10 py-4 bg-white text-base text-text-dark shadow-sm transition-all duration-300 h-[50px] focus:border-primary focus:outline-none"
+            onAccept={(value: string) =>
+              setFilters((prev) => ({ ...prev, minPrice: value }))
+            }
+            placeholder=" "
+            className="peer w-full border border-gray-200 rounded-lg pl-10 pr-4 py-4 bg-white text-base text-text-dark shadow-sm transition-all duration-300 h-[50px] focus:border-primary focus:outline-none"
           />
           <label
             htmlFor="minPrice"
@@ -184,16 +187,27 @@ export default function HomeSearchForm({
         </div>
 
         <div className="relative flex-1 min-w-[200px]">
-          <i className="fas fa-dollar-sign absolute left-4 top-1/2 -translate-y-1/2 text-text-gray"></i>
-          <input
-            type="number"
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-gray">
+            R$
+          </span>
+          <IMaskInput
+            mask={Number}
+            radix=","
+            scale={2}
+            min={0}
+            thousandsSeparator="."
+            padFractionalZeros={true}
+            normalizeZeros={true}
+            mapToRadix={["."]}
+            unmask={false}
             name="maxPrice"
             id="maxPrice"
-            placeholder=" "
             value={filters.maxPrice}
-            min={1}
-            onChange={handleFilterChange}
-            className="peer w-full border border-gray-200 rounded-lg px-10 py-4 bg-white text-base text-text-dark shadow-sm transition-all duration-300 h-[50px] focus:border-primary focus:outline-none"
+            onAccept={(value: string) =>
+              setFilters((prev) => ({ ...prev, maxPrice: value }))
+            }
+            placeholder=" "
+            className="peer w-full border border-gray-200 rounded-lg pl-10 pr-4 py-4 bg-white text-base text-text-dark shadow-sm transition-all duration-300 h-[50px] focus:border-primary focus:outline-none"
           />
           <label
             htmlFor="maxPrice"
@@ -202,7 +216,6 @@ export default function HomeSearchForm({
             Preço máximo
           </label>
         </div>
-
         <div className="flex items-center justify-center col-span-1 md:col-span-3 mt-2">
           <button
             type="submit"
