@@ -1,7 +1,7 @@
-import express from 'express';
-import { router } from './shared/server/router';
+import { App } from "./shared/server/app"
 
 
-const app = express();
-app.use(express.json());
-app.use(router);
+const port = 4004
+new App().server.listen(port, () => {
+    console.log(`Propriedade. Porta: ${port}`)
+})
