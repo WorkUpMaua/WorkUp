@@ -117,7 +117,6 @@ function UserProfile(): React.ReactElement {
     }
   };
 
-  // Quando a pagina carregar
   useEffect(() => {
     const token = getCookie("token");
     if (!token) navigate("/login");

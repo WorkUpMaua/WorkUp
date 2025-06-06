@@ -2,67 +2,138 @@ import React, { useState, useEffect } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import SidebarMenu from "../components/SidebarMenu";
 import HeaderBar from "../components/HeaderBar";
-import HomeSearchForm from "../components/HomeSearchForm";
+import HomeSearchForm, { HomeFiltersType } from "../components/HomeSearchForm";
 import ListingGrid from "../components/ListingGrid";
 import CreatePropriedades from "../pages/CreatePropriedades";
 import { getCookie } from "../utils/cookies";
+import disponibilidadeClient from "../utils/disponibilidadeClient";
 
-interface Listing {
+export interface Listing {
   id: string;
-  title: string;
-  image: string;
+  name: string;
+  address: string;
+  comodities: string[];
+  pictures: string[];
   price: number;
-  address: string;
-  amenities: string[];
+  capacity: number;
 }
-
-export type HomeFiltersType = {
-  startDate: string;
-  endDate: string;
-  address: string;
-  guests: string | number;
-  minPrice: string;
-  maxPrice: string;
-};
-
-const listingsData: Listing[] = [];
 
 export default function Home(): React.ReactElement {
   const [sidebarActive, setSidebarActive] = useState<boolean>(false);
+  const [filteredListings, setFilteredListings] = useState<Listing[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [filteredListings, setFilteredListings] =
-    useState<Listing[]>(listingsData);
   const [filters, setFilters] = useState<HomeFiltersType>({
-    startDate: "",
-    endDate: "",
-    address: "",
-    guests: '',
+    startDate: null,
+    endDate: null,
+    guests: "",
     minPrice: "",
     maxPrice: "",
   });
+
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = getCookie('token')
-    if(!token) navigate('/login')
+    const token = getCookie("token");
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+    const fetchAll = async () => {
+      try {
+        const response = await disponibilidadeClient.get("/availability");
+        const { rooms } = response.data;
+        const allRooms: Listing[] = (Object.values(rooms) as Listing[]).map(
+          (room) => ({
+            id: room.id,
+            name: room.name,
+            address: room.address,
+            comodities: room.comodities,
+            pictures: room.pictures,
+            price: room.price,
+            capacity: room.capacity,
+          })
+        );
+        setFilteredListings(allRooms);
+      } catch (err) {
+        console.error("Erro ao carregar todas as salas:", err);
+      }
+    };
 
+    fetchAll();
   }, [navigate]);
 
-  useEffect(() => {
-    const results = listingsData.filter((listing) => {
-      const matchesSearch =
-        listing.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        listing.address.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesPrice =
-        (!filters.minPrice || listing.price >= Number(filters.minPrice)) &&
-        (!filters.maxPrice || listing.price <= Number(filters.maxPrice));
-      return matchesSearch && matchesPrice;
-    });
-    setFilteredListings(results);
-  }, [searchQuery, filters]);
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const startTs =
+      filters.startDate !== null
+        ? Math.floor(filters.startDate.getTime() / 1000)
+        : undefined;
+    const endTs =
+      filters.endDate !== null
+        ? Math.floor(filters.endDate.getTime() / 1000)
+        : undefined;
+
+    const parseMoney = (str: string): number => {
+      const normalized = str.replace(/\./g, "").replace(",", ".");
+      return parseFloat(normalized);
+    };
+
+    const params: Record<string, string | number> = {};
+    if (startTs !== undefined) {
+      params.startTime = startTs;
+      params.endTime = endTs!;
+    }
+
+    if (filters.minPrice && filters.minPrice.trim() !== "") {
+      const valorMin = parseMoney(filters.minPrice);
+      if (!isNaN(valorMin)) {
+        params.minPrice = valorMin;
+      }
+    }
+
+    if (filters.maxPrice && filters.maxPrice.trim() !== "") {
+      const valorMax = parseMoney(filters.maxPrice);
+      if (!isNaN(valorMax)) {
+        params.maxPrice = valorMax;
+      }
+    }
+
+    if (String(filters.guests).trim() !== "") {
+      const capacityNum = Number(filters.guests);
+      if (!isNaN(capacityNum)) {
+        params.capacity = capacityNum;
+      }
+    }
+
+    try {
+      const response = await disponibilidadeClient.get("/availability", {
+        params,
+      });
+      const { rooms } = response.data;
+      let availableRooms: Listing[] = (Object.values(rooms) as Listing[]).map(
+        (room) => ({
+          id: room.id,
+          name: room.name,
+          address: room.address,
+          comodities: room.comodities,
+          pictures: room.pictures,
+          price: room.price,
+          capacity: room.capacity,
+        })
+      );
+
+      if (searchQuery.trim() !== "") {
+        const lowerQuery = searchQuery.trim().toLowerCase();
+        availableRooms = availableRooms.filter((room) =>
+          room.name.toLowerCase().includes(lowerQuery)
+        );
+      }
+
+      setFilteredListings(availableRooms);
+    } catch (err) {
+      console.error("Erro ao buscar disponibilidade:", err);
+    }
   };
 
   return (
@@ -72,6 +143,7 @@ export default function Home(): React.ReactElement {
         onClose={() => setSidebarActive(false)}
       />
       <HeaderBar onMenuClick={() => setSidebarActive(!sidebarActive)} />
+
       <main className="mt-20 p-10 w-full min-h-[calc(100vh-80px)] flex justify-center">
         <div className="w-full max-w-[1600px] mx-auto flex flex-col items-center">
           <div className="w-full mb-10 text-center">
@@ -90,6 +162,7 @@ export default function Home(): React.ReactElement {
               onSubmit={handleSubmit}
             />
           </div>
+
           <div className="w-full">
             <h2 className="text-3xl text-secondary mb-8 font-semibold text-center">
               Espaços disponíveis
@@ -98,6 +171,7 @@ export default function Home(): React.ReactElement {
           </div>
         </div>
       </main>
+
       <Routes>
         <Route path="/create-propriedades" element={<CreatePropriedades />} />
       </Routes>
