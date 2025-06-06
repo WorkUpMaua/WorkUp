@@ -8,10 +8,10 @@ type basePropertyType = {
 export class PropertyRepositoryMock {
   
   private baseProperty: basePropertyType = {
-    "userTest": {
+    userTesd: {
       userID: "userTest",
       properties: {
-        "propertyTest": {
+        propertyTest: {
           id: "propertyTest",
           name: "A propriedade de teste",
           description: "",
@@ -27,6 +27,8 @@ export class PropertyRepositoryMock {
 
   public getAllProperty(userID: string): PropertyManagement {
     
+    
+
     const userProperties = this.baseProperty[userID]
 
     if(!userProperties) throw new Error('Usuário não foi encontrado')
@@ -57,6 +59,8 @@ export class PropertyRepositoryMock {
       userID,
       properties: {}
     }
+
+    this.baseProperty[userID] = propertyManagement
 
     return propertyManagement
 

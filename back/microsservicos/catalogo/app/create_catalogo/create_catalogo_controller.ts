@@ -17,6 +17,7 @@ export class CreateCatalogoController {
 
             const body = req.body
 
+            if(body.userID === undefined) throw new Error('O campo ID do usuário deve ser informado')
             if (body.name === undefined) throw new Error('Missing catalogo name')
             if (body.description === undefined) throw new Error('Missing catalogo description')
             if (body.address === undefined) throw new Error('Missing catalogo address')
@@ -31,7 +32,10 @@ export class CreateCatalogoController {
 
             const catalogoCreatedEvent: CatalogoEvent = {
                 eventType: CatalogoEventNames.CatalogoCreated,
-                payload: createdRoom
+                payload: {
+                    userID: body.userID,
+                    ...createdRoom
+                }
             }
 
             const published = await publishEvent("catalogo.created", catalogoCreatedEvent)
