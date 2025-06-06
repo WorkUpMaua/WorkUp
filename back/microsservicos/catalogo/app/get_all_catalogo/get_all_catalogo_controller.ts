@@ -13,7 +13,7 @@ export class GetAllCatalogoController {
 
             res.status(200).json({
                 rooms,
-                "message": "The rooms were retrieved"
+                "message": "Todos os catálogos foram encontrados com sucesso"
             });
 
         } catch (err) {

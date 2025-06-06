@@ -12,7 +12,7 @@ export class DeleteUserController {
     try {
       const { id } = req.params;
 
-      if (!id) throw new Error("Missing user id");
+      if (!id) throw new Error("Campo id não informado");
 
       const user_deleted = this.usecase.execute(id);
 
@@ -42,7 +42,7 @@ export class DeleteUserController {
       if(published) {
         res.json({
           user: user_deleted,
-          message: 'The user was deleted'
+          message: 'O usuário foi deletado com sucesso',
         })
       } else {
         throw new Error('Could not publish the event: ' + JSON.stringify(userDeletedEvent))

@@ -15,7 +15,7 @@ export class GetUserUsecase {
 
   public execute(id: string): informationType {
 
-    if(!this.validateID(id)) throw new Error('Field id is invalid')
+    if(!this.validateID(id)) throw new Error('ID inválido')
 
     const user = this.repo.getUser(id)
 

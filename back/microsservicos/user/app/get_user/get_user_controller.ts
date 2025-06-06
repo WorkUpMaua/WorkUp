@@ -11,13 +11,13 @@ export class GetUserController {
 
             const { id } = req.params
 
-            if (id === undefined) throw new Error('Missing user id') 
+            if (id === undefined) throw new Error('ID do usuário não informado') 
                            
             const user = this.usecase.execute(id as string)
 
             res.json({
                 user,
-                message: 'The user was retrieved'
+                message: 'O usuário foi encontrado com sucesso'
             })
             
         } catch (err) {

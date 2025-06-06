@@ -17,13 +17,13 @@ export class CreateCatalogoController {
 
             const body = req.body
 
-            if (body.name === undefined) throw new Error('Missing catalogo name')
-            if (body.description === undefined) throw new Error('Missing catalogo description')
-            if (body.address === undefined) throw new Error('Missing catalogo address')
-            if (body.comodities === undefined) throw new Error('Missing catalogo comodities')
-            if (body.pictures === undefined) throw new Error('Missing catalogo pictures')
-            if (body.price === undefined) throw new Error('Missing catalogo price')
-            if (body.capacity === undefined) throw new Error('Missing catalogo capacity')
+            if (body.name === undefined) throw new Error('Nome do catálogo não informado')
+            if (body.description === undefined) throw new Error('Descrição do catálogo não informada')
+            if (body.address === undefined) throw new Error('Endereço do catálogo não informado')
+            if (body.comodities === undefined) throw new Error('Comodidades do catálogo não informadas')
+            if (body.pictures === undefined) throw new Error('Fotos do catálogo não informadas')
+            if (body.price === undefined) throw new Error('Preço do catálogo não informado')
+            if (body.capacity === undefined) throw new Error('Capacidade do catálogo não informada')
     
             const roomProps = body as Catalogo
 
@@ -39,7 +39,7 @@ export class CreateCatalogoController {
             if(published) {
                 res.status(201).json({
                     room: createdRoom,
-                    message: 'The room was created'
+                    message: 'O catálogo foi criado com sucesso',
                 })
             } else {
                 throw new Error('Could not publish the event: ' + JSON.stringify(catalogoCreatedEvent))

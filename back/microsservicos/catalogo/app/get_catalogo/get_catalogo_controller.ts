@@ -8,7 +8,7 @@ export class GetCatalogoController {
     try {
       const { id } = req.params;
 
-      if (id === undefined) throw new Error("Missing room id");
+      if (id === undefined) throw new Error("ID do catálogo não informado");
 
       const room = this.usecase.exectute(id);
 

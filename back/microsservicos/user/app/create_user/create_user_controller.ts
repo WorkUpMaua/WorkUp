@@ -16,12 +16,12 @@ export class CreateUserController {
 
             const body = req.body
 
-            if(body.username === undefined) throw new Error('Missing user username')
-            if(body.password === undefined) throw new Error('Missing user password')
-            if(body.name === undefined) throw new Error('Missing user name')
-            if(body.cpf === undefined) throw new Error('Missing user cpf')
-            if(body.birth === undefined) throw new Error('Missing user birth')
-            if(body.phone === undefined) throw new Error('Missing user phone')
+            if(body.username === undefined) throw new Error('Usuário não informado')
+            if(body.password === undefined) throw new Error('Senha não informada')
+            if(body.name === undefined) throw new Error('nome do usuário não informado')
+            if(body.cpf === undefined) throw new Error('CPF do usuário não informado')
+            if(body.birth === undefined) throw new Error('Data de nascimento do usuário não informada')
+            if(body.phone === undefined) throw new Error('Telefone do usuário não informado')
 
             const auth: authType = {
                 username: body.username as string,
@@ -52,7 +52,7 @@ export class CreateUserController {
             .catch( (err) => console.log(err) )
             .finally(() => res.status(201).json({
                 createdUser,
-                message: 'The user was created'
+                message: 'O usuário foi criado com sucesso'
             }))
 
         } catch (err) {

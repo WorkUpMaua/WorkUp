@@ -13,7 +13,7 @@ export class GetAllUserController {
 
             res.json({
                 users,
-                message: 'The users were retrieved'
+                message: 'Todos os usuários foram encontrados com sucesso'
             })
 
         } catch (err) {
