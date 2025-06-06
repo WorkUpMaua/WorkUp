@@ -8,7 +8,7 @@ export interface BaseEvent {
 
 export interface CatalogoEvent extends BaseEvent {
   eventType: CatalogoEventNames
-  payload: catalogo
+  payload: {userID: string} & catalogo
 }
 
 export interface UserEvent extends BaseEvent {
