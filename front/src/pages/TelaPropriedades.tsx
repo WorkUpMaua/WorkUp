@@ -2,17 +2,39 @@ import { useEffect, useState } from "react";
 import HeaderBar from "../components/HeaderBar";
 import SidebarMenu from "../components/SidebarMenu";
 import ListingCard from "../components/ListingCard";
-import { properties } from "../data/propertyData";
+// import { properties } from "../data/propertyData";
 import { useNavigate } from "react-router-dom";
 import { getCookie } from "../utils/cookies";
+import propertyClient from "../utils/propertyClient";
+import { Listing } from "./Home";
 
 export default function TelaPropriedades() {
   const [sidebarActive, setSidebarActive] = useState(false);
+  const [properties, setProperties] = useState<Listing[]>([])
   const navigate = useNavigate();
 
    useEffect(() => {
         const token = getCookie('token')
         if(!token) navigate('/login')
+
+        const fetchProperties = async () => {
+          try {
+
+            const response = await propertyClient.get(`/property/${token}`)
+
+            
+
+            const propertiesResponse = Object.values(response.data.userProperties.properties)
+
+            setProperties(propertiesResponse as Listing[])
+
+          } catch (err) {
+             console.error("Erro ao carregar todas as salas:", err);
+          }
+        }
+
+        fetchProperties()
+
       }, [navigate]);
 
   return (
@@ -24,8 +46,6 @@ export default function TelaPropriedades() {
           <h1 className="text-4xl text-secondary mb-10 font-bold text-center">
             Suas Propriedades
           </h1>
-
-          {/* Propriedades Ativas */}
           <section className="w-full mb-16">
             <div className="flex items-center gap-4 mb-8">
               <div className="flex-grow h-px bg-gradient-to-r from-[#34495e] via-blue-400 to-transparent"></div>
