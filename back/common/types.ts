@@ -17,3 +17,16 @@ export type userInformation = {
   birth: number;
   phone: string;
 };
+
+export type aluguel = {
+    id: string
+    userId: string
+    workspaceId: string
+    startDate: number
+    endDate: number
+    finalPrice: number
+    capacity: number
+    status: "PENDING" | "CONFIRMED" | "CANCELED"
+    createdAt: number
+    updatedAt: number
+}

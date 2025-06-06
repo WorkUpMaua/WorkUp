@@ -1,10 +1,10 @@
 import { Router } from "express";
 
-import { createAluguelController } from "./app/create_aluguel/create_aluguel_presenter";
-import { getAllAluguelController } from "./app/get_all_aluguel/get_all_aluguel_presenter";
-import { getAluguelController } from "./app/get_aluguel/get_aluguel_presenter";
-import { updateAluguelController } from "./app/update_aluguel/update_aluguel_presenter";
-import { deleteAluguelController } from "./app/delete_aluguel/delete_aluguel_presenter";
+import { createAluguelController } from "../../app/create_aluguel/create_aluguel_presenter";
+import { getAllAluguelController } from "../../app/get_all_aluguel/get_all_aluguel_presenter";
+import { getAluguelController } from "../../app/get_aluguel/get_aluguel_presenter";
+import { updateAluguelController } from "../../app/update_aluguel/update_aluguel_presenter";
+import { deleteAluguelController } from "../../app/delete_aluguel/delete_aluguel_presenter";
 
 const router: Router = Router()
 

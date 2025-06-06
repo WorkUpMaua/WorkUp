@@ -1,4 +1,4 @@
-import { AluguelType } from "../../shared/types";
+import { Aluguel } from "../../shared/interfaces"
 import { CreateAluguelUsecase } from "./create_aluguel_usecase";
 import { Request, Response } from "express";
 import axios from "axios";
@@ -24,7 +24,7 @@ export class CreateAluguelController {
             if (req.body.finalPrice <= 0 || typeof req.body.finalPrice !== 'number') throw new Error('Preço final inválido')
             if (req.body.status && !typesStatus.includes(req.body.status)) throw new Error('Status inválido')
 
-            const aluguelProps = body as AluguelType;
+            const aluguelProps = body as Aluguel;
 
             const createdAluguel = this.usecase.execute(aluguelProps);
 

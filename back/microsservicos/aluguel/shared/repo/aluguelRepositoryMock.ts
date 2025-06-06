@@ -1,7 +1,10 @@
-import { AluguelType, updateAluguelProps } from "../types"
+import { v4 as uuidv4 } from 'uuid';
+
+import { updateAluguelProps } from "../types"
+import { Aluguel } from "../interfaces"
 
 type baseAluguelType = { 
-    [key: string]: AluguelType
+    [key: string]: Aluguel
 }
 
 export class AluguelRepositoryMock {
@@ -12,16 +15,16 @@ export class AluguelRepositoryMock {
         return this.baseAluguel
     }
 
-    public getAluguel(id: string): AluguelType {
+    public getAluguel(id: string): Aluguel {
         return this.baseAluguel[id]
     }
 
-    public createAluguel(props: AluguelType): AluguelType {
+    public createAluguel(props: Aluguel): Aluguel {
 
-        const id = props.id || crypto.randomUUID()
+        const id = uuidv4()
         const currentTime = Date.now();
 
-        const aluguel: AluguelType = {
+        const aluguel: Aluguel = {
             id,
             userId: props.userId,
             workspaceId: props.workspaceId,
@@ -40,7 +43,7 @@ export class AluguelRepositoryMock {
 
     }
 
-    public updateAluguel(props: updateAluguelProps): AluguelType {
+    public updateAluguel(props: updateAluguelProps): Aluguel {
 
         const aluguel_to_update = this.getAluguel(props.id)
 
@@ -56,7 +59,7 @@ export class AluguelRepositoryMock {
         
     }
 
-    public deleteAluguel(id: string): AluguelType {
+    public deleteAluguel(id: string): Aluguel {
         
         const aluguel_to_delete = this.getAluguel(id)
 

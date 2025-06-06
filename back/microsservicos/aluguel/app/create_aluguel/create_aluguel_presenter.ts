@@ -1,7 +1,7 @@
-import { Environments } from "../../environments";
+import { Environments } from "../../shared/environments";
 import { CreateAluguelController } from "./create_aluguel_controller";
 import { CreateAluguelUsecase } from "./create_aluguel_usecase";
 
 const repoAluguel = Environments.instance.repoAluguel
-const usecase = new CreateAluguelUsecase(repoAluguel)
-export const createAluguelController = new CreateAluguelController(usecase)
+export const createAluguelUsecase = new CreateAluguelUsecase(repoAluguel)
+export const createAluguelController = new CreateAluguelController(createAluguelUsecase)
