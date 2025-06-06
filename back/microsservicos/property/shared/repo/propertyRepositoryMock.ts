@@ -1,60 +1,78 @@
-import { PropertyRelation } from '../interfaces';
-import { createPropertyRelationProps } from '../types';
+import { PropertyManagement } from '../interfaces';
+import { CatalogoType } from '../types';
+
+type basePropertyType = {
+  [key: string]: PropertyManagement
+}
 
 export class PropertyRepositoryMock {
-  private relations: PropertyRelation[] = [];
-
-  async findByIdRelation(id: string): Promise<PropertyRelation | null> {
-    const relation = this.relations.find(r => r.id === id);
-    return relation || null;
-  }
-
-  async findAllRelations(filters?: { userId?: string; catalogId?: string }): Promise<PropertyRelation[]> {
-    let filtered = this.relations;
-    
-    if (filters?.userId) {
-      filtered = filtered.filter(r => r.userId === filters.userId);
+  
+  private baseProperty: basePropertyType = {
+    "userTest": {
+      userID: "userTest",
+      properties: {
+        "propertyTest": {
+          id: "propertyTest",
+          name: "A propriedade de teste",
+          address: "Meu endereço de teste",
+          comodities: [ 'Ola', 'Tudo bem ?'],
+          pictures: [ 'caminho até a foto 1', 'caminho até a foto 2'],
+          price: 12,
+          capacity: 50
+        }
+      }
     }
+  };
+
+  public getAllProperty(userID: string): PropertyManagement {
     
-    if (filters?.catalogId) {
-      filtered = filtered.filter(r => r.catalogId === filters.catalogId);
+    const userProperties = this.baseProperty[userID]
+
+    if(!userProperties) throw new Error('Usuário não foi encontrado')
+
+    return userProperties
+
+  } 
+
+  public getProperty(userID: string, catalogID: string): CatalogoType {
+
+    const user = this.baseProperty[userID]
+
+    if(!user) throw new Error('Usuário não foi encontrado')
+
+    const catalog = user.properties[catalogID]
+
+    if(!catalog) throw new Error('Não foi encontrado o catálogo para esse usuário')
+
+    return catalog
+
+  }
+
+  public createPropertyManagement(userID: string): PropertyManagement {
+
+    if(this.baseProperty[userID]) throw new Error('Usuário já existente na base de propriedades')
+
+    const propertyManagement: PropertyManagement = {
+      userID,
+      properties: {}
     }
-    
-    return filtered;
+
+    return propertyManagement
+
   }
 
-  async createRelation(data: createPropertyRelationProps): Promise<PropertyRelation> {
-    const newRelation: PropertyRelation = {
-      id: Math.random().toString(36).substr(2, 9),
-      ...data,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-    
-    this.relations.push(newRelation);
-    return newRelation;
+  public createProperty(userID: string, catalog: CatalogoType): PropertyManagement {
+
+    const userProperties = this.baseProperty[userID]
+
+    if(!userProperties) throw new Error('Usuário não foi encontrado')
+
+    if(userProperties.properties[catalog.id]) throw new Error('A propriedade já existe nesse usuário')
+
+    userProperties.properties[catalog.id] = catalog
+
+    return userProperties
+
   }
 
-  async updateRelation(id: string, data: Partial<PropertyRelation>): Promise<PropertyRelation> {
-    const index = this.relations.findIndex(r => r.id === id);
-    if (index === -1) {
-      throw new Error('Relação não encontrada');
-    }
-
-    const updatedRelation = {
-      ...this.relations[index],
-      ...data,
-      updatedAt: new Date()
-    };
-
-    this.relations[index] = updatedRelation;
-    return updatedRelation;
-  }
-
-  async deleteRelation(id: string): Promise<void> {
-    const index = this.relations.findIndex(r => r.id === id);
-    if (index !== -1) {
-      this.relations.splice(index, 1);
-    }
-  }
 } 

@@ -1,18 +1,8 @@
-export interface PropertyRelation {
-  id: string;
-  userId: string;
-  catalogId: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import { CatalogoType } from "./types";
 
-export interface UnifiedCatalog {
-  id: string;
-  name: string;
-  description: string;
-  address: string;
-  price: number;
-  capacity: number;
-  amenities: string[];
-  pictures: string[];
-} 
+export interface Properties { [key: string]: CatalogoType }
+
+export interface PropertyManagement {
+  userID: string,
+  properties: Properties
+}
