@@ -42,7 +42,7 @@ export default function Home(): React.ReactElement {
       try {
         const response = await disponibilidadeClient.get("/availability");
         const { rooms } = response.data;
-        const allRooms: Listing[] = (Object.values(rooms) as any[]).map(
+        const allRooms: Listing[] = (Object.values(rooms) as Listing[]).map(
           (room) => ({
             id: room.id,
             name: room.name,
@@ -111,7 +111,7 @@ export default function Home(): React.ReactElement {
         params,
       });
       const { rooms } = response.data;
-      let availableRooms: Listing[] = (Object.values(rooms) as any[]).map(
+      let availableRooms: Listing[] = (Object.values(rooms) as Listing[]).map(
         (room) => ({
           id: room.id,
           name: room.name,

@@ -5,6 +5,7 @@ import BackButton from '../components/BackButton';
 import PhotoGallery from '../components/workspace/PhotoGallery';
 import { Alert } from '../components/Alert';
 import catalogoClient from '../utils/catalogoClient';
+import { AxiosError } from 'axios';
 
 interface RoomDetails {
   id: string;
@@ -39,11 +40,11 @@ export default function Workspace() {
       } catch (err: unknown) {
         let messageFromBack = 'Não foi possível carregar detalhes da sala.';
         if (err && typeof err === 'object' && 'response' in err) {
-          // @ts-ignore
-          const axiosErr = err;
-          // @ts-ignore
+
+          const axiosErr = err as AxiosError;
+
           if (axiosErr.response?.data && typeof axiosErr.response.data === 'object') {
-            // @ts-ignore
+
             messageFromBack = (axiosErr.response.data as { message?: string }).message || messageFromBack;
           }
         }
