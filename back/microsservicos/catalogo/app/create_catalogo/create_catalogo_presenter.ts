@@ -1,4 +1,4 @@
-import { Environments } from "../../environments";
+import { Environments } from "../../shared/environments";
 import { CreateCatalogoController } from "./create_catalogo_controller";
 import { CreateCatalogoUsecase } from "./create_catalogo_usecase";
 

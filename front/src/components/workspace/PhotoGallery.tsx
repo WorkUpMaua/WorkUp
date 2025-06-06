@@ -25,7 +25,7 @@ export default function PhotoGallery(props: PhotoGalleryProps) {
             alt={`Thumbnail ${index}`}
             onClick={() => setSelectedPhoto(photo)}
             className={`w-24 h-auto cursor-pointer rounded-md shadow-sm transition-transform transform hover:scale-105 ${
-              photo === selectedPhoto ? 'ring-4 ring-blue-400' : 'ring-2 ring-gray-300'
+              photo === selectedPhoto ? 'ring-4 ring-[#34495e]' : 'ring-2 ring-gray-300'
             }`}
           />
         ))}

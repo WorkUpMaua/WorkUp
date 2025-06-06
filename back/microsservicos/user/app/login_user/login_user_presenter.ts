@@ -1,4 +1,4 @@
-import { Environments } from "../../environments";
+import { Environments } from "../../shared/environments";
 import { LoginUserController } from "./login_user_controller";
 import { LoginUserUsecase } from "./login_user_usecase";
 

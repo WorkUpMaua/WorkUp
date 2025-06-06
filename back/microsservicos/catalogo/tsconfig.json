@@ -1,14 +1,27 @@
 {
-  "compilerOptions": {
-    "target": "es5",                          
-    "module": "commonjs",                    
-    "lib": ["es6"],                     
-    "allowJs": true,
-    "outDir": "dist",                          
-    "rootDir": "",
-    "strict": true,         
-    "noImplicitAny": true,
-    "esModuleInterop": true,
-    "resolveJsonModule": true
-  }
+    "compilerOptions": {
+        "target": "es2020",
+        "module": "commonjs",
+        "rootDir": "./",
+        "outDir": "./dist", 
+        "esModuleInterop": true,
+        "forceConsistentCasingInFileNames": true,
+        "strict": true,
+        "skipLibCheck": true,
+        "resolveJsonModule": true,
+        "declaration": true, 
+        "declarationMap": true,
+        "sourceMap": true
+    },
+    "include": [
+        "./**/*.ts",
+        "../../environments.d.ts"
+    ],
+    "exclude": [
+        "node_modules",
+        "./dist"
+    ],
+    "paths": [
+        
+    ]
 }

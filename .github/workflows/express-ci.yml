@@ -14,7 +14,7 @@ jobs:
         service:
           - catalogo
           - user
-          - aluguel
+          - disponibilidade
 
     steps:
       - uses: actions/checkout@v3
@@ -26,7 +26,8 @@ jobs:
 
       - name: Install dependencies for ${{ matrix.service }}
         working-directory: ./back/microsservicos/${{ matrix.service }}
-        run: npm install
+        run: |
+            npm install
 
       - name: Check ${{ matrix.service }}
         working-directory: ./back/microsservicos/${{ matrix.service }}

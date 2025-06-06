@@ -19,6 +19,7 @@ export class AluguelRepositoryMock {
     public createAluguel(props: AluguelType): AluguelType {
 
         const id = props.id || crypto.randomUUID()
+        const currentTime = Date.now();
 
         const aluguel: AluguelType = {
             id,
@@ -29,8 +30,8 @@ export class AluguelRepositoryMock {
             finalPrice: props.finalPrice,
             capacity: props.capacity,
             status: props.status || "PENDING",
-            createdAt: Date.now(),
-            updatedAt: Date.now()
+            createdAt: currentTime,
+            updatedAt: currentTime
         }
 
         this.baseAluguel[id] = aluguel

@@ -9,7 +9,7 @@ export class GetAllDisponibilidadeUsecase {
 
         if(props) {
 
-            if(props.startTime >= props.endTime) throw new Error('O campo startTime deve ser sempre menor que o endTime')
+            if(props.startTime! >= props.endTime!) throw new Error('O campo startTime deve ser sempre menor que o endTime')
         }
 
         return this.repo.getAllDisponibilidade(props)

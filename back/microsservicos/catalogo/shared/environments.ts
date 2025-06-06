@@ -1,11 +1,11 @@
-import { UserRepositoryMock } from "./shared/repo/userRepositoryMock";
+import { CatalogoRepositoryMock } from './repo/catalogoRepositoryMock';
 
 export class Environments {
   private static _instance: Environments;
-  private _repo: UserRepositoryMock;
+  private _repo: CatalogoRepositoryMock;
 
   private constructor() {
-    this._repo = new UserRepositoryMock();
+    this._repo = new CatalogoRepositoryMock();
   }
 
   public static get instance(): Environments {
@@ -15,7 +15,7 @@ export class Environments {
     return this._instance;
   }
 
-  public get repo(): UserRepositoryMock {
+  public get repo(): CatalogoRepositoryMock {
     return this._repo;
   }
 }
