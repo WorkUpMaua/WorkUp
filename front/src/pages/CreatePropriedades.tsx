@@ -88,6 +88,7 @@ export default function CreatePropriedades() {
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
+        const token = getCookie("token");
         e.preventDefault();
         if (validateForm()) {
             const imageUrls = imagePreviews;
@@ -105,6 +106,7 @@ export default function CreatePropriedades() {
 
             try {
                 const response = await catalogoClient.post("/catalogo", {
+                    userID: token,
                     name: newRoom.name,
                     description: "",
                     address: newRoom.address,
