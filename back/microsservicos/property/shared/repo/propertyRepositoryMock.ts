@@ -14,6 +14,7 @@ export class PropertyRepositoryMock {
         "propertyTest": {
           id: "propertyTest",
           name: "A propriedade de teste",
+          description: "",
           address: "Meu endereço de teste",
           comodities: [ 'Ola', 'Tudo bem ?'],
           pictures: [ 'caminho até a foto 1', 'caminho até a foto 2'],
