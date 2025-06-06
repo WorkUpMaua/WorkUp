@@ -49,6 +49,8 @@ A coleção completa de endpoints, exemplos de requisições e esquemas de respo
 
 [Documentação](https://documenter.getpostman.com/view/31820328/2sB2qXk31Q)
 
+---
+
 ## 📅 Kanban do projeto
 
 Para garantir um gerenciamento visual e eficiente das tarefas, adotamos a metodologia ágil Kanban. Através dela, acompanhamos o progresso de cada etapa do desenvolvimento de forma colaborativa e transparente.
@@ -56,6 +58,8 @@ Para garantir um gerenciamento visual e eficiente das tarefas, adotamos a metodo
 ➡️ Acesse nosso quadro Kanban no GitHub para visualizar o andamento do projeto:
 
 [Kanban](https://github.com/orgs/WorkUpMaua/projects/1/views/1)
+
+---
 
 ## 🤝 Integrantes
 
