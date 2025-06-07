@@ -8,7 +8,7 @@ dotenv.config({
     path: path.resolve(__dirname, '..', '..', '.env')
 })
 
-const port = process.env.CATALOG_MSS_PORT
+const port = process.env.ALUGUEL_MSS_PORT
 new App().server.listen(port, () => {
     console.log(`Aluguel. Porta: ${port}`)
     startQueue()
