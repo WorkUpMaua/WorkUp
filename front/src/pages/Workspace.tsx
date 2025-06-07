@@ -4,7 +4,7 @@ import BackButton from '../components/BackButton';
 import PhotoGallery from '../components/workspace/PhotoGallery';
 import { Alert } from '../components/Alert';
 import catalogoClient from '../utils/catalogoClient';
-import aluguelClient from '../utils/aluguelClient'; // Cliente para a API de aluguel
+import aluguelClient from '../utils/aluguelClient';
 import { AxiosError } from 'axios';
 
 interface RoomDetails {
@@ -58,12 +58,6 @@ export default function Workspace() {
 
     fetchRoom();
   }, [id]);
-
-  // Função para formatar a data
-  const formatDate = (timestamp: number) => {
-    const date = new Date(timestamp);
-    return date.toLocaleDateString('pt-BR');
-  };
 
   // Função para enviar a reserva
   const handleReserve = async () => {
