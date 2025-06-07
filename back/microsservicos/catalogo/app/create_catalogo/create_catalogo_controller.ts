@@ -20,7 +20,7 @@ export class CreateCatalogoController {
             if (body.description === undefined) throw new Error('Descrição do catálogo não informada')
             if (body.address === undefined) throw new Error('Endereço do catálogo não informado')
             if (body.comodities === undefined) throw new Error('Comodidades do catálogo não informadas')
-            if (body.pictures === undefined) throw new Error('Fotos do catálogo não informadas')
+            // if (body.pictures === undefined) throw new Error('Fotos do catálogo não informadas')
             if (body.price === undefined) throw new Error('Preço do catálogo não informado')
             if (body.capacity === undefined) throw new Error('Capacidade do catálogo não informada')
     
