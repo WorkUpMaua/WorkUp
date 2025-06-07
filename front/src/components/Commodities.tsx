@@ -1,13 +1,21 @@
-import React, { useState, useRef, useEffect } from 'react';
+// src/components/Commodities.tsx
+import React, { useEffect, useRef, useState } from 'react';
 
 const SUGGESTIONS = [
   "Wi-Fi", "Ar Condicionado", "Cozinha", "Estacionamento", "Cafeteria",
   "Sala de Reuniões", "Projetor", "Lousa", "Varanda", "Limpeza Diária"
 ];
 
-export default function Commodities() {
+interface CommoditiesProps {
+  selectedQualities: string[];
+  setQualities: (quals: string[]) => void;
+}
+
+export default function Commodities({
+  selectedQualities,
+  setQualities
+}: CommoditiesProps) {
   const [input, setInput] = useState('');
-  const [qualidades, setQualidades] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -15,27 +23,28 @@ export default function Commodities() {
     const valorFormatado = valor.trim();
     if (
       SUGGESTIONS.includes(valorFormatado) &&
-      !qualidades.includes(valorFormatado)
+      !selectedQualities.includes(valorFormatado)
     ) {
-      setQualidades([...qualidades, valorFormatado]);
+      setQualities([...selectedQualities, valorFormatado]);
       setInput('');
     }
   };
 
   const removeQualidade = (valor: string) => {
-    setQualidades(qualidades.filter(q => q !== valor));
+    setQualities(selectedQualities.filter(q => q !== valor));
   };
 
   const filteredSuggestions = SUGGESTIONS.filter(
     q =>
       q.toLowerCase().includes(input.toLowerCase()) &&
-      !qualidades.includes(q)
+      !selectedQualities.includes(q)
   );
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       addQualidade(input);
+      setShowSuggestions(false);
     }
   };
 
@@ -85,15 +94,16 @@ export default function Commodities() {
         </ul>
       )}
 
-      {qualidades.length > 0 && (
+      {selectedQualities.length > 0 && (
         <div className="mt-2 flex flex-wrap gap-2">
-          {qualidades.map((q, i) => (
+          {selectedQualities.map((q, i) => (
             <span
               key={i}
               className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full flex items-center text-sm"
             >
               {q}
               <button
+                type="button"
                 onClick={() => removeQualidade(q)}
                 className="ml-2 text-red-500 hover:text-red-700"
               >
@@ -104,5 +114,5 @@ export default function Commodities() {
         </div>
       )}
     </div>
-  );
+);
 }

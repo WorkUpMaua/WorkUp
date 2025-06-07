@@ -1,4 +1,5 @@
 export type catalogo = {
+    userID: string,
     id: string
     name: string
     description: string

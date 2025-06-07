@@ -22,7 +22,10 @@ export class DeleteCatalogoController {
 
             const catalogoDeletedEvent: CatalogoEvent = {
                 eventType: CatalogoEventNames.CatalogoDeleted,
-                payload: deletedCatalogo
+                payload: {
+                    userID: "",
+                    ...deletedCatalogo
+                }
             }
         
             const published = await publishEvent("catalogo.deleted", catalogoDeletedEvent)

@@ -4,13 +4,16 @@ import { CreateUserUsecase } from "./create_user_usecase";
 import { authType, createUserPropsType } from '../../shared/repo/userRepositoryMock';
 import axios from 'axios';
 import { informationWithoutID } from '../../shared/types';
+import { publishEvent } from 'common';
+import { UserEvent } from 'common/interfaces';
+import { UserEventNames } from 'common/enums';
 
 
 export class CreateUserController {
 
     constructor(private usecase: CreateUserUsecase) {}
 
-    public handle(req: Request, res: Response): void {
+    public async handle(req: Request, res: Response): Promise<void> {
 
         try {
 
@@ -43,17 +46,21 @@ export class CreateUserController {
 
             const createdUser = this.usecase.execute(userProps)
 
-            // manda para o barramento de eventos
-            axios.post('http://localhost:10001/events', {
-                type: 'UserCreated',
+            const userCreatedEvent: UserEvent = {
+                eventType: UserEventNames.UserCreated,
                 payload: createdUser
-            })
-            .then()
-            .catch( (err) => console.log(err) )
-            .finally(() => res.status(201).json({
-                createdUser,
-                message: 'O usuário foi criado com sucesso'
-            }))
+            }
+
+            const published = await publishEvent("user.created", userCreatedEvent)   
+            
+            if(published) {
+                res.status(201).json({
+                    user: createdUser,
+                    message: 'O usuário foi criado'
+                })
+            } else {
+                throw new Error('Could not publish the event: ' + JSON.stringify(userCreatedEvent))
+            }
 
         } catch (err) {
             res.status(500).json({

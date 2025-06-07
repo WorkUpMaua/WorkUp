@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 interface PhotoGalleryProps {
   photos: string[];
+  link: boolean
 }
 
 export default function PhotoGallery(props: PhotoGalleryProps) {
@@ -11,7 +12,7 @@ export default function PhotoGallery(props: PhotoGalleryProps) {
     <div className="flex flex-col items-center">
       <div className="mb-6">
         <img
-          src={selectedPhoto}
+          src= {props.link ? `http://localhost:4003/${selectedPhoto}` : selectedPhoto}
           alt="Selected"
           className="w-full max-w-[350px] h-48 object-cover rounded-lg shadow-md"
         />
@@ -21,11 +22,11 @@ export default function PhotoGallery(props: PhotoGalleryProps) {
         {props.photos.map((photo, index) => (
           <img
             key={index}
-            src={photo}
+            src= {props.link ? `http://localhost:4003/${photo}` : photo}
             alt={`Thumbnail ${index}`}
             onClick={() => setSelectedPhoto(photo)}
             className={`w-24 h-auto cursor-pointer rounded-md shadow-sm transition-transform transform hover:scale-105 ${
-              photo === selectedPhoto ? 'ring-4 ring-blue-400' : 'ring-2 ring-gray-300'
+              photo === selectedPhoto ? 'ring-4 ring-[#34495e]' : 'ring-2 ring-gray-300'
             }`}
           />
         ))}

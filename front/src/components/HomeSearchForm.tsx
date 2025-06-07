@@ -1,7 +1,16 @@
-import Flatpickr from 'react-flatpickr';
-import 'flatpickr/dist/themes/material_blue.css';
-import React from 'react';
-import { HomeFiltersType } from '../pages/Home';
+import React from "react";
+import Flatpickr from "react-flatpickr";
+import "flatpickr/dist/themes/material_blue.css";
+import { Portuguese } from "flatpickr/dist/l10n/pt.js";
+import { IMaskInput } from "react-imask";
+
+export interface HomeFiltersType {
+  startDate: Date | null;
+  endDate: Date | null;
+  guests: string | number;
+  minPrice: string;
+  maxPrice: string;
+}
 
 interface HomeSearchFormProps {
   searchQuery: string;
@@ -18,16 +27,11 @@ export default function HomeSearchForm({
   setFilters,
   onSubmit,
 }: HomeSearchFormProps) {
-  const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFilters((prev: HomeFiltersType) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-8 w-full mx-auto bg-white p-8 rounded-lg shadow-md">
+    <form
+      onSubmit={onSubmit}
+      className="flex flex-col gap-8 w-full mx-auto bg-white p-8 rounded-lg shadow-md"
+    >
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
         <div className="relative flex-1 min-w-[200px]">
           <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-text-gray"></i>
@@ -41,21 +45,31 @@ export default function HomeSearchForm({
           />
           <label
             htmlFor="searchQuery"
-            className="absolute top-1/2 left-10 -translate-y-1/2 pointer-events-none text-text-gray transition-all duration-300 bg-white px-1.5 text-sm
-              peer-focus:opacity-0 peer-placeholder-shown:opacity-100 opacity-0"
+            className="absolute top-1/2 left-10 -translate-y-1/2 pointer-events-none text-text-gray transition-all duration-300 bg-white px-1.5 text-sm peer-focus:opacity-0 peer-placeholder-shown:opacity-100 opacity-0"
           >
             Pesquisar imóveis
           </label>
         </div>
+
         <div className="relative flex-1 min-w-[200px]">
           <i className="far fa-calendar-alt absolute left-4 top-1/2 -translate-y-1/2 text-text-gray z-[2] text-base"></i>
           <Flatpickr
-            options={{ dateFormat: 'Y-m-d' }}
-            value={filters.startDate}
+            value={filters.startDate || undefined}
+            options={{
+              locale: Portuguese,
+              enableTime: true,
+              time_24hr: true,
+              dateFormat: "d/m/Y - H:i",
+              minDate: "today",
+            }}
             onChange={([date]) =>
               setFilters((prev) => ({
                 ...prev,
-                startDate: date ? (date as Date).toISOString().slice(0, 10) : '',
+                startDate: date || null,
+                endDate:
+                  prev.endDate && date && prev.endDate < date
+                    ? null
+                    : prev.endDate,
               }))
             }
             render={(props, ref) => (
@@ -72,21 +86,27 @@ export default function HomeSearchForm({
           />
           <label
             htmlFor="startDate"
-            className="absolute top-1/2 left-10 -translate-y-1/2 pointer-events-none text-text-gray transition-all duration-300 bg-white px-1.5 text-sm
-              peer-focus:opacity-0 peer-placeholder-shown:opacity-100 opacity-0"
+            className="absolute top-1/2 left-10 -translate-y-1/2 pointer-events-none text-text-gray transition-all duration-300 bg-white px-1.5 text-sm peer-focus:opacity-0 peer-placeholder-shown:opacity-100 opacity-0"
           >
             Check-in
           </label>
         </div>
+
         <div className="relative flex-1 min-w-[200px]">
           <i className="far fa-calendar-alt absolute left-4 top-1/2 -translate-y-1/2 text-text-gray z-[2] text-base"></i>
           <Flatpickr
-            options={{ dateFormat: 'Y-m-d' }}
-            value={filters.endDate}
+            value={filters.endDate || undefined}
+            options={{
+              locale: Portuguese,
+              enableTime: true,
+              time_24hr: true,
+              dateFormat: "d/m/Y - H:i",
+              minDate: filters.startDate || "today",
+            }}
             onChange={([date]) =>
               setFilters((prev) => ({
                 ...prev,
-                endDate: date ? (date as Date).toISOString().slice(0, 10) : '',
+                endDate: date || null,
               }))
             }
             render={(props, ref) => (
@@ -103,12 +123,12 @@ export default function HomeSearchForm({
           />
           <label
             htmlFor="endDate"
-            className="absolute top-1/2 left-10 -translate-y-1/2 pointer-events-none text-text-gray transition-all duration-300 bg-white px-1.5 text-sm
-              peer-focus:opacity-0 peer-placeholder-shown:opacity-100 opacity-0"
+            className="absolute top-1/2 left-10 -translate-y-1/2 pointer-events-none text-text-gray transition-all duration-300 bg-white px-1.5 text-sm peer-focus:opacity-0 peer-placeholder-shown:opacity-100 opacity-0"
           >
             Check-out
           </label>
         </div>
+
         <div className="relative flex-1 min-w-[200px]">
           <i className="fas fa-users absolute left-4 top-1/2 -translate-y-1/2 text-text-gray"></i>
           <input
@@ -117,11 +137,11 @@ export default function HomeSearchForm({
             id="guests"
             value={filters.guests}
             min={1}
-            onChange={e => {
+            onChange={(e) => {
               const val = e.target.value;
-              setFilters(prev => ({
+              setFilters((prev) => ({
                 ...prev,
-                guests: val === '' ? '' : Math.max(1, Number(val)),
+                guests: val === "" ? "" : Math.max(1, Number(val)),
               }));
             }}
             placeholder=" "
@@ -129,48 +149,69 @@ export default function HomeSearchForm({
           />
           <label
             htmlFor="guests"
-            className="absolute top-1/2 left-10 -translate-y-1/2 pointer-events-none text-text-gray transition-all duration-300 bg-white px-1.5 text-sm
-              peer-focus:opacity-0 peer-placeholder-shown:opacity-100 opacity-0"
+            className="absolute top-1/2 left-10 -translate-y-1/2 pointer-events-none text-text-gray transition-all duration-300 bg-white px-1.5 text-sm peer-focus:opacity-0 peer-placeholder-shown:opacity-100 opacity-0"
           >
             Pessoas
           </label>
         </div>
+
         <div className="relative flex-1 min-w-[200px]">
-          <i className="fas fa-dollar-sign absolute left-4 top-1/2 -translate-y-1/2 text-text-gray"></i>
-          <input
-            type="number"
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-gray">
+            R$
+          </span>
+          <IMaskInput
+            mask={Number}
+            radix=","
+            scale={2}
+            min={0}
+            thousandsSeparator="."
+            padFractionalZeros={true}
+            normalizeZeros={true}
+            mapToRadix={["."]}
+            unmask={false}
             name="minPrice"
             id="minPrice"
-            placeholder=" "
             value={filters.minPrice}
-            min={1}
-            onChange={handleFilterChange}
-            className="peer w-full border border-gray-200 rounded-lg px-10 py-4 bg-white text-base text-text-dark shadow-sm transition-all duration-300 h-[50px] focus:border-primary focus:outline-none"
+            onAccept={(value: string) =>
+              setFilters((prev) => ({ ...prev, minPrice: value }))
+            }
+            placeholder=" "
+            className="peer w-full border border-gray-200 rounded-lg pl-10 pr-4 py-4 bg-white text-base text-text-dark shadow-sm transition-all duration-300 h-[50px] focus:border-primary focus:outline-none"
           />
           <label
             htmlFor="minPrice"
-            className="absolute top-1/2 left-10 -translate-y-1/2 pointer-events-none text-text-gray transition-all duration-300 bg-white px-1.5 text-sm
-              peer-focus:opacity-0 peer-placeholder-shown:opacity-100 opacity-0"
+            className="absolute top-1/2 left-10 -translate-y-1/2 pointer-events-none text-text-gray transition-all duration-300 bg-white px-1.5 text-sm peer-focus:opacity-0 peer-placeholder-shown:opacity-100 opacity-0"
           >
             Preço mínimo
           </label>
         </div>
+
         <div className="relative flex-1 min-w-[200px]">
-          <i className="fas fa-dollar-sign absolute left-4 top-1/2 -translate-y-1/2 text-text-gray"></i>
-          <input
-            type="number"
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-gray">
+            R$
+          </span>
+          <IMaskInput
+            mask={Number}
+            radix=","
+            scale={2}
+            min={0}
+            thousandsSeparator="."
+            padFractionalZeros={true}
+            normalizeZeros={true}
+            mapToRadix={["."]}
+            unmask={false}
             name="maxPrice"
             id="maxPrice"
-            placeholder=" "
             value={filters.maxPrice}
-            min={1}
-            onChange={handleFilterChange}
-            className="peer w-full border border-gray-200 rounded-lg px-10 py-4 bg-white text-base text-text-dark shadow-sm transition-all duration-300 h-[50px] focus:border-primary focus:outline-none"
+            onAccept={(value: string) =>
+              setFilters((prev) => ({ ...prev, maxPrice: value }))
+            }
+            placeholder=" "
+            className="peer w-full border border-gray-200 rounded-lg pl-10 pr-4 py-4 bg-white text-base text-text-dark shadow-sm transition-all duration-300 h-[50px] focus:border-primary focus:outline-none"
           />
           <label
             htmlFor="maxPrice"
-            className="absolute top-1/2 left-10 -translate-y-1/2 pointer-events-none text-text-gray transition-all duration-300 bg-white px-1.5 text-sm
-              peer-focus:opacity-0 peer-placeholder-shown:opacity-100 opacity-0"
+            className="absolute top-1/2 left-10 -translate-y-1/2 pointer-events-none text-text-gray transition-all duration-300 bg-white px-1.5 text-sm peer-focus:opacity-0 peer-placeholder-shown:opacity-100 opacity-0"
           >
             Preço máximo
           </label>
@@ -178,7 +219,7 @@ export default function HomeSearchForm({
         <div className="flex items-center justify-center col-span-1 md:col-span-3 mt-2">
           <button
             type="submit"
-            className="bg-blue-600 text-white border-none px-9 py-4 rounded-lg cursor-pointer font-semibold text-base transition-all duration-300 flex items-center gap-2.5 min-w-[200px] justify-center hover:bg-blue-700 hover:-translate-y-1 hover:shadow-lg"
+            className="bg-[#34495e] text-white border-none px-9 py-4 rounded-lg cursor-pointer font-semibold text-base transition-all duration-300 flex items-center gap-2.5 min-w-[200px] justify-center hover:bg-blue-700 hover:-translate-y-1 hover:shadow-lg"
           >
             <i className="fas fa-search"></i> Buscar
           </button>

@@ -26,7 +26,10 @@ export class UpdateCatalogoController {
 
             const catalogoUpdatedEvent: CatalogoEvent = {
                 eventType: CatalogoEventNames.CatalogoUpdated,
-                payload: room_updated
+                payload: {
+                    userID: "",
+                    ...room_updated
+                }
             }
 
             const published = await publishEvent("catalogo.updated", catalogoUpdatedEvent)
