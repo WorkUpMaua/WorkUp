@@ -15,27 +15,7 @@ type baseDisponibilidadeType = {
 };
 
 export class DisponibilidadeRepositoryMock {
-  private baseDisponibilidade: baseDisponibilidadeType = {
-    idUnico: {
-      id: "idUnico",
-      name: "nome",
-      address: "São Paulo",
-      comodities: ["A", "B"],
-      pictures: ["C", "D"],
-      price: 20,
-      capacity: 1,
-      confirmedBookings: [
-        {
-          // Dia 10 de junho, das 10 ate as 21
-          catalogID: "idUnico",
-          bookingID: "idUnico da reserva",
-          userID: "idUnico do usuario",
-          startTime: 1749560400,
-          endTime: 1749600000,
-        }
-      ],
-    },
-  };
+  private baseDisponibilidade: baseDisponibilidadeType = {};
 
   public getAllDisponibilidade(
   props?: getAllDisponibilidadeProps
