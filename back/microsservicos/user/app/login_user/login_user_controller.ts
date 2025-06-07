@@ -12,8 +12,8 @@ export class LoginUserController {
 
             const body = req.body
 
-            if(body.username === undefined) throw new Error('Missing user username')
-            if(body.password === undefined) throw new Error('Missing user password')
+            if(body.username === undefined) throw new Error('Usuário não informado')
+            if(body.password === undefined) throw new Error('Senha não informada')
 
             const loginProps = body as authType
 
@@ -21,7 +21,7 @@ export class LoginUserController {
 
             res.json({
                 token: id,
-                message: 'The user token was retrieved'
+                message: 'O usuário foi autenticado com sucesso'
             })
 
         } catch (err) {

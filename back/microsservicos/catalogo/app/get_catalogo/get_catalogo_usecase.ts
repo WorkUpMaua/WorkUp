@@ -8,7 +8,7 @@ export class GetCatalogoUsecase {
         
         const room = this.repo.getCatalogo(id)
 
-        if(!room) throw new Error('ID não encontrado')
+        if(!room) throw new Error('Catálogo não encontrado')
 
         return room
 

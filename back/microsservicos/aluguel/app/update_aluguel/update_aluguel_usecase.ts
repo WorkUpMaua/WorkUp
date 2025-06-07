@@ -1,5 +1,5 @@
 import { AluguelRepositoryMock } from "../../shared/repo/aluguelRepositoryMock";
-import { updateAluguelProps } from "../../shared/types";
+import { updateAluguelProps } from "../../shared/types"
 
 export class UpdateAluguelUsecase {
 

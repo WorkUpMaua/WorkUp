@@ -37,7 +37,7 @@ export class UpdateCatalogoController {
             if(published) {
                 res.json({
                     room: room_updated,
-                    message: 'The room was updated'
+                    message: 'O catálogo foi atualizado com sucesso',
                 })
             } else {
                 throw new Error('Could not publish the event: ' + JSON.stringify(catalogoUpdatedEvent))

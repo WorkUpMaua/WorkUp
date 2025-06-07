@@ -1,4 +1,4 @@
-import { AluguelRepositoryMock } from './shared/repo/aluguelRepositoryMock'
+import { AluguelRepositoryMock } from './repo/aluguelRepositoryMock'
 
 export class Environments {
   private static _instance: Environments;

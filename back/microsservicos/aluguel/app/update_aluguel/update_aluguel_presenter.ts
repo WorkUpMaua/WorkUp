@@ -1,7 +1,7 @@
-import { Environments } from "../../environments";
+import { Environments } from "../../shared/environments";
 import { UpdateAluguelController } from "./update_aluguel_controller";
 import { UpdateAluguelUsecase } from "./update_aluguel_usecase";
 
 const repo = Environments.instance.repoAluguel
-const usecase = new UpdateAluguelUsecase(repo)
-export const updateAluguelController = new UpdateAluguelController(usecase)
+export const updateAluguelUsecase = new UpdateAluguelUsecase(repo)
+export const updateAluguelController = new UpdateAluguelController(updateAluguelUsecase)

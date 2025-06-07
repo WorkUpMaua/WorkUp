@@ -12,7 +12,7 @@ export class UpdateUserController {
       const { id } = req.params;
       const body = req.body;
 
-      if(!id) throw new Error('Missing user ID')
+      if(!id) throw new Error('ID do usuário não informado');
 
       const props: updateUserPropsType = {
         id,
@@ -33,7 +33,7 @@ export class UpdateUserController {
       .catch( (err) => console.log(err) )
       .finally(() => res.json({
         updatedUser,
-        message: 'The user was updated'
+        message: 'O usuário foi atualizado com sucesso'
       }))
 
 
