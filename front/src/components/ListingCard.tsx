@@ -10,7 +10,7 @@ export default function ListingCard({ listing }: ListingCardProps) {
     <div className="bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300 flex flex-col relative hover:-translate-y-1 hover:shadow-xl">
       <div className="relative w-full h-[220px] overflow-hidden">
         <img
-          src={listing.pictures[0]}
+          src={`http://localhost:4003/${listing.pictures[0]}`}
           alt={listing.name}
           className="w-full h-full object-cover transition-all duration-300 group-hover:scale-105"
         />

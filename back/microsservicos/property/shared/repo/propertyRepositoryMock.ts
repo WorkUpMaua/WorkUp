@@ -7,23 +7,7 @@ type basePropertyType = {
 
 export class PropertyRepositoryMock {
   
-  private baseProperty: basePropertyType = {
-    userTesd: {
-      userID: "userTest",
-      properties: {
-        propertyTest: {
-          id: "propertyTest",
-          name: "A propriedade de teste",
-          description: "",
-          address: "Meu endereço de teste",
-          comodities: [ 'Ola', 'Tudo bem ?'],
-          pictures: [ 'caminho até a foto 1', 'caminho até a foto 2'],
-          price: 12,
-          capacity: 50
-        }
-      }
-    }
-  };
+  private baseProperty: basePropertyType = {};
 
   public getAllProperty(userID: string): PropertyManagement {
     

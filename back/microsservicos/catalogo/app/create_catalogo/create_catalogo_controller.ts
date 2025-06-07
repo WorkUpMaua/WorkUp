@@ -6,6 +6,8 @@ import fs from "fs";
 import { publishEvent } from "common/rabbitmq";
 import { CatalogoEventNames } from "common/enums";
 import { CatalogoEvent } from "common/interfaces";
+import { updateCatalogoUsecase } from "../update_catalogo/update_catalogo_presenter";
+import { updateCatalogoProps } from "../../shared/types";
 
 export class CreateCatalogoController {
     constructor(private usecase: CreateCatalogoUsecase) {}
@@ -24,23 +26,30 @@ export class CreateCatalogoController {
                 throw new Error("Missing catalogo address");
             if (body.comodities === undefined)
                 throw new Error("Missing catalogo comodities");
-            if (body.pictures === undefined)
-                throw new Error("Missing catalogo pictures");
+            // if (body.pictures === undefined)
+            //     throw new Error("Missing catalogo pictures");
             if (body.price === undefined)
                 throw new Error("Missing catalogo price");
             if (body.capacity === undefined)
                 throw new Error("Missing catalogo capacity");
 
             const roomProps = {
-                pictures: [],
-                ...body,
-            } as Catalogo
+                ...body, 
+                comodities: Array.isArray(body.comodities)
+                    ? body.comodities
+                    : body.comodities
+                    ? [body.comodities]
+                    : [], 
+                pictures: []
+            } as Catalogo;
+
+            const createdRoom = this.usecase.execute(roomProps);
 
             const uploadDir = path.resolve(
                 __dirname,
                 "../../../../uploads",
                 body.userID,
-                roomProps.id
+                createdRoom.id
             );
             fs.mkdirSync(uploadDir, { recursive: true });
 
@@ -49,23 +58,19 @@ export class CreateCatalogoController {
                 const filename = `${Date.now()}-${file.originalname}`;
                 const fullPath = path.join(uploadDir, filename);
                 fs.writeFileSync(fullPath, file.buffer);
-                // aqui você pode salvar o caminho relativo ou absoluto
-                return `uploads/${body.userID}/${roomProps.id}/${filename}`;
+                return `uploads/${body.userID}/${createdRoom.id}/${filename}`;
             });
 
-            /**
-             * @todo: Entender como mandar do front -> tela criar propriedade
-             */
-
-            roomProps.pictures = savedPaths;
-
-            const createdRoom = this.usecase.execute(roomProps);
+            const roomWithUpdatedPaths = updateCatalogoUsecase.execute({
+                id: createdRoom.id,
+                pictures: savedPaths,
+            });
 
             const catalogoCreatedEvent: CatalogoEvent = {
                 eventType: CatalogoEventNames.CatalogoCreated,
                 payload: {
                     userID: body.userID,
-                    ...createdRoom,
+                    ...roomWithUpdatedPaths,
                 },
             };
 
