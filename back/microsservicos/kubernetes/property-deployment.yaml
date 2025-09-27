@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: workup-property-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: workup-property
+  template:
+    metadata:
+      labels:
+        app: workup-property
+    spec:
+      containers:
+      - name: property
+        image: victorgasperi/workup-property
+        env:
+          - name: RABBITMQ_URL
+            value: amqp://rabbitmq:5672
+          - name: PROPRIEDADE_MSS_PORT
+            value: "4004"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: workup-property-service
+spec:
+  type: NodePort
+  selector:
+    app: workup-property
+  ports:
+    - name: workup-property
+      protocol: TCP
+      # porta que o no recebe
+      port: 4004
+      # porta que o no direciona dentro do pod
+      targetPort: 4004
+      nodePort: 32081

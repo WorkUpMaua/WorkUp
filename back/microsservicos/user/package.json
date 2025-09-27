@@ -6,8 +6,7 @@
     "start:dev": "nodemon",
     "build": "tsc",
     "start:dist": "node ./dist/index.js",
-    "check": "tsc --noEmit",
-    "postinstall": "cd node_modules/common && npm install"
+    "check": "tsc --noEmit"
   },
   "keywords": [],
   "author": "",
@@ -21,7 +20,7 @@
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "uuid": "^11.1.0",
-    "common": "file:../../common"
+    "common": "file:shared/clients/rabbitmq"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",

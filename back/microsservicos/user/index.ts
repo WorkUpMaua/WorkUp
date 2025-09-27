@@ -3,9 +3,7 @@ import dotenv from 'dotenv'
 import path from 'path'
 import { App } from './shared/server/app'
 import { startQueue } from './shared/eventHandler'
-dotenv.config({
-    path: path.resolve(__dirname, '..', '..', '.env')
-})
+dotenv.config()
 
 const port = process.env.USER_MSS_PORT
 new App().server.listen(port, () => {
