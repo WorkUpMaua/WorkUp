@@ -1,4 +1,4 @@
-import { Environments } from "../../environments";
+import { Environments } from "../../shared/environments";
 import { UpdateAluguelController } from "./update_aluguel_controller";
 import { UpdateAluguelUsecase } from "./update_aluguel_usecase";
 

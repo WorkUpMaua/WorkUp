@@ -3,11 +3,12 @@ import { Request, Response } from "express";
 import { Catalogo } from "../../shared/interfaces";
 import path from "path";
 import fs from "fs";
-import { publishEvent } from "common/rabbitmq";
-import { CatalogoEventNames } from "common/enums";
-import { CatalogoEvent } from "common/interfaces";
+
 import { updateCatalogoUsecase } from "../update_catalogo/update_catalogo_presenter";
 import { updateCatalogoProps } from "../../shared/types";
+import { CatalogoEvent } from "../../shared/clients/rabbitmq/interfaces";
+import { CatalogoEventNames } from "../../shared/clients/rabbitmq/enums";
+import { publishEvent } from "../../shared/clients/rabbitmq/rabbitmq";
 
 export class CreateCatalogoController {
     constructor(private usecase: CreateCatalogoUsecase) {}
@@ -45,32 +46,33 @@ export class CreateCatalogoController {
 
             const createdRoom = this.usecase.execute(roomProps);
 
-            const uploadDir = path.resolve(
-                __dirname,
-                "../../../../uploads",
-                body.userID,
-                createdRoom.id
-            );
-            fs.mkdirSync(uploadDir, { recursive: true });
+            // const uploadDir = path.resolve(
+            //     __dirname,
+            //     "../../../../uploads",
+            //     body.userID,
+            //     createdRoom.id
+            // );
+            // fs.mkdirSync(uploadDir, { recursive: true });
 
-            const files = req.files as Express.Multer.File[];
-            const savedPaths = files.map((file) => {
-                const filename = `${Date.now()}-${file.originalname}`;
-                const fullPath = path.join(uploadDir, filename);
-                fs.writeFileSync(fullPath, file.buffer);
-                return `uploads/${body.userID}/${createdRoom.id}/${filename}`;
-            });
+            // const files = req.files as Express.Multer.File[];
+            // const savedPaths = files.map((file) => {
+            //     const filename = `${Date.now()}-${file.originalname}`;
+            //     const fullPath = path.join(uploadDir, filename);
+            //     fs.writeFileSync(fullPath, file.buffer);
+            //     return `uploads/${body.userID}/${createdRoom.id}/${filename}`;
+            // });
 
-            const roomWithUpdatedPaths = updateCatalogoUsecase.execute({
-                id: createdRoom.id,
-                pictures: savedPaths,
-            });
+            // const roomWithUpdatedPaths = updateCatalogoUsecase.execute({
+            //     id: createdRoom.id,
+            //     pictures: savedPaths,
+            // });
 
             const catalogoCreatedEvent: CatalogoEvent = {
                 eventType: CatalogoEventNames.CatalogoCreated,
                 payload: {
                     userID: body.userID,
-                    ...roomWithUpdatedPaths,
+                    // ...roomWithUpdatedPaths,
+                    ...createdRoom
                 },
             };
 

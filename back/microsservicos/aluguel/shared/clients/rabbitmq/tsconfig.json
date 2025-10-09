@@ -15,7 +15,7 @@
     },
     "include": [
         "./**/*.ts",
-        "../../environments.d.ts"
+        "../environments.d.ts"
     ],
     "exclude": [
         "node_modules",
