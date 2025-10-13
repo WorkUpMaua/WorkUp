@@ -44,7 +44,7 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: Colors.white,
       body: Column(
         children: [
-          // Header com logo (igual ao React)
+          // Cabeçalho com logo
           Container(
             width: double.infinity,
             color: const Color(0xFF34495e),
@@ -172,7 +172,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                 const SizedBox(height: 24),
 
-                    // Botão de Login (igual ao React)
+                    // Botão de Login 
                     Container(
                       width: double.infinity,
                       height: 48,
@@ -198,7 +198,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    // Link para cadastro (igual ao React)
+                    // Link para cadastro 
                     TextButton(
                       onPressed: () {
                         ScaffoldMessenger.of(context).showSnackBar(
