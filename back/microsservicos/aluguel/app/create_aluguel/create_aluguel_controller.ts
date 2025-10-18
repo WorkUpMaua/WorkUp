@@ -22,9 +22,14 @@ export class CreateAluguelController {
             if (body.finalPrice === undefined) throw new Error('preço final não informado');
             if (req.body.capacity <= 0 || typeof req.body.capacity !== 'number') throw new Error('Capacidade inválida')
             if (req.body.finalPrice <= 0 || typeof req.body.finalPrice !== 'number') throw new Error('Preço final inválido')
-            if (req.body.status && !typesStatus.includes(req.body.status)) throw new Error('Status inválido')
 
             const aluguelProps = body as AluguelType;
+
+            // chamar o rabbit e transferir para o barramento do disponibilidade
+            // se valido, criar o aluguel como confirmed
+            // se não, returnar o aluguel com status de Canceled
+
+
 
             const createdAluguel = this.usecase.execute(aluguelProps);
 
