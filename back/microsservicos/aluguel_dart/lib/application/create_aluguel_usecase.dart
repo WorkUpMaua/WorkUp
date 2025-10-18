@@ -12,8 +12,7 @@ class CreateAluguelUsecase {
     required int startDate, 
     required int endDate,   
     required int people,
-    required double finalPrice,
-    required String status,
+    required num finalPrice,
   }) async {
 
     if (endDate < startDate) {
@@ -32,8 +31,8 @@ class CreateAluguelUsecase {
       startDate: startDate,
       endDate: endDate,
       people: people,
-      finalPrice: finalPrice,
-      status: status,
+      finalPrice: finalPrice.toDouble(),
+      status: 'PENDING',
     );
   }
 }

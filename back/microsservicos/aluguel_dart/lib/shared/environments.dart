@@ -4,46 +4,37 @@ import 'package:aluguel_dart/infrastructure/repositories/aluguel_repository_mock
 
 enum Stage {
   dev,
-  test
+  test,
 }
 
 class Environments {
-  late Stage stage;
+  final Stage stage;
+  final int port;
 
-  Environments() {
-    _loadStage();
-  }
+  Environments._(this.stage, this.port);
 
-  void _loadStage() {
+  static Environments getEnvs() {
     final rawStage = Platform.environment['STAGE']?.toUpperCase() ?? 'TEST';
-    switch (rawStage) {
-      case 'DEV':
-        stage = Stage.dev;
-        break;
-      case 'TEST':
-        stage = Stage.test;
-        break;
-    }
-  }
+    final Stage stage = Stage.values.firstWhere(
+      (s) => s.name.toUpperCase() == rawStage,
+      orElse: () => Stage.test,
+    );
+    
+    final int port = int.tryParse(Platform.environment['PORT'] ?? '') ?? 8080;
 
-  static Environments get() {
-    return Environments();
+    return Environments._(stage, port);
   }
 
   static AluguelRepository getAluguelRepo() {
-    final env = Environments.get();
-
+    final env = Environments.getEnvs();
     switch (env.stage) {
-        case Stage.test:
-            return AluguelRepositoryMock();
-        case Stage.dev:
-        default:
-            throw Exception('Nenhum repositório configurado para o stage: ${env.stage}');
+      case Stage.test:
+        return AluguelRepositoryMock();
+      case Stage.dev:
+        throw Exception('Repositório real ainda não configurado para DEV');
     }
   }
 
   @override
-  String toString() {
-    return 'Environments(stage: $stage)';
-  }
+  String toString() => 'Environments(stage: $stage, port: $port)';
 }

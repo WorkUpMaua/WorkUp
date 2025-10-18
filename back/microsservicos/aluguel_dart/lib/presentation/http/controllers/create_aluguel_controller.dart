@@ -24,8 +24,7 @@ class CreateAluguelController {
       final endDate = data['endDate'];
       final people = data['people'];
       final finalPrice = data['finalPrice'];
-      final status = data['status'];
-
+      
       if (userId == null || userId.toString().isEmpty) {
         throw AppFailure('userId_required');
       }
@@ -44,9 +43,6 @@ class CreateAluguelController {
       if (finalPrice == null) {
         throw AppFailure('finalPrice_required');
       }
-      if (status == null || status.toString().isEmpty) {
-        throw AppFailure('status_required');
-      }
 
       final aluguel = await createAluguelUsecase.call(
         userId: userId,
@@ -55,7 +51,6 @@ class CreateAluguelController {
         endDate: endDate,
         people: people,
         finalPrice: finalPrice,
-        status: status,
       );
 
       return jsonCreated(aluguel.toJson());

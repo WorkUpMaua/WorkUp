@@ -10,6 +10,8 @@ environment:
 dependencies:
   path: ^1.9.0
   shelf: ^1.4.2
+  shelf_cors_headers: ^0.1.5
+  shelf_router: ^1.1.4
   uuid: ^4.5.1
 
 dev_dependencies:
