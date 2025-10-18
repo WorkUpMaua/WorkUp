@@ -9,6 +9,7 @@ environment:
 # Add regular dependencies here.
 dependencies:
   path: ^1.9.0
+  shelf: ^1.4.2
   uuid: ^4.5.1
 
 dev_dependencies:
