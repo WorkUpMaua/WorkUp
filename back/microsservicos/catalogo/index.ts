@@ -1,13 +1,9 @@
 import { closeRabbitMQConnection } from 'common'
-import dotenv from 'dotenv'
-import path from 'path'
 import { startQueue } from './shared/eventsHandler'
 import { App } from './shared/server/app'
-dotenv.config({
-    path: path.resolve(__dirname, '..', '..', '.env')
-})
+import { Environments } from './shared/environments'
 
-const port = process.env.CATALOG_MSS_PORT
+const port = Environments.getEnvs().port
 new App().server.listen(port, () => {
     console.log(`Catalogos. Porta: ${port}`)
     startQueue()
