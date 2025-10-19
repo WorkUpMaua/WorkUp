@@ -15,11 +15,12 @@ export class Environments {
     public readonly awsKeyID: string,
     public readonly awsSecretKey: string,
     public readonly s3Bucket: string,
-    public readonly cdnDomain: string
+    public readonly cdnDomain: string,
+    public readonly rabbitmqURL: string
   ) {}
 
   static getEnvs(): Environments {
-    let port, awsRegion, awsKeyID, awsSecretKey, s3Bucket, cdnDomain;
+    let port, awsRegion, awsKeyID, awsSecretKey, s3Bucket, cdnDomain, rabbitmqURL;
     const stageEnv = process.env.STAGE?.toLowerCase() ?? "test";
     const stage = Object.values(Stage).includes(stageEnv as Stage)
       ? (stageEnv as Stage)
@@ -31,8 +32,9 @@ export class Environments {
     awsSecretKey = process.env.AWS_SECRET_ACCESS_KEY || "key-not-found";
     s3Bucket = process.env.S3_BUCKET || "default-bucket";
     cdnDomain = process.env.CDN_DOMAIN || "localhost";
+    rabbitmqURL = process.env.RABBITMQ_URL || "not-found";
 
-    return new Environments(stage, port, awsRegion, awsKeyID, awsSecretKey, s3Bucket, cdnDomain);
+    return new Environments(stage, port, awsRegion, awsKeyID, awsSecretKey, s3Bucket, cdnDomain, rabbitmqURL);
   }
 
   static getCatalogoRepo() {

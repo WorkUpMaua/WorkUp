@@ -58,11 +58,6 @@ export class CreateCatalogoController {
       if (files.length > 0) {
         const savedPaths = await uploadCatalogoPictures(createdRoom.id, files);
 
-        console.log({
-          id: createdRoom.id,
-          pictures: savedPaths, 
-        })
-
         roomWithUpdatedPaths = updateCatalogoUsecase.execute({
           id: createdRoom.id,
           pictures: savedPaths, 

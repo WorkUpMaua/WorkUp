@@ -6,8 +6,7 @@
     "start:dev": "nodemon",
     "build": "tsc",
     "start:dist": "node ./dist/index.js",
-    "check": "tsc --noEmit",
-    "postinstall": "cd node_modules/common && npm install"
+    "check": "tsc --noEmit"
   },
   "keywords": [],
   "author": "",
@@ -17,8 +16,8 @@
     "@aws-sdk/client-s3": "^3.913.0",
     "@aws-sdk/lib-storage": "^3.913.0",
     "@types/multer": "^1.4.12",
+    "amqplib": "^0.10.8",
     "axios": "^1.9.0",
-    "common": "file:shared/clients/rabbitmq",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
@@ -27,6 +26,7 @@
     "uuid": "^11.1.0"
   },
   "devDependencies": {
+    "@types/amqplib": "0.10.6",
     "@types/cors": "^2.8.18",
     "@types/express": "^5.0.2",
     "@types/mime": "^3.0.4",
