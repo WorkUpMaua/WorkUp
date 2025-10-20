@@ -1,7 +1,6 @@
 import amqp from 'amqplib';
 import type { Connection, Channel } from 'amqplib';
-import { Environments } from '../../environments';
-
+import { Environments } from '../../../environments';
 
 const RABBITMQ_URL = Environments.getEnvs().rabbitmqURL;
 
