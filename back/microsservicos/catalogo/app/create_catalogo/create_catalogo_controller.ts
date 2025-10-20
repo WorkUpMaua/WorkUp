@@ -1,11 +1,12 @@
 import { CreateCatalogoUsecase } from "./create_catalogo_usecase";
 import { Request, Response } from "express";
-import { Catalogo } from "../../shared/interfaces";
+import { Catalogo } from "../../shared/domain/interfaces";
 import { updateCatalogoUsecase } from "../update_catalogo/update_catalogo_presenter";
-import { CatalogoEvent } from "../../shared/clients/rabbitmq/interfaces";
-import { CatalogoEventNames } from "../../shared/clients/rabbitmq/enums";
-import { publishEvent } from "../../shared/clients/rabbitmq/rabbitmq";
-import { uploadCatalogoPictures } from "../../shared/clients/s3/uploadPictures";
+import { uploadCatalogoPictures } from "../../shared/infra/clients/s3/uploadPictures";
+import { CatalogoEvent } from "../../shared/infra/clients/rabbitmq/interfaces";
+import { CatalogoEventNames } from "../../shared/infra/clients/rabbitmq/enums";
+import { publishEvent } from "../../shared/infra/clients/rabbitmq/rabbitmq";
+
 
 export class CreateCatalogoController {
   constructor(private usecase: CreateCatalogoUsecase) {}

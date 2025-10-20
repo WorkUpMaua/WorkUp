@@ -1,4 +1,5 @@
-import { CatalogoRepositoryMock } from "./repo/catalogoRepositoryMock";
+import { CatalogoRepositoryMock } from "./infra/repo/catalogoRepositoryMock";
+
 
 export enum Stage {
   DEV = "dev",

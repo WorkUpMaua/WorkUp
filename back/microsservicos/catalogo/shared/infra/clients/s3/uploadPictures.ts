@@ -1,7 +1,7 @@
 import { s3 } from "./s3Client";
 import { Upload } from "@aws-sdk/lib-storage";
-import { Environments } from "../../environments";
 import mime from "mime";
+import { Environments } from "../../../environments";
 
 const env = Environments.getEnvs();
 

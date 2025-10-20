@@ -1,9 +1,9 @@
-import { Catalogo } from "../../shared/interfaces";
-import { CatalogoRepositoryMock } from "../../shared/repo/catalogoRepositoryMock";
+import { Catalogo } from "../../shared/domain/interfaces";
+import { CatalogoRepository } from "../../shared/domain/repo/catalogoRepository";
 
 export class CreateCatalogoUsecase {
 
-    constructor(private repo: CatalogoRepositoryMock) {}
+    constructor(private repo: CatalogoRepository) {}
 
     public execute(props: Catalogo) {
 

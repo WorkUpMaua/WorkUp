@@ -1,9 +1,8 @@
-
-
-import { App } from './shared/server/app'
 import { Environments } from './shared/environments'
-import { startQueue } from './shared/eventsHandler'
-import { closeRabbitMQConnection } from './shared/clients/rabbitmq/rabbitmq'
+import { startQueue } from './shared/handlers/event/eventsHandler'
+import { App } from './shared/handlers/server/app'
+import { closeRabbitMQConnection } from './shared/infra/clients/rabbitmq/rabbitmq'
+
 
 const port = Environments.getEnvs().port
 new App().server.listen(port, () => {

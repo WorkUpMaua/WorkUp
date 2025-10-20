@@ -1,10 +1,11 @@
 import { Router } from "express";
 import multer from 'multer'
-import { getAllCatalogoController } from "../../app/get_all_catalogo/get_all_catalogo_presenter";
-import { getCatalogoController } from "../../app/get_catalogo/get_catalogo_presenter";
-import { createCatalogoController } from "../../app/create_catalogo/create_catalogo_presenter";
-import { deleteCatalogoController } from "../../app/delete_catalogo/delete_catalogo_presenter";
-import { updateCatalogoController } from "../../app/update_catalogo/update_catalogo_presenter";
+import { getAllCatalogoController } from "../../../app/get_all_catalogo/get_all_catalogo_presenter";
+import { getCatalogoController } from "../../../app/get_catalogo/get_catalogo_presenter";
+import { createCatalogoController } from "../../../app/create_catalogo/create_catalogo_presenter";
+import { deleteCatalogoController } from "../../../app/delete_catalogo/delete_catalogo_presenter";
+import { updateCatalogoController } from "../../../app/update_catalogo/update_catalogo_presenter";
+
 
 const router: Router = Router()
 

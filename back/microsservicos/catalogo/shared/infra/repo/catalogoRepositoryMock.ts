@@ -1,13 +1,14 @@
 import { v4 as uuidv4 } from 'uuid';
 
-import { updateCatalogoProps } from '../types';
-import { Catalogo } from '../interfaces';
+import { CatalogoRepository } from '../../domain/repo/catalogoRepository';
+import { Catalogo } from '../../domain/interfaces';
+import { updateCatalogoProps } from '../../domain/types';
 
 
 type baseCatalogoType = { 
     [key: string]: Catalogo 
 }
-export class CatalogoRepositoryMock {
+export class CatalogoRepositoryMock implements CatalogoRepository {
 
     private baseCatalogo: baseCatalogoType = {}
 

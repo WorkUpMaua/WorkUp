@@ -1,5 +1,5 @@
 import { S3Client } from "@aws-sdk/client-s3";
-import { Environments } from "../../environments";
+import { Environments } from "../../../environments";
 
 const env = Environments.getEnvs();
 

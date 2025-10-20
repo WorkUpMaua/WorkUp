@@ -1,7 +1,6 @@
-import { BaseEvent } from "./clients/rabbitmq/interfaces";
-import { consumeEvents } from "./clients/rabbitmq/rabbitmq";
-import { userInformation } from "./clients/rabbitmq/types";
-
+import { BaseEvent } from "../../infra/clients/rabbitmq/interfaces";
+import { consumeEvents } from "../../infra/clients/rabbitmq/rabbitmq";
+import { userInformation } from "../../infra/clients/rabbitmq/types";
 
 type EventType = keyof typeof eventsFunctions;
 
