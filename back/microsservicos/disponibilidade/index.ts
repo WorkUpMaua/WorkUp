@@ -1,13 +1,9 @@
-import { closeRabbitMQConnection } from 'common'
-import dotenv from 'dotenv'
-import path from 'path'
-import { startQueue } from './shared/eventHandler'
-import { App } from './shared/server/app'
-dotenv.config({
-    path: path.resolve(__dirname, '..', '..', '.env')
-})
+import { Environments } from './shared/environments'
+import { startQueue } from './shared/handlers/events/eventHandler'
+import { App } from './shared/handlers/server/app'
+import { closeRabbitMQConnection } from './shared/infra/clients/rabbitmq/rabbitmq'
 
-const port = process.env.DISPONIBILIDADE_MSS_PORT
+const port = Environments.getEnvs().port;
 new App().server.listen(port, () => {
     console.log(`Disponibilidade. Porta: ${port}`)
     startQueue()

@@ -3,6 +3,6 @@ import { GetAllDisponibilidadeController } from "../get_all_disponibilidade/get_
 import { GetDisponibilidadeController } from "./get_disponibilidade_controller";
 import { GetDisponibilidadeUsecase } from "./get_disponibilidade_usecase";
 
-const repo = Environments.instance.repo
+const repo = Environments.getDisponibilidadeRepo();
 const usecase = new GetDisponibilidadeUsecase(repo)
 export const getDisponibilidade = new GetDisponibilidadeController(usecase)

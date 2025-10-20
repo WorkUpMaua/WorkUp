@@ -1,4 +1,5 @@
-import { BookingsType } from "./types";
+import { BookingsType } from './types'
+
 
 export interface UnifiedCatalogo {
   id: string;

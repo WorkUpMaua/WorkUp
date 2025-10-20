@@ -1,10 +1,11 @@
-import { catalogo } from "common/types";
-import { CatalogoEventNames } from "common/enums";
-import { BaseEvent } from "common/interfaces";
-import { consumeEvents } from "common";
-import { createDisponibilidadeUsecase } from "../app/create_disponibilidade/create_disponibilidade_presenter";
-import { updateDisponibilidadeUsecase } from "../app/update_disponibilidade/updated_disponibilidade_presenter";
-import { deleteDisponibilidadeUsecase } from "../app/delete_disponibilidade/delete_disponibilidade_presenter";
+
+import { createDisponibilidadeUsecase } from "../../../app/create_disponibilidade/create_disponibilidade_presenter";
+import { updateDisponibilidadeUsecase } from "../../../app/update_disponibilidade/update_disponibilidade_presenter";
+import { deleteDisponibilidadeUsecase } from "../../../app/delete_disponibilidade/delete_disponibilidade_presenter";
+import { CatalogoEventNames } from "../../infra/clients/rabbitmq/enums";
+import { catalogo } from "../../infra/clients/rabbitmq/types";
+import { BaseEvent } from "../../infra/clients/rabbitmq/interfaces";
+import { consumeEvents } from "../../infra/clients/rabbitmq/rabbitmq";
 
 const eventsFunctions: { [event in CatalogoEventNames]: (payload: any) => void }  = {
 

@@ -1,9 +1,10 @@
 import { Router } from "express"
-import { getAllDisponibilidadeController } from "../../app/get_all_disponibilidade/get_all_disponibilidade_presenter"
-import { createDisponibilidadeController } from "../../app/create_disponibilidade/create_disponibilidade_presenter"
-import { getDisponibilidade } from "../../app/get_disponibilidade/get_disponibilidade_presenter"
-import { deleteDisponibilidadeController } from "../../app/delete_disponibilidade/delete_disponibilidade_presenter"
-import { updateDisponibilidadeController } from "../../app/update_disponibilidade/updated_disponibilidade_presenter"
+import { getAllDisponibilidadeController } from "../../../app/get_all_disponibilidade/get_all_disponibilidade_presenter"
+import { getDisponibilidade } from "../../../app/get_disponibilidade/get_disponibilidade_presenter"
+import { createDisponibilidadeController } from "../../../app/create_disponibilidade/create_disponibilidade_presenter"
+import { updateDisponibilidadeController } from "../../../app/update_disponibilidade/update_disponibilidade_presenter"
+import { deleteDisponibilidadeController } from "../../../app/delete_disponibilidade/delete_disponibilidade_presenter"
+
 
 const router: Router = Router()
 

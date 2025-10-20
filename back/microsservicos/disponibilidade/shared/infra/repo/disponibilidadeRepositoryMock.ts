@@ -1,4 +1,4 @@
-import { UnifiedCatalogo } from "../interfaces";
+
 import {
   BookingsType,
   createBookingProps,
@@ -8,13 +8,15 @@ import {
   getDisponbilidadeProps,
   updateBookingProps,
   updateDisponibilidadeProps,
-} from "../types";
+} from "../../domain/types";
+import { DisponibilidadeRepository } from "../../domain/repo/disponibilidadeRepository";
+import { UnifiedCatalogo } from "../../domain/interfaces";
 
 type baseDisponibilidadeType = {
   [key: string]: UnifiedCatalogo;
 };
 
-export class DisponibilidadeRepositoryMock {
+export class DisponibilidadeRepositoryMock implements DisponibilidadeRepository {
   private baseDisponibilidade: baseDisponibilidadeType = {};
 
   public getAllDisponibilidade(
