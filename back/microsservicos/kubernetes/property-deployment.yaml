@@ -15,11 +15,11 @@ spec:
       containers:
       - name: property
         image: victorgasperi/workup-property
-        env:
-          - name: RABBITMQ_URL
-            value: amqp://rabbitmq:5672
-          - name: PROPRIEDADE_MSS_PORT
-            value: "4004"
+        envFrom:
+          - configMapRef:
+              name: workup-config
+          - secretRef:
+              name: workup-secrets
 ---
 apiVersion: v1
 kind: Service
