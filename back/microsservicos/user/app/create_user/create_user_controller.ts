@@ -1,12 +1,11 @@
 import { Request, Response } from 'express'
-
 import { CreateUserUsecase } from "./create_user_usecase";
-import { authType, createUserPropsType } from '../../shared/repo/userRepositoryMock';
-import axios from 'axios';
-import { informationWithoutID } from '../../shared/types';
-import { publishEvent } from 'common';
-import { UserEvent } from 'common/interfaces';
-import { UserEventNames } from 'common/enums';
+import { authType, createUserPropsType } from '../../shared/infra/repo/userRepositoryMock';
+import { informationWithoutID } from '../../shared/domain/validations/types';
+import { UserEvent } from '../../shared/infra/clients/rabbitmq/interfaces';
+import { UserEventNames } from '../../shared/infra/clients/rabbitmq/enums';
+import { publishEvent } from '../../shared/infra/clients/rabbitmq/rabbitmq';
+
 
 
 export class CreateUserController {

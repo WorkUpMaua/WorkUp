@@ -1,6 +1,6 @@
-import { userInformation } from "common/types";
-import { BaseEvent } from "common/interfaces";
-import { consumeEvents } from "common";
+import { BaseEvent } from "../../infra/clients/rabbitmq/interfaces"
+import { consumeEvents } from "../../infra/clients/rabbitmq/rabbitmq"
+import { userInformation } from "../../infra/clients/rabbitmq/types"
 
 type EventType = keyof typeof eventsFunctions
 

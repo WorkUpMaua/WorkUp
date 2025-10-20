@@ -1,9 +1,9 @@
-import { UserRepositoryMock } from "../../shared/repo/userRepositoryMock";
-import { userInfoValidation } from "../../shared/validations/userInfoValidation";
-import { updateUserPropsType } from "../../shared/types";
+import { userInfoValidation } from "../../shared/domain/validations/userInfoValidation";
+import { updateUserPropsType } from "../../shared/domain/validations/types";
+import { UserRepository } from "../../shared/domain/repo/userRepository";
 
 export class UpdateUserUsecase {
-  constructor(private repo: UserRepositoryMock) {}
+  constructor(private repo: UserRepository) {}
 
   public execute(props: updateUserPropsType) {
 

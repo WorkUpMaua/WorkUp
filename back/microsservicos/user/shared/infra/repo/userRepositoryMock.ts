@@ -1,14 +1,15 @@
 import { v4 as uuidv4 } from "uuid";
 import bcrypt from "bcrypt";
-import { User } from "../interfaces";
-import { authType, createUserPropsType, getAllUserReturnType, informationType, updateUserPropsType } from "../types";
+import { authType, createUserPropsType, getAllUserReturnType, informationType, updateUserPropsType } from "../../domain/validations/types";
+import { User } from "../../domain/validations/interfaces";
+import { UserRepository } from "../../domain/repo/userRepository";
 
 
 type baseUserType = {
   [key: string]: User;
 };
 
-export class UserRepositoryMock {
+export class UserRepositoryMock implements UserRepository{
   private baseUser: baseUserType = {};
 
   private encryptPass(pass: string): string {

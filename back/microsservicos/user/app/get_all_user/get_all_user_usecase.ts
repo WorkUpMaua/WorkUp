@@ -1,8 +1,8 @@
-import { UserRepositoryMock } from "../../shared/repo/userRepositoryMock";
+import { UserRepository } from "../../shared/domain/repo/userRepository";
 
 export class GetAllUserUsecase {
 
-    constructor(private repo: UserRepositoryMock) {}
+    constructor(private repo: UserRepository) {}
 
     public execute() {
         return this.repo.getAllUser()

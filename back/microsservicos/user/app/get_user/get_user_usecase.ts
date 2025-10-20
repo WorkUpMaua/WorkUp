@@ -1,11 +1,9 @@
-import {
-  UserRepositoryMock,
-} from "../../shared/repo/userRepositoryMock";
-import { informationType } from "../../shared/types";
+import { informationType } from "../../shared/domain/validations/types";
+import { UserRepository } from "../../shared/domain/repo/userRepository";
 
 
 export class GetUserUsecase {
-  constructor(private repo: UserRepositoryMock) {}
+  constructor(private repo: UserRepository) {}
 
   private validateID(id: string): boolean {
     const uuidV4Regex =
