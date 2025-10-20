@@ -15,7 +15,6 @@
   "dependencies": {
     "axios": "^1.9.0",
     "amqplib": "^0.10.8",
-    "common": "file:shared/clients/rabbitmq",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",

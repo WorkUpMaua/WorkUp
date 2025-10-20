@@ -1,4 +1,4 @@
-import { CatalogoType } from "./types";
+import { CatalogoType } from './types';
 
 export interface Properties { [key: string]: CatalogoType }
 

@@ -1,17 +1,16 @@
-import { PropertyManagement } from '../interfaces';
-import { CatalogoType } from '../types';
+import { PropertyManagement } from '../../domain/interfaces';
+import { PropertyRepository } from '../../domain/repo/propertyRepository';
+import { CatalogoType } from '../../domain/types';
 
 type basePropertyType = {
   [key: string]: PropertyManagement
 }
 
-export class PropertyRepositoryMock {
+export class PropertyRepositoryMock implements PropertyRepository{
   
   private baseProperty: basePropertyType = {};
 
   public getAllProperty(userID: string): PropertyManagement {
-    
-    
 
     const userProperties = this.baseProperty[userID]
 

@@ -1,9 +1,11 @@
-import { consumeEvents } from "common";
-import { CatalogoEventNames, UserEventNames } from "common/enums";
-import { BaseEvent } from "common/interfaces";
-import { catalogo, userInformation } from "common/types";
-import { createPropertyManagementUsecase } from "../app/createPropertyManagement/create_property_management_presenter";
-import { createPropertyUsecase } from "../app/createProperty/create_property_presenter";
+import { createPropertyUsecase } from "../../../app/createProperty/create_property_presenter";
+import { createPropertyManagementUsecase } from "../../../app/createPropertyManagement/create_property_management_presenter";
+import { CatalogoEventNames, UserEventNames } from "../../infra/clients/rabbitmq/enums";
+import { BaseEvent } from "../../infra/clients/rabbitmq/interfaces";
+import { consumeEvents } from "../../infra/clients/rabbitmq/rabbitmq";
+import { catalogo, userInformation } from "../../infra/clients/rabbitmq/types";
+
+
 
 type EventType = keyof typeof eventsFunctions;
 

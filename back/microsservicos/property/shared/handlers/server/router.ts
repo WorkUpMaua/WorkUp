@@ -1,6 +1,7 @@
 import { Router } from "express"
-import { getAllPropertyController } from "../../app/getAllProperty/get_all_property_presenter"
-import { getPropertyController } from "../../app/getProperty/get_property_presenter"
+import { getAllPropertyController } from "../../../app/getAllProperty/get_all_property_presenter"
+import { getPropertyController } from "../../../app/getProperty/get_property_presenter"
+
 
 
 const router: Router = Router()

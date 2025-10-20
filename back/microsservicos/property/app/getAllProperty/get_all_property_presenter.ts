@@ -3,6 +3,6 @@ import { GetAllPropertyController } from "./get_all_property_controller";
 import { Environments } from "../../shared/environments";
 
 
-const repo = Environments.instance.repo
+const repo = Environments.getPropertyRepo();
 const usecase = new GetAllPropertyUsecase(repo)
 export const getAllPropertyController = new GetAllPropertyController(usecase)

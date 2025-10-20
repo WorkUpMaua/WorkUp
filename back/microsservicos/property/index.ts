@@ -1,8 +1,9 @@
-import { closeRabbitMQConnection } from "common"
-import { App } from "./shared/server/app"
-import { startQueue } from "./shared/eventHandler"
 import dotenv from 'dotenv'
 import path from 'path'
+import { App } from './shared/handlers/server/app'
+
+import { startQueue } from './shared/handlers/events/eventHandler'
+import { closeRabbitMQConnection } from './shared/infra/clients/rabbitmq/rabbitmq'
 dotenv.config({
     path: path.resolve(__dirname, '..', '..', '.env')
 })

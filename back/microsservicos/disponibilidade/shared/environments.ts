@@ -26,7 +26,7 @@ export class Environments {
       ? (stageEnv as Stage)
       : Stage.TEST;
       
-    port = parseInt(process.env.PORT || "4000", 10);
+    port = parseInt(process.env.PORT || "4003", 10);
     awsRegion = process.env.AWS_REGION || "us-east-1";
     awsKeyID = process.env.AWS_ACCESS_KEY_ID || "key-not-found";
     awsSecretKey = process.env.AWS_SECRET_ACCESS_KEY || "key-not-found";

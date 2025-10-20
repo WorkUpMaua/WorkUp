@@ -1,12 +1,12 @@
-import amqp, { Channel, Connection } from 'amqplib';
-import dotenv from 'dotenv'
-import path from 'path'
-dotenv.config()
+import amqp from 'amqplib';
+import type { Connection, Channel } from 'amqplib';
+import { Environments } from '../../environments';
 
-const RABBITMQ_URL = process.env.RABBITMQ_URL;
+
+const RABBITMQ_URL = Environments.getEnvs().rabbitmqURL;
 
 if (!RABBITMQ_URL) {
-    console.error('Environment variable RABBITMQ_URL is not defined. Please set it in your .env file.');
+    console.error('Environment variable RABBITMQ_URL is not defined.');
     process.exit(1);
 }
 
