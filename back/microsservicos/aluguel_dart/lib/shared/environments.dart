@@ -10,8 +10,9 @@ enum Stage {
 class Environments {
   final Stage stage;
   final int port;
+  final String rabbitmqURL;
 
-  Environments._(this.stage, this.port);
+  Environments._(this.stage, this.port, this.rabbitmqURL);
 
   static Environments getEnvs() {
     final rawStage = Platform.environment['STAGE']?.toUpperCase() ?? 'TEST';
@@ -20,9 +21,10 @@ class Environments {
       orElse: () => Stage.test,
     );
     
-    final int port = int.tryParse(Platform.environment['PORT'] ?? '') ?? 8080;
+    final int port = int.tryParse(Platform.environment['ALUGUEL_PORT'] ?? '') ?? 8080;
+    final String rabbitmqURL = Platform.environment['RABBITMQ_URL'] ?? 'not-found';
 
-    return Environments._(stage, port);
+    return Environments._(stage, port, rabbitmqURL);
   }
 
   static AluguelRepository getAluguelRepo() {
