@@ -44,8 +44,8 @@ Future<void> main() async {
       .addMiddleware(logRequests())
       .addHandler(router.call);
       
-  final port = int.tryParse(Environments.getEnvs().port ?? '') ?? 8080;
+  final port = Environments.getEnvs().port;
 
-  final server = await io.serve(handler, InternetAddress.anyIPv4, port);
+  await io.serve(handler, InternetAddress.anyIPv4, port);
   print('Aluguel. Porta: $port');
 }

@@ -9,3 +9,9 @@ export enum UserEventNames {
     UserUpdated = "UserUpdated",
     UserDeleted = "UserDeleted"
 }
+
+export enum AluguelEventNames {
+    AluguelCreated = "AluguelCreated",
+    AluguelUpdated = "AluguelUpdated",
+    AluguelExpired = "AluguelExpired"
+}

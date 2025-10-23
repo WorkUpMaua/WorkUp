@@ -1,27 +1,33 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'package:aluguel_dart/shared/environments.dart';
 import 'package:dart_amqp/dart_amqp.dart';
+import 'package:aluguel_dart/shared/environments.dart';
 
-class RabbitMQClient {
-  RabbitMQClient._();
+final String RABBITMQ_URL = Environments.getEnvs().rabbitmqURL;
 
-  static final String _exchangeName = 'global_events';
-  static Client? _client;
-  static Channel? _channel;
-  static Exchange? _exchange;
+void _ensureRabbitUrlOrExit() {
+  if (RABBITMQ_URL.isEmpty || RABBITMQ_URL == 'not-found') {
+    stderr.writeln('Environment variable RABBITMQ_URL is not defined.');
+    exit(1);
+  }
+}
 
-  static Future<Channel> _connectRabbitMQ() async {
-    if (_channel != null) return _channel!;
+const String EXCHANGE_NAME = 'global_events';
 
-    final rabbitUrl = Environments.getEnvs().rabbitmqURL;
-    if (rabbitUrl == 'not-found' || rabbitUrl.isEmpty) {
-      stderr.writeln('Environment variable RABBITMQ_URL is not defined.');
-      exit(1);
-    }
+Client? _client;
+Channel? _channel;
 
-    final uri = Uri.parse(rabbitUrl);
+/// Abre (ou reaproveita) a conexão e retorna um Channel
+Future<Channel> connectRabbitMQ() async {
+  if (_channel != null) {
+    return _channel!;
+  }
+
+  _ensureRabbitUrlOrExit();
+
+  try {
+    final uri = Uri.parse(RABBITMQ_URL);
 
     final settings = ConnectionSettings(
       host: uri.host,
@@ -34,70 +40,65 @@ class RabbitMQClient {
     );
 
     _client = Client(settings: settings);
-
     _channel = await _client!.channel();
-    await _channel!.qos(prefetchCount: 1);
+    stdout.writeln('[RabbitMQ] Connected to RabbitMQ.');
+    stdout.writeln('[RabbitMQ] Channel created.');
+    return _channel!;
+  } catch (error) {
+    stderr.writeln('[RabbitMQ] Failed to connect or create channel: $error');
+    rethrow;
+  }
+}
 
-    _exchange = await _channel!.exchange(
-      _exchangeName,
+/// Publica um evento no Exchange Global do tipo 'topic'.
+/// Mantém a assinatura e o retorno booleano do TS.
+Future<bool> publishEvent<T extends Object>(String routingKey, T eventData) async {
+  try {
+    final ch = await connectRabbitMQ();
+
+    // Declara o exchange topic e durável
+    final exchange = await ch.exchange(
+      EXCHANGE_NAME,
       ExchangeType.TOPIC,
       durable: true,
     );
 
-    _client!.connectionListener = ConnectionListener(
-      onConnected: () => stdout.writeln('[RabbitMQ] Connected.'),
-      onDisconnected: () {
-        stderr.writeln('[RabbitMQ] Disconnected.');
-        _channel = null;
-        _exchange = null;
-        _client = null;
-      },
+    // Publicação persistente (deliveryMode = 2)
+    final props = MessageProperties()..deliveryMode = 2;
+
+    exchange.publish(
+      utf8.encode(jsonEncode(eventData)),
+      routingKey,
+      properties: props,
     );
 
-    return _channel!;
+    stdout.writeln(
+      "[PUBLISHER] Topic Event '$routingKey' published to '$EXCHANGE_NAME': $eventData",
+    );
+    return true;
+  } catch (error) {
+    stderr.writeln(
+      "[PUBLISHER] Error publishing Topic Event '$routingKey' to '$EXCHANGE_NAME': $error",
+    );
+    return false;
   }
+}
 
-  /// Publica JSON no exchange topic `global_events`.
-  static Future<bool> publishEvent<T extends Object>(
-    String routingKey,
-    T eventData, {
-    Map<String, Object?>? headers,
-  }) async {
-    try {
-      final ch = await _connectRabbitMQ();
-      final ex = _exchange ??= await ch.exchange(
-        _exchangeName,
-        ExchangeType.TOPIC,
-        durable: true,
-      );
+/// Escuta eventos de uma fila específica (prefetch=1, ack/nack explícito)
+Future<void> consumeEvents<T extends Object>(
+  String queueName,
+  String bindingKey,
+  Future<void> Function(T event) callback,
+) async {
+  try {
+    final ch = await connectRabbitMQ();
 
-      final payload = utf8.encode(jsonEncode(eventData));
-      ex.publish(
-        payload,
-        routingKey,
-        properties: MessageProperties()
-          ..contentType = 'application/json'
-          ..deliveryMode = 2
-          ..headers = headers,
-      );
+    final exchange = await ch.exchange(
+      EXCHANGE_NAME,
+      ExchangeType.TOPIC,
+      durable: true,
+    );
 
-      stdout.writeln("[PUBLISHER] '$routingKey' -> '$_exchangeName': $eventData");
-      return true;
-    } catch (e) {
-      stderr.writeln("[PUBLISHER] Error '$routingKey': $e");
-      return false;
-    }
-  }
-
-  /// Consome mensagens JSON de uma fila ligada por `bindingKey`.
-  static Future<void> consumeEvents<T extends Object>(
-    String queueName,
-    String bindingKey,
-    Future<void> Function(T event) callback,
-  ) async {
-    final ch = await _connectRabbitMQ();
-
-    // Declara queue durável
     final queue = await ch.queue(
       queueName,
       durable: true,
@@ -105,42 +106,112 @@ class RabbitMQClient {
       exclusive: false,
     );
 
-    // Garante exchange e faz bind
-    final ex = _exchange ??= await ch.exchange(
-      _exchangeName,
-      ExchangeType.TOPIC,
-      durable: true,
+    await ch.qos(0, 1);
+
+    await queue.bind(exchange, bindingKey);
+
+    stdout.writeln(
+      "[CONSUMER] Listening on queue '$queueName' with binding '$bindingKey'",
     );
-    await queue.bind(ex, routingKey: bindingKey);
 
-    stdout.writeln("[CONSUMER] Listening '$queueName' (binding='$bindingKey')");
-
-    // Inicia o consumo com ack manual
-    final consumer = await queue.consume(noAck: false);
+    final consumer = await queue.consume();
 
     consumer.listen((AmqpMessage msg) async {
       try {
-        final bodyStr = utf8.decode(msg.payload);
-        final dynamic decoded = jsonDecode(bodyStr);
-        await callback(decoded as T);
+        final bodyString = msg.payloadAsString;
+        final dynamic decoded = jsonDecode(bodyString);
+        final payload = decoded as T;
+
+        stdout.writeln('[CONSUMER] Received: $payload');
+
+        await callback(payload);
+
         msg.ack();
-      } catch (e) {
-        stderr.writeln('[CONSUMER] Error: $e');
-        msg.reject(requeue: false);
+      } catch (err) {
+        stderr.writeln('[CONSUMER] Error processing message: $err');
+        msg.reject(false);
       }
     });
+  } catch (err) {
+    stderr.writeln('[CONSUMER] Error setting up consumer: $err');
+    rethrow;
+  }
+}
+
+/// Fecha canal e conexão (espelhando a função TS)
+Future<void> closeRabbitMQConnection() async {
+  if (_channel != null) {
+    try {
+      await _channel!.close();
+      stdout.writeln('[RabbitMQ] Channel closed.');
+    } catch (error) {
+      stderr.writeln('Error closing channel: $error');
+    } finally {
+      _channel = null;
+    }
   }
 
-  static Future<void> closeRabbitMQConnection() async {
+  if (_client != null) {
     try {
-      await _client?.close();
+      await _client!.close();
       stdout.writeln('[RabbitMQ] Connection closed.');
-    } catch (e) {
-      stderr.writeln('Error closing connection: $e');
+    } catch (error) {
+      stderr.writeln('Error closing connection: $error');
     } finally {
-      _exchange = null;
-      _channel = null;
       _client = null;
     }
   }
+}
+
+const String _DELAY_EXCHANGE = 'aluguel.delay.ex'; // exchange de delay (direct)
+const String _DELAY_QUEUE = 'aluguel.delay.q';     // fila de delay
+const String _DELAY_RK = 'aluguel.expire';         // routing key para entrar no delay
+const String _EXPIRED_RK = 'aluguel.expired';      // routing key de saída (vai para EXCHANGE_NAME)
+
+Future<void> _ensureDelayInfra(Channel ch) async {
+  // Exchange/Fila de delay: quando a msg expira, vai para o exchange principal (EXCHANGE_NAME)
+  final delayEx = await ch.exchange(_DELAY_EXCHANGE, ExchangeType.DIRECT, durable: true);
+
+  final delayQ = await ch.queue(
+    _DELAY_QUEUE,
+    durable: true,
+    arguments: <String, Object>{
+      'x-dead-letter-exchange': EXCHANGE_NAME, // seu exchange principal (topic)
+      'x-dead-letter-routing-key': _EXPIRED_RK,
+    },
+  );
+
+  await delayQ.bind(delayEx, _DELAY_RK);
+}
+
+/// Agenda um evento para ser disparado em `endDateMs`.
+/// Se `endDateMs` já passou, publica imediatamente em `EXCHANGE_NAME` com routing key `_EXPIRED_RK`.
+Future<void> scheduleAluguelExpiration({
+  required String aluguelId,
+  required int endDateMs, // timestamp em ms (UTC)
+}) async {
+  final ch = await connectRabbitMQ();
+  final now = DateTime.now().toUtc().millisecondsSinceEpoch;
+  final delayMs = endDateMs - now;
+
+  if (delayMs <= 0) {
+    // já venceu: publica direto no exchange principal
+    final mainEx = await ch.exchange(EXCHANGE_NAME, ExchangeType.TOPIC, durable: true);
+    final msg = {'aluguelId': aluguelId};
+    final props = MessageProperties()..deliveryMode = 2;
+    mainEx.publish(utf8.encode(jsonEncode(msg)), _EXPIRED_RK, properties: props);
+    stdout.writeln("[SCHEDULER] Expired immediately -> $_EXPIRED_RK payload=$msg");
+    return;
+  }
+
+  await _ensureDelayInfra(ch);
+
+  final delayEx = await ch.exchange(_DELAY_EXCHANGE, ExchangeType.DIRECT, durable: true);
+  final props = MessageProperties()
+    ..deliveryMode = 2
+    ..expiration = delayMs.toString(); 
+
+  final payload = {'aluguelId': aluguelId};
+  delayEx.publish(utf8.encode(jsonEncode(payload)), _DELAY_RK, properties: props);
+  stdout.writeln("[SCHEDULER] Scheduled in ${delayMs}ms -> $_DELAY_EXCHANGE:$_DELAY_RK payload=$payload");
 }

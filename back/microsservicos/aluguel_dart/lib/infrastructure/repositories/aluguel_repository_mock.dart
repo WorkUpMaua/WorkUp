@@ -91,6 +91,11 @@ class AluguelRepositoryMock implements AluguelRepository {
   }
 
   @override
+  Future<Map<String, Aluguel>?> getAllAluguel() async {
+    return store;
+  }
+
+  @override
   Future<Aluguel> updateAluguel(
     String id, {
     int? startDate,

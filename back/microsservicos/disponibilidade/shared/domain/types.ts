@@ -1,11 +1,16 @@
 import { UnifiedCatalogo } from "./interfaces"
 
 export type BookingsType = {
-    catalogID: string
     bookingID: string
     userID: string
+    workSpaceID: string
     startTime: number
     endTime: number
+    people: number
+    finalPrice: number
+    status: string
+    createdAt: number
+    updatedAt: number
 }
 
 export interface getAllDisponibilidadeProps {
