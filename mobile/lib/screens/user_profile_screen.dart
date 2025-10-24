@@ -90,6 +90,7 @@ class ProfilePersonalInfo extends StatelessWidget {
 
         // Data de Nascimento
         _buildDateField(
+          context: context,
           label: 'Data de Nascimento',
           value: formData.birth,
           fieldName: 'birth',
@@ -141,7 +142,10 @@ class ProfilePersonalInfo extends StatelessWidget {
             enabled: isEditing,
             keyboardType: keyboardType,
             decoration: const InputDecoration(
-              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 12,
+              ),
               border: InputBorder.none,
             ),
             onChanged: (newValue) => onChanged(fieldName, newValue),
@@ -152,6 +156,7 @@ class ProfilePersonalInfo extends StatelessWidget {
   }
 
   Widget _buildDateField({
+    required BuildContext context,
     required String label,
     required String value,
     required String fieldName,
@@ -175,12 +180,17 @@ class ProfilePersonalInfo extends StatelessWidget {
               ? () async {
                   final selectedDate = await showDatePicker(
                     context: context,
-                    initialDate: value.isNotEmpty ? DateTime.parse(value) : DateTime.now(),
+                    initialDate: value.isNotEmpty
+                        ? DateTime.parse(value)
+                        : DateTime.now(),
                     firstDate: DateTime(1900),
                     lastDate: DateTime.now(),
                   );
                   if (selectedDate != null) {
-                    onChanged(fieldName, selectedDate.toIso8601String().split('T')[0]);
+                    onChanged(
+                      fieldName,
+                      selectedDate.toIso8601String().split('T')[0],
+                    );
                   }
                 }
               : null,
@@ -193,9 +203,7 @@ class ProfilePersonalInfo extends StatelessWidget {
               color: isEditing ? Colors.white : Colors.grey.shade100,
             ),
             child: Text(
-              value.isNotEmpty 
-                  ? _formatDate(value)
-                  : 'Selecione uma data',
+              value.isNotEmpty ? _formatDate(value) : 'Selecione uma data',
               style: TextStyle(
                 fontSize: 16,
                 color: value.isNotEmpty ? Colors.black : Colors.grey,
@@ -232,7 +240,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
     birth: '',
     phone: '',
   );
-  
+
   bool _isEditing = false;
   bool _isLoading = true;
   String? _alertMessage;
@@ -276,8 +284,11 @@ class _UserProfilePageState extends State<UserProfilePage> {
     final fieldsToSend = _getModifiedFields(_reliableUser, _formData);
 
     // Transforma data para timestamp (simulação)
-    if (fieldsToSend.containsKey('birth') && fieldsToSend['birth']!.isNotEmpty) {
-      final timestamp = DateTime.parse(fieldsToSend['birth']!).millisecondsSinceEpoch;
+    if (fieldsToSend.containsKey('birth') &&
+        fieldsToSend['birth']!.isNotEmpty) {
+      final timestamp = DateTime.parse(
+        fieldsToSend['birth']!,
+      ).millisecondsSinceEpoch;
       fieldsToSend['birth'] = timestamp.toString();
     }
 
@@ -305,7 +316,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
           ..cpf = updatedUserData.cpf
           ..birth = updatedUserData.birth
           ..phone = updatedUserData.phone;
-        
+
         _formData
           ..name = updatedUserData.name
           ..email = updatedUserData.email
@@ -355,14 +366,14 @@ class _UserProfilePageState extends State<UserProfilePage> {
         ..cpf = mockUserData.cpf
         ..birth = mockUserData.birth
         ..phone = mockUserData.phone;
-      
+
       _formData
         ..name = mockUserData.name
         ..email = mockUserData.email
         ..cpf = mockUserData.cpf
         ..birth = mockUserData.birth
         ..phone = mockUserData.phone;
-      
+
       _isLoading = false;
     });
   }
@@ -416,7 +427,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
                       child: Row(
                         children: [
                           Icon(
-                            _isError ? Icons.error_outline : Icons.check_circle_outline,
+                            _isError
+                                ? Icons.error_outline
+                                : Icons.check_circle_outline,
                             color: _isError ? Colors.red : Colors.green,
                           ),
                           const SizedBox(width: 8),
@@ -424,7 +437,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
                             child: Text(
                               _alertMessage!,
                               style: TextStyle(
-                                color: _isError ? Colors.red[900] : Colors.green[900],
+                                color: _isError
+                                    ? Colors.red[900]
+                                    : Colors.green[900],
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -518,10 +533,14 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                 SizedBox(
                                   width: double.infinity,
                                   child: ElevatedButton(
-                                    onPressed: _isLoading ? null : _handleSubmit,
+                                    onPressed: _isLoading
+                                        ? null
+                                        : _handleSubmit,
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: primaryColor,
-                                      padding: const EdgeInsets.symmetric(vertical: 16),
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 16,
+                                      ),
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(8),
                                       ),

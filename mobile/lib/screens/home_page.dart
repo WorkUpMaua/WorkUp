@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../components/header_bar.dart';
-import '../components/sidebar_menu.dart';
-import '../models/listing.dart'; // USA O MODELO CENTRALIZADO
+import '../widgets/search_bar.dart';
+import '../widgets/side_bar.dart';
+import '../models/property.dart';
+import '../widgets/models_listing.dart';
+import '../widgets/header_bar.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -35,8 +37,9 @@ class _HomePageState extends State<HomePage> {
   Future<void> fetchAllRooms() async {
     setState(() => isLoading = true);
     try {
-      final response =
-          await http.get(Uri.parse("http://10.0.2.2:3000/availability"));
+      final response = await http.get(
+        Uri.parse("http://10.0.2.2:3000/availability"),
+      );
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final rooms = data["rooms"];
@@ -51,9 +54,9 @@ class _HomePageState extends State<HomePage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao carregar salas: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erro ao carregar salas: $e')));
       }
     }
     setState(() => isLoading = false);
@@ -83,8 +86,7 @@ class _HomePageState extends State<HomePage> {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final rooms = data["rooms"];
-        List<Listing> availableRooms = (rooms as Map)
-            .values
+        List<Listing> availableRooms = (rooms as Map).values
             .map((room) => Listing.fromJson(room))
             .toList();
 
@@ -118,8 +120,9 @@ class _HomePageState extends State<HomePage> {
         children: [
           if (room.pictures.isNotEmpty)
             ClipRRect(
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(16)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(16),
+              ),
               child: Image.network(
                 room.pictures.first,
                 width: double.infinity,
@@ -132,25 +135,36 @@ class _HomePageState extends State<HomePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(room.name,
-                    style: const TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.bold)),
+                Text(
+                  room.name,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 const SizedBox(height: 6),
-                Text(room.address,
-                    style: const TextStyle(fontSize: 14, color: Colors.grey)),
+                Text(
+                  room.address,
+                  style: const TextStyle(fontSize: 14, color: Colors.grey),
+                ),
                 const SizedBox(height: 8),
-                Text("R\$ ${room.price.toStringAsFixed(2)} / hora",
-                    style: const TextStyle(
-                        fontSize: 16,
-                        color: Color(0xFF34495E),
-                        fontWeight: FontWeight.w600)),
+                Text(
+                  "R\$ ${room.price.toStringAsFixed(2)} / hora",
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: Color(0xFF34495E),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 const SizedBox(height: 8),
                 Row(
                   children: [
                     const Icon(Icons.people, size: 18, color: Colors.grey),
                     const SizedBox(width: 4),
-                    Text("${room.capacity} pessoas",
-                        style: const TextStyle(fontSize: 14, color: Colors.grey)),
+                    Text(
+                      "${room.capacity} pessoas",
+                      style: const TextStyle(fontSize: 14, color: Colors.grey),
+                    ),
                   ],
                 ),
               ],
@@ -200,9 +214,10 @@ class _HomePageState extends State<HomePage> {
                       const Text(
                         "Encontre o espaço perfeito para seu negócio",
                         style: TextStyle(
-                            fontSize: 20,
-                            color: Color(0xFF2C3E50),
-                            fontWeight: FontWeight.bold),
+                          fontSize: 20,
+                          color: Color(0xFF2C3E50),
+                          fontWeight: FontWeight.bold,
+                        ),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 8),
@@ -219,12 +234,15 @@ class _HomePageState extends State<HomePage> {
                           prefixIcon: const Icon(Icons.search),
                           filled: true,
                           fillColor: Colors.white,
-                          contentPadding:
-                              const EdgeInsets.symmetric(vertical: 14),
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 14,
+                          ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: const BorderSide(
-                                color: Colors.grey, width: 0.5),
+                              color: Colors.grey,
+                              width: 0.5,
+                            ),
                           ),
                         ),
                         onChanged: (v) => setState(() => searchQuery = v),
@@ -239,8 +257,10 @@ class _HomePageState extends State<HomePage> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child: const Text("Buscar Disponibilidade",
-                            style: TextStyle(color: Colors.white)),
+                        child: const Text(
+                          "Buscar Disponibilidade",
+                          style: TextStyle(color: Colors.white),
+                        ),
                       ),
                     ],
                   ),

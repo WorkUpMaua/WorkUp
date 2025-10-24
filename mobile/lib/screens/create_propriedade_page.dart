@@ -2,10 +2,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
-import '../components/commodities_selector.dart';
-import '../components/alert_widget.dart';
-import '../components/header_bar.dart';
-import '../components/sidebar_menu.dart';
+import '../widgets/commodities_selector.dart';
+import '../widgets/alert_widget.dart';
+import '../widgets/search_bar.dart';
+import '../widgets/side_bar.dart';
 
 class CreatePropriedadePage extends StatefulWidget {
   const CreatePropriedadePage({Key? key}) : super(key: key);
@@ -64,7 +64,8 @@ class _CreatePropriedadePageState extends State<CreatePropriedadePage> {
       _showAlert("Nome da sala é obrigatório", error: true);
       return false;
     }
-    if (_priceController.text.isEmpty || parseMoney(_priceController.text) <= 0) {
+    if (_priceController.text.isEmpty ||
+        parseMoney(_priceController.text) <= 0) {
       _showAlert("Preço deve ser maior que zero", error: true);
       return false;
     }
@@ -105,8 +106,18 @@ class _CreatePropriedadePageState extends State<CreatePropriedadePage> {
       children: [
         Scaffold(
           backgroundColor: Colors.grey[100],
-          appBar: HeaderBar(
-            onMenuClick: () => setState(() => _sidebarActive = true),
+          appBar: AppBar(
+            backgroundColor: const Color(0xFF34495E),
+            leading: IconButton(
+              icon: const Icon(Icons.menu, color: Colors.white),
+              onPressed: () => setState(() => _sidebarActive = true),
+            ),
+            title: const Text(
+              'Criar Nova Sala',
+              style: TextStyle(color: Colors.white),
+            ),
+            centerTitle: true,
+            elevation: 3,
           ),
           body: SingleChildScrollView(
             padding: const EdgeInsets.all(20),
@@ -127,7 +138,7 @@ class _CreatePropriedadePageState extends State<CreatePropriedadePage> {
                         color: Colors.black12,
                         blurRadius: 6,
                         offset: Offset(0, 2),
-                      )
+                      ),
                     ],
                   ),
                   padding: const EdgeInsets.all(20),
@@ -243,14 +254,22 @@ class _CreatePropriedadePageState extends State<CreatePropriedadePage> {
                                   ),
                                   child: const Center(
                                     child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
-                                        Icon(Icons.add_a_photo_outlined,
-                                            size: 40, color: Colors.grey),
+                                        Icon(
+                                          Icons.add_a_photo_outlined,
+                                          size: 40,
+                                          color: Colors.grey,
+                                        ),
                                         SizedBox(height: 8),
-                                        Text("Adicionar fotos",
-                                            style: TextStyle(
-                                                color: Colors.grey, fontSize: 16)),
+                                        Text(
+                                          "Adicionar fotos",
+                                          style: TextStyle(
+                                            color: Colors.grey,
+                                            fontSize: 16,
+                                          ),
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -260,19 +279,22 @@ class _CreatePropriedadePageState extends State<CreatePropriedadePage> {
                                 children: [
                                   GridView.builder(
                                     shrinkWrap: true,
-                                    physics: const NeverScrollableScrollPhysics(),
+                                    physics:
+                                        const NeverScrollableScrollPhysics(),
                                     gridDelegate:
                                         const SliverGridDelegateWithFixedCrossAxisCount(
-                                      crossAxisCount: 3,
-                                      crossAxisSpacing: 6,
-                                      mainAxisSpacing: 6,
-                                    ),
+                                          crossAxisCount: 3,
+                                          crossAxisSpacing: 6,
+                                          mainAxisSpacing: 6,
+                                        ),
                                     itemCount: _images.length,
                                     itemBuilder: (context, index) {
                                       return Stack(
                                         children: [
                                           ClipRRect(
-                                            borderRadius: BorderRadius.circular(8),
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
                                             child: Image.file(
                                               _images[index],
                                               fit: BoxFit.cover,
@@ -285,8 +307,9 @@ class _CreatePropriedadePageState extends State<CreatePropriedadePage> {
                                             top: 4,
                                             child: GestureDetector(
                                               onTap: () {
-                                                setState(() =>
-                                                    _images.removeAt(index));
+                                                setState(
+                                                  () => _images.removeAt(index),
+                                                );
                                               },
                                               child: Container(
                                                 decoration: BoxDecoration(
@@ -294,11 +317,14 @@ class _CreatePropriedadePageState extends State<CreatePropriedadePage> {
                                                   borderRadius:
                                                       BorderRadius.circular(20),
                                                 ),
-                                                child: const Icon(Icons.close,
-                                                    color: Colors.white, size: 18),
+                                                child: const Icon(
+                                                  Icons.close,
+                                                  color: Colors.white,
+                                                  size: 18,
+                                                ),
                                               ),
                                             ),
-                                          )
+                                          ),
                                         ],
                                       );
                                     },
@@ -328,13 +354,16 @@ class _CreatePropriedadePageState extends State<CreatePropriedadePage> {
                             ),
                             child: _isSubmitting
                                 ? const CircularProgressIndicator(
-                                    color: Colors.white)
-                                : const Text("Criar Sala",
+                                    color: Colors.white,
+                                  )
+                                : const Text(
+                                    "Criar Sala",
                                     style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w500,
                                       color: Colors.white,
-                                    )),
+                                    ),
+                                  ),
                           ),
                         ),
                       ],

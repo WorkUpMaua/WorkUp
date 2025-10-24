@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
-import '../components/commodities_selector.dart';
+import '../../components/commodities_selector.dart';
 import '../components/alert_widget.dart';
 import '../components/header_bar.dart';
 import '../components/sidebar_menu.dart';
