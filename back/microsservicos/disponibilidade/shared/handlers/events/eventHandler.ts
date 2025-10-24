@@ -59,25 +59,52 @@ const eventsFunctions: { [event in CatalogoEventNames | AluguelEventNames]: (pay
         disponibilidadeCheckedEvent
       );
     },
-    AluguelConfirmed: async (aluguelInfo: BookingsType) => {
-        const id = aluguelInfo.workSpaceID;
+    AluguelConfirmed: async (payload) => {
+
+        const booking: BookingsType = {
+            bookingID: payload['id'],
+            userID: payload['userId'],
+            workSpaceID: payload['workspaceId'],
+            startTime: payload['startDate'],
+            endTime: payload['endDate'],
+            people: payload['people'],
+            finalPrice: payload['finalPrice'],
+            status: payload['status'],
+            createdAt: payload['createdAt'],
+            updatedAt: payload['updatedAt']
+        }
+        const id = booking.workSpaceID;
 
         new CreateBookingUsecase(Environments.getDisponibilidadeRepo()).execute({
             id,
-            ...aluguelInfo
+            ...booking
         });
     },
-    AluguelExpired: async (aluguelInfo: BookingsType) => {
-        const id = aluguelInfo.workSpaceID;
-        const bookingID = aluguelInfo.bookingID;
+    AluguelExpired: async (payload) => {
+
+        const booking: BookingsType = {
+            bookingID: payload['id'],
+            userID: payload['userId'],
+            workSpaceID: payload['workspaceId'],
+            startTime: payload['startDate'],
+            endTime: payload['endDate'],
+            people: payload['people'],
+            finalPrice: payload['finalPrice'],
+            status: payload['status'],
+            createdAt: payload['createdAt'],
+            updatedAt: payload['updatedAt']
+        }
+
+        const id = booking.workSpaceID;
+        const bookingID = booking.bookingID;
         new DeleteBookingUsecase(Environments.getDisponibilidadeRepo()).execute({
             id,
             bookingID
         });
         const disponibilidadeFree: DisponibilidadeEvent = {
-            eventType: DisponibilidadeEventNames.AvaiabilityChecked,
+            eventType: DisponibilidadeEventNames.AvaiabilityFree,
             payload: {
-                aluguel: aluguelInfo
+                aluguel: booking
             },
         };
         await publishEvent(

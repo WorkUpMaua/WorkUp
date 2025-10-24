@@ -11,6 +11,7 @@ class Environments {
   final Stage stage;
   final int port;
   final String rabbitmqURL;
+  static dynamic _mockInstance;
 
   Environments._(this.stage, this.port, this.rabbitmqURL);
 
@@ -31,7 +32,8 @@ class Environments {
     final env = Environments.getEnvs();
     switch (env.stage) {
       case Stage.test:
-        return AluguelRepositoryMock();
+      _mockInstance ??= AluguelRepositoryMock();
+      return _mockInstance;
       case Stage.dev:
         throw Exception('Repositório real ainda não configurado para DEV');
     }
