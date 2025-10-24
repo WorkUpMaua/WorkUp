@@ -1,5 +1,5 @@
 import ListingCard from "./ListingCard";
-import { Listing } from "../pages/Home";
+import { Listing } from "../pages/web/Home";
 
 interface ListingGridProps {
   listings: Listing[];

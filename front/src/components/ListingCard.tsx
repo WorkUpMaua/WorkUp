@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Listing } from "../pages/Home";
+import { Listing } from "../pages/web/Home";
 
 interface ListingCardProps {
   listing: Listing;

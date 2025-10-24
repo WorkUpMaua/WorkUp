@@ -1,15 +1,15 @@
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import Cadastro from './pages/Cadastro'
-import Workspace from './pages/Workspace'
-import Login from './pages/Login'
-import Home from "./pages/Home";
-import UserProfile from "./pages/UserProfile";
-import CreatePropriedades from './pages/CreatePropriedades'
+import Cadastro from './pages/web/Cadastro'
+import Workspace from './pages/web/Workspace'
+import Login from './pages/web/Login'
+import Home from "./pages/web/Home";
+import UserProfile from "./pages/web/UserProfile";
+import CreatePropriedades from './pages/web/CreatePropriedades'
 import 'flatpickr/dist/themes/material_blue.css';
 import './styles/index.css'
-import TelaAluguel from './pages/TelaAluguel'
-import TelaPropriedades from './pages/TelaPropriedades'
+import TelaAluguel from './pages/web/TelaAluguel'
+import TelaPropriedades from './pages/web/TelaPropriedades'
 
 
 createRoot(document.getElementById("root")!).render(
