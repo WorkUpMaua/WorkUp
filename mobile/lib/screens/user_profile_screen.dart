@@ -384,16 +384,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
     _fetchUser();
   }
 
-  void _showAlert(String message, {bool error = false}) {
-    setState(() {
-      _alertMessage = message;
-      _isError = error;
-    });
-    Future.delayed(const Duration(seconds: 3), () {
-      if (mounted) setState(() => _alertMessage = null);
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     final primaryColor = const Color(0xFF34495E);
