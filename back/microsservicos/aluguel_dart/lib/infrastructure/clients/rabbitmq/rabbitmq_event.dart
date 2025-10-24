@@ -11,4 +11,9 @@ class RabbitMQEvent implements BaseEvent {
     required this.eventType,
     required this.payload,
   });
+
+  Map<String, dynamic> toJson() => {
+    'eventType': eventType,
+    'payload': payload,
+  };
 }

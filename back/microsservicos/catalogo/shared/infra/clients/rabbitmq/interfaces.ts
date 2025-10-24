@@ -15,3 +15,4 @@ export interface UserEvent extends BaseEvent {
   eventType: UserEventNames
   payload: userInformation
 }
+

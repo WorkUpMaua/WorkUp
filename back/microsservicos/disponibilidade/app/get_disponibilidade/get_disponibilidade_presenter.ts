@@ -4,5 +4,5 @@ import { GetDisponibilidadeController } from "./get_disponibilidade_controller";
 import { GetDisponibilidadeUsecase } from "./get_disponibilidade_usecase";
 
 const repo = Environments.getDisponibilidadeRepo();
-const usecase = new GetDisponibilidadeUsecase(repo)
-export const getDisponibilidade = new GetDisponibilidadeController(usecase)
+export const getDisponibilidadeUsecase = new GetDisponibilidadeUsecase(repo)
+export const getDisponibilidadeController = new GetDisponibilidadeController(getDisponibilidadeUsecase)

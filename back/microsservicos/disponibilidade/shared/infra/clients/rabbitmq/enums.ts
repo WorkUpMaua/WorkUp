@@ -12,6 +12,11 @@ export enum UserEventNames {
 
 export enum AluguelEventNames {
     AluguelCreated = "AluguelCreated",
-    AluguelUpdated = "AluguelUpdated",
+    AluguelConfirmed = "AluguelConfirmed",
     AluguelExpired = "AluguelExpired"
+}
+
+export enum DisponibilidadeEventNames {
+    AvaiabilityChecked = "AvaiabilityChecked",
+    AvaiabilityFree = "AvaiabilityFree"
 }

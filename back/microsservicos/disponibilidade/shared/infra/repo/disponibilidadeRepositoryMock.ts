@@ -65,13 +65,13 @@ export class DisponibilidadeRepositoryMock implements DisponibilidadeRepository 
 
 
   public getDisponibilidade(props: getDisponbilidadeProps): number {
-  const { id, startTime, endTime } = props;
+  const { id: workSpaceID, startTime, endTime } = props;
 
-  if (!this.baseDisponibilidade[id]) {
+  if (!this.baseDisponibilidade[workSpaceID]) {
     throw new Error("Sala não encontrada na base consolidada");
   }
 
-  const catalog = this.baseDisponibilidade[id];
+  const catalog = this.baseDisponibilidade[workSpaceID];
 
   const overlappings = catalog.confirmedBookings.filter((booking) =>
     booking.startTime < endTime && booking.endTime > startTime
@@ -132,19 +132,24 @@ export class DisponibilidadeRepositoryMock implements DisponibilidadeRepository 
   }
 
   public createBooking(props: createBookingProps): BookingsType {
-    const { id, catalogID, bookingID, userID, startTime, endTime } = props;
+    const { id, workSpaceID, bookingID, userID, startTime, endTime, people, finalPrice, status, createdAt, updatedAt } = props;
 
-    if (!this.baseDisponibilidade[id])
+    if (!this.baseDisponibilidade[workSpaceID])
       throw new Error("Sala não encontrada na base consolidada");
 
     const catalog = this.baseDisponibilidade[id];
 
     const booking: BookingsType = {
-      catalogID,
+      workSpaceID,
       bookingID,
       userID,
       startTime,
       endTime,
+      people, 
+      finalPrice,
+      status,
+      createdAt,
+      updatedAt
     };
 
     catalog.confirmedBookings.push(booking);
@@ -153,9 +158,9 @@ export class DisponibilidadeRepositoryMock implements DisponibilidadeRepository 
   }
 
   public updateBooking(props: updateBookingProps): BookingsType {
-    const { id, catalogID, bookingID, userID, startTime, endTime } = props;
+    const { id, workSpaceID, bookingID, userID, startTime, endTime, people, finalPrice, status, createdAt, updatedAt } = props;
 
-    if (!this.baseDisponibilidade[id])
+    if (!this.baseDisponibilidade[workSpaceID])
       throw new Error("Sala não encontrada na base consolidada");
 
     const catalogo = this.baseDisponibilidade[id];
@@ -164,8 +169,8 @@ export class DisponibilidadeRepositoryMock implements DisponibilidadeRepository 
       (booking) => booking.bookingID === bookingID
     );
 
-    if (catalogID)
-      catalogo.confirmedBookings[bookingToUpdateIndex].catalogID = catalogID;
+    if (workSpaceID)
+      catalogo.confirmedBookings[bookingToUpdateIndex].workSpaceID = workSpaceID;
     if (userID)
       catalogo.confirmedBookings[bookingToUpdateIndex].userID = userID;
     if (startTime)

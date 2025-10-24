@@ -10,23 +10,27 @@ import 'package:aluguel_dart/shared/environments.dart';
 typedef EventHandlerFn = Future<void> Function(dynamic payload);
 
 final Map<String, EventHandlerFn> eventsFunctions = {
-  'AluguelAvaiabilityChecked': (payload) async {
-    final aluguelID = payload["aluguelID"];
-    final people = payload['people'];
+  'AvaiabilityChecked': (payload) async {
+    final aluguelID = payload["aluguel"]["id"];
+    final people = payload["aluguel"]['people'];
     final availableSpots = int.tryParse(payload['availableSpots']);
     Aluguel updatedAluguel;
 
     if(people <= availableSpots) {
       updatedAluguel = await UpdateAluguelUsecase(repository: Environments.getAluguelRepo()).call(aluguelID, status: 'CONFIRMED');
+      final aluguelConfirmed = RabbitMQEvent(eventType: 'AluguelConfirmed', payload: updatedAluguel.toJson());
+      await publishEvent('aluguel.updated', aluguelConfirmed.toJson());
       await scheduleAluguelExpiration(aluguelId: updatedAluguel.id, endDateMs: updatedAluguel.endDate);
     } else {
       updatedAluguel = await UpdateAluguelUsecase(repository: Environments.getAluguelRepo()).call(aluguelID, status: 'CANCELED');
     }
-
-    final aluguelUpdatedEvent = RabbitMQEvent(eventType: 'AluguelUpdated', payload: updatedAluguel.toJson());
-
-    await publishEvent('aluguel.updated', aluguelUpdatedEvent);
-
+  },
+  'AvaiabilityFree': (payload) async {
+    final aluguelID = payload["aluguelID"];
+    Aluguel updatedAluguel;
+    updatedAluguel = await UpdateAluguelUsecase(repository: Environments.getAluguelRepo()).call(aluguelID, status: 'COMPLETED');
+    final aluguelCompleted = RabbitMQEvent(eventType: 'AluguelCompleted', payload: updatedAluguel.toJson());
+    await publishEvent('aluguel.updated', aluguelCompleted.toJson());
   }
 };
 
@@ -42,7 +46,7 @@ Future<void> eventHandler(BaseEvent event) async {
 
 Future<void> startQueue() async {
   try {
-    await consumeEvents('aluguel_queue', 'aluguel.avaiability.checked', eventHandler);
+    await consumeEvents('aluguel_queue', 'avaiability.*', eventHandler);
   } catch (err) {
     print("Couldn't start the service queues");
     exit(1);

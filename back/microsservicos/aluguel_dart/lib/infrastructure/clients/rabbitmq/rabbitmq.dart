@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:aluguel_dart/infrastructure/clients/rabbitmq/rabbitmq_event.dart';
 import 'package:dart_amqp/dart_amqp.dart';
 import 'package:aluguel_dart/shared/environments.dart';
 
@@ -33,8 +34,8 @@ Future<Channel> connectRabbitMQ() async {
       host: uri.host,
       port: uri.hasPort ? uri.port : 5672,
       authProvider: PlainAuthenticator(
-        uri.userInfo.split(':').first,
-        uri.userInfo.contains(':') ? uri.userInfo.split(':').last : '',
+        'guest',
+        'guest',
       ),
       virtualHost: uri.path.isNotEmpty ? uri.path.substring(1) : '/',
     );
@@ -52,25 +53,23 @@ Future<Channel> connectRabbitMQ() async {
 
 /// Publica um evento no Exchange Global do tipo 'topic'.
 /// Mantém a assinatura e o retorno booleano do TS.
-Future<bool> publishEvent<T extends Object>(String routingKey, T eventData) async {
+Future<bool> publishEvent(
+  String routingKey,
+  Map<String, dynamic> eventData, // <- força plain object, como no TS
+) async {
   try {
     final ch = await connectRabbitMQ();
 
-    // Declara o exchange topic e durável
     final exchange = await ch.exchange(
       EXCHANGE_NAME,
       ExchangeType.TOPIC,
       durable: true,
     );
 
-    // Publicação persistente (deliveryMode = 2)
-    final props = MessageProperties()..deliveryMode = 2;
+    final bodyBytes = utf8.encode(jsonEncode(eventData));
 
-    exchange.publish(
-      utf8.encode(jsonEncode(eventData)),
-      routingKey,
-      properties: props,
-    );
+    final props = MessageProperties()..deliveryMode = 2; // persistente
+    exchange.publish(bodyBytes, routingKey, properties: props);
 
     stdout.writeln(
       "[PUBLISHER] Topic Event '$routingKey' published to '$EXCHANGE_NAME': $eventData",
@@ -84,7 +83,6 @@ Future<bool> publishEvent<T extends Object>(String routingKey, T eventData) asyn
   }
 }
 
-/// Escuta eventos de uma fila específica (prefetch=1, ack/nack explícito)
 Future<void> consumeEvents<T extends Object>(
   String queueName,
   String bindingKey,
@@ -107,24 +105,26 @@ Future<void> consumeEvents<T extends Object>(
     );
 
     await ch.qos(0, 1);
-
     await queue.bind(exchange, bindingKey);
 
-    stdout.writeln(
-      "[CONSUMER] Listening on queue '$queueName' with binding '$bindingKey'",
-    );
+    stdout.writeln("[CONSUMER] Listening on queue '$queueName' with binding '$bindingKey'");
 
     final consumer = await queue.consume();
 
     consumer.listen((AmqpMessage msg) async {
       try {
-        final bodyString = msg.payloadAsString;
-        final dynamic decoded = jsonDecode(bodyString);
-        final payload = decoded as T;
+        final raw = msg.payloadAsString;
+        final decoded = jsonDecode(raw);
 
-        stdout.writeln('[CONSUMER] Received: $payload');
+        final rk = (msg.routingKey?.isNotEmpty ?? false) ? msg.routingKey! : bindingKey;
 
-        await callback(payload);
+        final Map<String, dynamic> payload =
+            decoded is Map<String, dynamic> ? decoded : <String, dynamic>{'data': decoded};
+
+        final event = RabbitMQEvent(eventType: rk, payload: payload);
+
+        stdout.writeln('[CONSUMER] Received ($rk): $payload');
+        await callback(event as T);
 
         msg.ack();
       } catch (err) {

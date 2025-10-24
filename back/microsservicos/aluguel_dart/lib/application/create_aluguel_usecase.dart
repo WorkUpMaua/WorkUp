@@ -1,5 +1,4 @@
 import 'package:aluguel_dart/domain/entities/aluguel.dart';
-import 'package:aluguel_dart/domain/events/base_event.dart';
 import 'package:aluguel_dart/domain/repositories/aluguel_repository.dart';
 import 'package:aluguel_dart/infrastructure/clients/rabbitmq/rabbitmq.dart';
 import 'package:aluguel_dart/infrastructure/clients/rabbitmq/rabbitmq_event.dart';
@@ -38,21 +37,9 @@ class CreateAluguelUsecase {
       status: 'PENDING',
     );
 
-    Map<String, Aluguel>? allAluguel = await repository.getAllAluguel();
+    RabbitMQEvent aluguelCreated = RabbitMQEvent(eventType: 'AluguelCreated', payload: createdAluguel.toJson());
 
-    int totalTaken = 0;
-
-    for (final a in allAluguel!.values) {
-      if (a.workspaceId != createdAluguel.workspaceId) continue;
-      if (a.status == 'CANCELED' || a.status == 'COMPLETED') continue;
-      if(createdAluguel.startDate < a.endDate && a.startDate < createdAluguel.endDate) {
-        totalTaken++;
-      }
-    }
-
-    BaseEvent aluguelCreated = RabbitMQEvent(eventType: 'AluguelCreated', payload: createdAluguel.toJson());
-
-    final published = await publishEvent('aluguel.created', aluguelCreated);
+    final published = await publishEvent('aluguel.created', aluguelCreated.toJson());
 
     if(published){
       return createdAluguel;

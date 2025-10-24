@@ -2,11 +2,15 @@
 import { createDisponibilidadeUsecase } from "../../../app/create_disponibilidade/create_disponibilidade_presenter";
 import { updateDisponibilidadeUsecase } from "../../../app/update_disponibilidade/update_disponibilidade_presenter";
 import { deleteDisponibilidadeUsecase } from "../../../app/delete_disponibilidade/delete_disponibilidade_presenter";
-import { CatalogoEventNames } from "../../infra/clients/rabbitmq/enums";
+import { AluguelEventNames, CatalogoEventNames, DisponibilidadeEventNames } from "../../infra/clients/rabbitmq/enums";
 import { catalogo } from "../../infra/clients/rabbitmq/types";
-import { BaseEvent } from "../../infra/clients/rabbitmq/interfaces";
-import { consumeEvents } from "../../infra/clients/rabbitmq/rabbitmq";
+import { BaseEvent, DisponibilidadeEvent } from "../../infra/clients/rabbitmq/interfaces";
+import { consumeEvents, publishEvent } from "../../infra/clients/rabbitmq/rabbitmq";
 import { BookingsType } from "../../domain/types";
+import { getDisponibilidadeUsecase } from "../../../app/get_disponibilidade/get_disponibilidade_presenter";
+import { CreateBookingUsecase } from "../../../app/create_booking/create_booking_usecase";
+import { Environments } from "../../environments";
+import { DeleteBookingUsecase } from "../../../app/delete_booking/delete_booking_usecase";
 
 const eventsFunctions: { [event in CatalogoEventNames | AluguelEventNames]: (payload: any) => void }  = {
 
@@ -22,8 +26,64 @@ const eventsFunctions: { [event in CatalogoEventNames | AluguelEventNames]: (pay
         const deleted_catalogo = deleteDisponibilidadeUsecase.execute(catalogoInfo.id)
         console.log(deleted_catalogo)
     },
-    AluguelCreated: async (aluguelInfo: BookingsType) => {
-        
+    AluguelCreated: async (payload) => {
+        const booking: BookingsType = {
+            bookingID: payload['id'],
+            userID: payload['userId'],
+            workSpaceID: payload['workspaceId'],
+            startTime: payload['startDate'],
+            endTime: payload['endDate'],
+            people: payload['people'],
+            finalPrice: payload['finalPrice'],
+            status: payload['status'],
+            createdAt: payload['createdAt'],
+            updatedAt: payload['updatedAt']
+        }
+        const id = booking.workSpaceID;
+        const startTime = booking.startTime;
+        const endTime = booking.endTime;
+        const disponibilidade = getDisponibilidadeUsecase.execute({
+            id,
+            startTime,
+            endTime
+        });
+        const disponibilidadeCheckedEvent: DisponibilidadeEvent = {
+        eventType: DisponibilidadeEventNames.AvaiabilityChecked,
+        payload: {
+          aluguel: payload,
+          availableSpots: disponibilidade
+        },
+      };
+      await publishEvent(
+        "avaiability.checked",
+        disponibilidadeCheckedEvent
+      );
+    },
+    AluguelConfirmed: async (aluguelInfo: BookingsType) => {
+        const id = aluguelInfo.workSpaceID;
+
+        new CreateBookingUsecase(Environments.getDisponibilidadeRepo()).execute({
+            id,
+            ...aluguelInfo
+        });
+    },
+    AluguelExpired: async (aluguelInfo: BookingsType) => {
+        const id = aluguelInfo.workSpaceID;
+        const bookingID = aluguelInfo.bookingID;
+        new DeleteBookingUsecase(Environments.getDisponibilidadeRepo()).execute({
+            id,
+            bookingID
+        });
+        const disponibilidadeFree: DisponibilidadeEvent = {
+            eventType: DisponibilidadeEventNames.AvaiabilityChecked,
+            payload: {
+                aluguel: aluguelInfo
+            },
+        };
+        await publishEvent(
+            "avaiability.free",
+            disponibilidadeFree
+      );
     }
 
 }

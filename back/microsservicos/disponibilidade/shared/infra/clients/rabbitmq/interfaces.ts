@@ -1,5 +1,5 @@
-import { CatalogoEventNames, UserEventNames } from "./enums";
-import { catalogo, userInformation } from "./types";
+import { CatalogoEventNames, DisponibilidadeEventNames, UserEventNames } from "./enums";
+import { BookingsType, catalogo, userInformation } from "./types";
 
 export interface BaseEvent {
   eventType: string
@@ -14,4 +14,12 @@ export interface CatalogoEvent extends BaseEvent {
 export interface UserEvent extends BaseEvent {
   eventType: UserEventNames
   payload: userInformation
+}
+
+export interface DisponibilidadeEvent extends BaseEvent {
+  eventType: DisponibilidadeEventNames,
+  payload: {
+    aluguel: BookingsType,
+    availableSpots?: number
+  }
 }
