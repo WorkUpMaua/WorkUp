@@ -38,7 +38,8 @@ Além de seu propósito funcional, o sistema serve como aplicação prática de 
 ## 🛠️ Tecnologias Utilizadas
 
 - **Frontend:** React, TypeScript (TSX), TailwindCSS
-- **Backend:** Node.js, Express, Typescript
+- **Backend:** Node.js, Express, Typescript, Docker, K8s
+- **Infra:** Terraform, AWS
 - **Comunicação entre serviços**: RabbitMQ
 
 ---

@@ -1,9 +1,10 @@
 import axios from 'axios'
 import { Request, Response } from 'express'
 import { DeleteCatalogoUsecase } from "./delete_catalogo_usecase"
-import { CatalogoEvent } from 'common/interfaces';
-import { CatalogoEventNames } from 'common/enums';
-import { publishEvent } from 'common';
+import { CatalogoEvent } from '../../shared/infra/clients/rabbitmq/interfaces';
+import { CatalogoEventNames } from '../../shared/infra/clients/rabbitmq/enums';
+import { publishEvent } from '../../shared/infra/clients/rabbitmq/rabbitmq';
+
 
 export class DeleteCatalogoController {
 

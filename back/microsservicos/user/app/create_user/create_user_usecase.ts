@@ -1,9 +1,9 @@
-import { createUserPropsType, UserRepositoryMock } from "../../shared/repo/userRepositoryMock";
-
-import { userInfoValidation } from "../../shared/validations/userInfoValidation";
+import { userInfoValidation } from "../../shared/domain/validations/userInfoValidation";
+import { UserRepository } from "../../shared/domain/repo/userRepository";
+import { createUserPropsType } from "../../shared/domain/validations/types";
 
 export class CreateUserUsecase {
-  constructor(private repo: UserRepositoryMock) {}
+  constructor(private repo: UserRepository) {}
 
   public execute(props: createUserPropsType) {
     if (!userInfoValidation.validateEmail(props.auth.username))

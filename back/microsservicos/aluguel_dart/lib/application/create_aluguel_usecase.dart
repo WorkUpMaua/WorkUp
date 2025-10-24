@@ -1,5 +1,7 @@
 import 'package:aluguel_dart/domain/entities/aluguel.dart';
 import 'package:aluguel_dart/domain/repositories/aluguel_repository.dart';
+import 'package:aluguel_dart/infrastructure/clients/rabbitmq/rabbitmq.dart';
+import 'package:aluguel_dart/infrastructure/clients/rabbitmq/rabbitmq_event.dart';
 
 class CreateAluguelUsecase {
   final AluguelRepository repository;
@@ -25,7 +27,7 @@ class CreateAluguelUsecase {
       throw StateError('finalPrice não pode ser negativo.');
     }
 
-    return repository.createAluguel(
+    Aluguel createdAluguel = await repository.createAluguel(
       userId: userId,
       workspaceId: workspaceId,
       startDate: startDate,
@@ -34,6 +36,17 @@ class CreateAluguelUsecase {
       finalPrice: finalPrice.toDouble(),
       status: 'PENDING',
     );
+
+    RabbitMQEvent aluguelCreated = RabbitMQEvent(eventType: 'AluguelCreated', payload: createdAluguel.toJson());
+
+    final published = await publishEvent('aluguel.created', aluguelCreated.toJson());
+
+    if(published){
+      return createdAluguel;
+    } else {
+      throw StateError('Não foi possível criar o aluguel');
+    }
+
   }
 }
     

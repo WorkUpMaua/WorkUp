@@ -1,4 +1,4 @@
-import { updateDisponibilidadeProps } from "../../shared/types";
+import { updateDisponibilidadeProps } from "../../shared/domain/types";
 import { UpdateDisponibilidadeUsecase } from "./update_disponibilidade_usecase";
 import { Request, Response } from "express";
 

@@ -30,7 +30,7 @@ class Aluguel {
       'workspaceId': workspaceId,
       'startDate': startDate,
       'endDate': endDate,
-      'capacity': people,
+      'people': people,
       'finalPrice': finalPrice,
       'status': status,
       'createdAt': createdAt,

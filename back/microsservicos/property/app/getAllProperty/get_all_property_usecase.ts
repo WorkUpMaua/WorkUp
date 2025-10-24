@@ -1,10 +1,8 @@
-import { PropertyRepositoryMock } from "../../shared/repo/propertyRepositoryMock"
-
-
+import { PropertyRepository } from "../../shared/domain/repo/propertyRepository"
 
 export class GetAllPropertyUsecase {
 
-    constructor(private repo: PropertyRepositoryMock) {}
+    constructor(private repo: PropertyRepository) {}
 
     public execute(userID: string) {
 

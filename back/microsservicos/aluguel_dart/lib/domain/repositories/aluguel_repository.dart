@@ -13,6 +13,8 @@ abstract class AluguelRepository {
 
   Future<Aluguel?> getAluguel(String id);
 
+  Future<Map<String, Aluguel>?> getAllAluguel();
+
   Future<Aluguel> updateAluguel(
     String id, {
     int? startDate,

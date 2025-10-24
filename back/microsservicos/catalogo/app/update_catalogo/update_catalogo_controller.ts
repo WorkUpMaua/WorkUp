@@ -1,11 +1,10 @@
 import axios from "axios";
 import { Request, Response } from 'express'
 import { UpdateCatalogoUsecase } from "./update_catalogo_usecase";
-import { updateCatalogoProps } from "../../shared/types";
-import { publishEvent } from "common";
-
-import { CatalogoEventNames } from "common/enums";
-import { CatalogoEvent } from "common/interfaces";
+import { updateCatalogoProps } from "../../shared/domain/types";
+import { CatalogoEvent } from "../../shared/infra/clients/rabbitmq/interfaces";
+import { CatalogoEventNames } from "../../shared/infra/clients/rabbitmq/enums";
+import { publishEvent } from "../../shared/infra/clients/rabbitmq/rabbitmq";
 
 export class UpdateCatalogoController {
 

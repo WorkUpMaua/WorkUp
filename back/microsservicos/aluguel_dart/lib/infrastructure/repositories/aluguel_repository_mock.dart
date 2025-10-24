@@ -65,7 +65,7 @@ class AluguelRepositoryMock implements AluguelRepository {
   }) async {
 
 
-    final now = DateTime.now().millisecondsSinceEpoch;
+    final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
     final id = newId();
 
     final novo = Aluguel(
@@ -88,6 +88,11 @@ class AluguelRepositoryMock implements AluguelRepository {
   @override
   Future<Aluguel?> getAluguel(String id) async {
     return store[id];
+  }
+
+  @override
+  Future<Map<String, Aluguel>?> getAllAluguel() async {
+    return store;
   }
 
   @override
@@ -118,7 +123,7 @@ class AluguelRepositoryMock implements AluguelRepository {
       finalPrice: finalPrice ?? atual.finalPrice,
       status: status ?? atual.status,
       createdAt: atual.createdAt,
-      updatedAt: DateTime.now().millisecondsSinceEpoch,
+      updatedAt: DateTime.now().millisecondsSinceEpoch ~/ 1000,
     );
 
     store[id] = updated;

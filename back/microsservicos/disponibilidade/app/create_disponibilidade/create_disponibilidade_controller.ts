@@ -1,4 +1,4 @@
-import { createDisponibilidadeProps } from "../../shared/types";
+import { createDisponibilidadeProps } from "../../shared/domain/types";
 import { CreateDisponibilidadeUsecase } from "./create_disponibilidade_usecase";
 import { Request, Response } from "express";
 
