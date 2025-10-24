@@ -4,7 +4,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import '../widgets/commodities_selector.dart';
 import '../widgets/alert_widget.dart';
-import '../widgets/search_bar.dart';
 import '../widgets/side_bar.dart';
 
 class CreatePropriedadePage extends StatefulWidget {

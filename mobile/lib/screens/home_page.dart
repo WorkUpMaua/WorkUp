@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../widgets/search_bar.dart';
 import '../widgets/side_bar.dart';
-import '../models/property.dart';
 import '../widgets/models_listing.dart';
 import '../widgets/header_bar.dart';
 
