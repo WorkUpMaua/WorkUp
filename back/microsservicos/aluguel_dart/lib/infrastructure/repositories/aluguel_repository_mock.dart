@@ -8,49 +8,6 @@ class AluguelRepositoryMock implements AluguelRepository {
   Map<String, Aluguel> store = HashMap();
   final Uuid uuid = const Uuid();
 
-  AluguelRepositoryMock() {
-    final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-
-    store = {
-      "aluguel_1": Aluguel(
-        id: "aluguel_1",
-        userId: "user_001",
-        workspaceId: "workspace_A",
-        startDate: now + 86400,
-        endDate: now + 172800, 
-        people: 2,
-        finalPrice: 150.0,
-        status: "confirmed",
-        createdAt: now - 3600, 
-        updatedAt: now - 1800,
-      ),
-      "aluguel_2": Aluguel(
-        id: "aluguel_2",
-        userId: "user_002",
-        workspaceId: "workspace_B",
-        startDate: now - 172800, 
-        endDate: now - 86400, 
-        people: 3,
-        finalPrice: 200.0,
-        status: "completed",
-        createdAt: now - 259200, 
-        updatedAt: now - 86400, 
-      ),
-      "aluguel_3": Aluguel(
-        id: "aluguel_3",
-        userId: "user_003",
-        workspaceId: "workspace_A",
-        startDate: now + 259200,
-        endDate: now + 345600,   
-        people: 1,
-        finalPrice: 100.0,
-        status: "pending",
-        createdAt: now - 7200,  
-        updatedAt: now - 3600,   
-      ),
-    };
-  }
-
   String newId() => uuid.v4();
 
   @override
