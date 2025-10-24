@@ -1,7 +1,9 @@
 import 'dart:io';
 import 'dart:async';
+import 'package:aluguel_dart/application/get_all_aluguel_usecase.dart';
 import 'package:aluguel_dart/infrastructure/clients/rabbitmq/rabbitmq.dart';
 import 'package:aluguel_dart/presentation/events/event_handler.dart';
+import 'package:aluguel_dart/presentation/http/controllers/get_all_aluguel_controller.dart';
 import 'package:aluguel_dart/presentation/http/router.dart';
 import 'package:aluguel_dart/shared/environments.dart';
 import 'package:shelf/shelf.dart';
@@ -26,11 +28,13 @@ Future<void> main() async {
   final createAluguelUsecase = CreateAluguelUsecase(repository: repo);
   final updateAluguelUsecase = UpdateAluguelUsecase(repository: repo);
   final deleteAluguelUsecase = DeleteAluguelUsecase(repository: repo);
+  final getAllAluguelUsecase = GetAllAluguelUsecase(repository: repo);
 
   final getController = GetAluguelController(getAluguelUsecase);
   final createController = CreateAluguelController(createAluguelUsecase);
   final updateController = UpdateAluguelController(updateAluguelUsecase);
   final deleteController = DeleteAluguelController(deleteAluguelUsecase);
+  final getAllAluguelController = GetAllAluguelController(getAllAluguelUsecase);
 
   final router = Router()
     ..mount(
@@ -40,6 +44,7 @@ Future<void> main() async {
         createController: createController,
         updateController: updateController,
         deleteController: deleteController,
+        getAllAluguelController: getAllAluguelController
       ).call,
     );
 
