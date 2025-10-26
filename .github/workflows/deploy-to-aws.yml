@@ -1,4 +1,4 @@
-name: deploy-to-aws
+name: Deploy to AWS
 
 on:
   workflow_dispatch:
@@ -8,7 +8,6 @@ permissions:
 
 jobs:
   deploy:
-    if: ${{ github.ref_type == 'branch' && github.ref_name == 'dev' }}
     runs-on: ubuntu-latest
 
     environment:
@@ -16,7 +15,6 @@ jobs:
 
     env:
       TF_VAR_repo_url: https://github.com/${{ github.repository }}.git
-      TF_VAR_project_name: ${{ toLower(github.event.repository.name) }}
       TF_VAR_stage: ${{ github.ref_name }}
       TF_VAR_config_map: ${{ vars.CONFIG_MAP }}   
       TF_VAR_secret_map: ${{ secrets.SECRET_MAP }}  
@@ -33,6 +31,9 @@ jobs:
           aws-access-key-id:     ${{ fromJSON(secrets.AWS_CREDENTIALS).AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ fromJSON(secrets.AWS_CREDENTIALS).AWS_SECRET_ACCESS_KEY }}
           aws-region:            ${{ fromJSON(vars.CONFIG_MAP).AWS_REGION }}
+
+      - name: Setup project name
+        run: echo "TF_VAR_project_name=$(echo '${{ github.event.repository.name }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
