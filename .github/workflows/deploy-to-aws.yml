@@ -1,0 +1,62 @@
+name: deploy-to-aws
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    if: ${{ github.ref_type == 'branch' && github.ref_name == 'dev' }}
+    runs-on: ubuntu-latest
+
+    environment:
+      name: ${{ github.ref_name }}
+
+    env:
+      TF_VAR_repo_url: https://github.com/${{ github.repository }}.git
+      TF_VAR_project_name: ${{ toLower(github.event.repository.name) }}
+      TF_VAR_stage: ${{ github.ref_name }}
+      TF_VAR_config_map: ${{ vars.CONFIG_MAP }}   
+      TF_VAR_secret_map: ${{ secrets.SECRET_MAP }}  
+      TF_VAR_key_name: ${{ vars.KEY_NAME }}
+      TF_VAR_ssh_cidr: ${{ secrets.SSH_CIDR }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id:     ${{ fromJSON(secrets.AWS_CREDENTIALS).AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ fromJSON(secrets.AWS_CREDENTIALS).AWS_SECRET_ACCESS_KEY }}
+          aws-region:            ${{ fromJSON(vars.CONFIG_MAP).AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.8
+
+      - name: Terraform Init
+        env:
+          AWS_REGION: ${{ fromJSON(vars.CONFIG_MAP).AWS_REGION }}
+          BUCKET_NAME: ${{ vars.BUCKET_NAME }}
+        working-directory: iac
+        run:  terraform init -reconfigure -backend-config="bucket=$BUCKET_NAME" \
+            -backend-config="key=${TF_VAR_project_name}/${TF_VAR_stage}/terraform.tfstate" \
+            -backend-config="region=$AWS_REGION" \
+            -backend-config="encrypt=true"
+
+      - name: Terraform Validate
+        working-directory: iac
+        run:  terraform validate
+
+      - name: Terraform Plan
+        working-directory: iac
+        run: terraform plan
+
+      - name: Terraform Apply (auto-approve)
+        working-directory: iac
+        run: terraform apply -auto-approve
