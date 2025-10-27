@@ -13,8 +13,6 @@ jobs:
       repo_url:       ${{ steps.expose.outputs.repo_url }}
       project_name:   ${{ steps.expose.outputs.project_name }}
       stage:          ${{ steps.expose.outputs.stage }}
-      config_map:     ${{ steps.expose.outputs.config_map }}
-      secret_map:     ${{ steps.expose.outputs.secret_map }}
       key_name:       ${{ steps.expose.outputs.key_name }}
       ssh_cidr:       ${{ steps.expose.outputs.ssh_cidr }}
       bucket_name:    ${{ steps.expose.outputs.bucket_name }}
@@ -26,8 +24,6 @@ jobs:
           echo "repo_url=https://github.com/${{ github.repository }}.git" >> $GITHUB_OUTPUT
           echo "project_name=$(echo '${{ github.event.repository.name }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
           echo "stage=${{ github.ref_name }}" >> $GITHUB_OUTPUT
-          echo "config_map='${{ vars.CONFIG_MAP }}'" >> $GITHUB_OUTPUT
-          echo "secret_map='${{ secrets.SECRET_MAP }}'" >> $GITHUB_OUTPUT
           echo "key_name=${{ vars.KEY_NAME }}" >> $GITHUB_OUTPUT
           echo "ssh_cidr=${{ secrets.SSH_CIDR }}" >> $GITHUB_OUTPUT
           echo "bucket_name=${{ vars.BUCKET_NAME }}" >> $GITHUB_OUTPUT
@@ -44,8 +40,8 @@ jobs:
     env:
       TF_VAR_repo_url:   ${{ needs.env_setup.outputs.repo_url }}
       TF_VAR_stage:      ${{ needs.env_setup.outputs.stage }}
-      TF_VAR_config_map: ${{ needs.env_setup.outputs.config_map }}
-      TF_VAR_secret_map: ${{ needs.env_setup.outputs.secret_map }}
+      TF_VAR_config_map: ${{ vars.CONFIG_MAP }}
+      TF_VAR_secret_map: ${{ secrets.AWS_CREDENTIALS }}
       TF_VAR_key_name:   ${{ needs.env_setup.outputs.key_name }}
       TF_VAR_ssh_cidr:   ${{ needs.env_setup.outputs.ssh_cidr }}
       TF_VAR_aws_region: ${{ needs.env_setup.outputs.aws_region }}
@@ -142,8 +138,8 @@ jobs:
     env:
       TF_VAR_repo_url:   ${{ needs.env_setup.outputs.repo_url }}
       TF_VAR_stage:      ${{ needs.env_setup.outputs.stage }}
-      TF_VAR_config_map: ${{ needs.env_setup.outputs.config_map }}
-      TF_VAR_secret_map: ${{ needs.env_setup.outputs.secret_map }}
+      TF_VAR_config_map: ${{ vars.CONFIG_MAP }}
+      TF_VAR_secret_map: ${{ secrets.AWS_CREDENTIALS }}
       TF_VAR_key_name:   ${{ needs.env_setup.outputs.key_name }}
       TF_VAR_ssh_cidr:   ${{ needs.env_setup.outputs.ssh_cidr }}
       TF_VAR_aws_region: ${{ needs.env_setup.outputs.aws_region }}
