@@ -14,7 +14,6 @@ jobs:
       project_name:   ${{ steps.expose.outputs.project_name }}
       stage:          ${{ steps.expose.outputs.stage }}
       key_name:       ${{ steps.expose.outputs.key_name }}
-      ssh_cidr:       ${{ steps.expose.outputs.ssh_cidr }}
       bucket_name:    ${{ steps.expose.outputs.bucket_name }}
       aws_region:     ${{ steps.expose.outputs.aws_region }}
     steps:
@@ -25,7 +24,6 @@ jobs:
           echo "project_name=$(echo '${{ github.event.repository.name }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
           echo "stage=${{ github.ref_name }}" >> $GITHUB_OUTPUT
           echo "key_name=${{ vars.KEY_NAME }}" >> $GITHUB_OUTPUT
-          echo "ssh_cidr=${{ secrets.SSH_CIDR }}" >> $GITHUB_OUTPUT
           echo "bucket_name=${{ vars.BUCKET_NAME }}" >> $GITHUB_OUTPUT
           echo "aws_region=${{ fromJSON(vars.CONFIG_MAP).AWS_REGION }}" >> $GITHUB_OUTPUT
 
@@ -43,7 +41,7 @@ jobs:
       TF_VAR_config_map: ${{ vars.CONFIG_MAP }}
       TF_VAR_secret_map: ${{ secrets.AWS_CREDENTIALS }}
       TF_VAR_key_name:   ${{ needs.env_setup.outputs.key_name }}
-      TF_VAR_ssh_cidr:   ${{ needs.env_setup.outputs.ssh_cidr }}
+      TF_VAR_ssh_cidr:   ${{ secrets.SSH_CIDR }}
       TF_VAR_aws_region: ${{ needs.env_setup.outputs.aws_region }}
     steps:
       - uses: actions/checkout@v4
@@ -141,7 +139,7 @@ jobs:
       TF_VAR_config_map: ${{ vars.CONFIG_MAP }}
       TF_VAR_secret_map: ${{ secrets.AWS_CREDENTIALS }}
       TF_VAR_key_name:   ${{ needs.env_setup.outputs.key_name }}
-      TF_VAR_ssh_cidr:   ${{ needs.env_setup.outputs.ssh_cidr }}
+      TF_VAR_ssh_cidr:   ${{ secrets.SSH_CIDR }}
       TF_VAR_aws_region: ${{ needs.env_setup.outputs.aws_region }}
     steps:
       - uses: actions/checkout@v4
