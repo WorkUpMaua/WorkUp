@@ -10,8 +10,10 @@ jobs:
   build_uploads:
     runs-on: ubuntu-latest
     outputs:
-      bucket_name: ${{ steps.capture.outputs.bucket }}
-      cdn_url: ${{ steps.capture.outputs.cdn }}
+      bucket_name:  ${{ steps.capture.outputs.bucket }}
+      cdn_url:      ${{ steps.capture.outputs.cdn }}
+      project_name: ${{ steps.meta.outputs.project_name }}
+      stage:        ${{ steps.meta.outputs.stage }}
     steps:
       - uses: actions/checkout@v4
 
@@ -25,13 +27,25 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
+      - name: Setup project name and stage
+        id: meta
+        run: |
+          PROJECT_NAME="$(echo '${{ github.event.repository.name }}' | tr '[:upper:]' '[:lower:]')"
+          STAGE="${{ github.ref_name }}"
+          echo "TF_VAR_project_name=${PROJECT_NAME}" >> $GITHUB_ENV
+          echo "TF_VAR_stage=${STAGE}" >> $GITHUB_ENV
+          echo "project_name=${PROJECT_NAME}" >> $GITHUB_OUTPUT
+          echo "stage=${STAGE}" >> $GITHUB_OUTPUT
+
       - name: Terraform Init (uploads resources only)
         working-directory: iac
         env:
-          AWS_REGION: ${{ fromJSON(vars.CONFIG_MAP).AWS_REGION }}
+          AWS_REGION:  ${{ fromJSON(vars.CONFIG_MAP).AWS_REGION }}
           BUCKET_NAME: ${{ vars.BUCKET_NAME }}
-        run: | 
-            terraform init -reconfigure -backend-config="bucket=$BUCKET_NAME" \
+        run: |
+          terraform init -reconfigure \
+            -backend-config="bucket=$BUCKET_NAME" \
+            -backend-config="key=${TF_VAR_project_name}/${TF_VAR_stage}/terraform.tfstate" \
             -backend-config="region=$AWS_REGION" \
             -backend-config="encrypt=true"
 
@@ -59,7 +73,6 @@ jobs:
   build_images:
     needs: build_uploads
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -78,13 +91,12 @@ jobs:
           cd microsservicos
           for dir in */ ; do
             service=$(basename "$dir")
-           if [ "$service" = "kubernetes" ] || [ "$service" = "aluguel_ts" ]; then
+            # Ignorar pastas específicas
+            if [ "$service" = "kubernetes" ] || [ "$service" = "aluguel_ts" ]; then
               echo "⏭️ Skipping folder: $service"
               continue
             fi
-
             echo "🚀 Building image for service: $service"
-
             docker buildx build \
               --platform=linux/amd64 \
               -t victorgasperi/workup-$service \
@@ -93,19 +105,19 @@ jobs:
           done
 
   deploy_ec2:
-    needs: 
+    needs:
       - build_uploads
       - build_images
     runs-on: ubuntu-latest
     environment:
       name: ${{ github.ref_name }}
     env:
-      TF_VAR_repo_url: https://github.com/${{ github.repository }}.git
-      TF_VAR_stage: ${{ github.ref_name }}
+      TF_VAR_repo_url:   https://github.com/${{ github.repository }}.git
+      TF_VAR_stage:      ${{ github.ref_name }}
       TF_VAR_config_map: ${{ vars.CONFIG_MAP }}
       TF_VAR_secret_map: ${{ secrets.SECRET_MAP }}
-      TF_VAR_key_name: ${{ vars.KEY_NAME }}
-      TF_VAR_ssh_cidr: ${{ secrets.SSH_CIDR }}
+      TF_VAR_key_name:   ${{ vars.KEY_NAME }}
+      TF_VAR_ssh_cidr:   ${{ secrets.SSH_CIDR }}
 
     steps:
       - uses: actions/checkout@v4
@@ -113,13 +125,17 @@ jobs:
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
 
-      - name: Build dynamic CONFIG_MAP (add S3/CDN from job1)
+      - name: Build dynamic CONFIG_MAP (add S3/CDN + project/stage)
         run: |
           echo "TF_VAR_config_map=$(jq -n \
             --argjson base '${{ vars.CONFIG_MAP }}' \
             --arg bucket '${{ needs.build_uploads.outputs.bucket_name }}' \
             --arg cdn '${{ needs.build_uploads.outputs.cdn_url }}' \
-            '$base + { S3_BUCKET: $bucket, CDN_DOMAIN: $cdn }')" >> $GITHUB_ENV
+            --arg project '${{ needs.build_uploads.outputs.project_name }}' \
+            --arg stage   '${{ needs.build_uploads.outputs.stage }}' \
+            '$base + { S3_BUCKET: $bucket, CDN_DOMAIN: $cdn, PROJECT_NAME: $project, STAGE: $stage }')" >> $GITHUB_ENV
+      - name: Show merged CONFIG_MAP
+        run: echo "$TF_VAR_config_map" | jq .
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -134,10 +150,12 @@ jobs:
       - name: Terraform Init (EC2)
         working-directory: iac
         env:
-          AWS_REGION: ${{ fromJSON(vars.CONFIG_MAP).AWS_REGION }}
+          AWS_REGION:  ${{ fromJSON(vars.CONFIG_MAP).AWS_REGION }}
           BUCKET_NAME: ${{ vars.BUCKET_NAME }}
-        run: | 
-            terraform init -reconfigure -backend-config="bucket=$BUCKET_NAME" \
+        run: |
+          terraform init -reconfigure \
+            -backend-config="bucket=$BUCKET_NAME" \
+            -backend-config="key=${{ needs.build_uploads.outputs.project_name }}/${{ needs.build_uploads.outputs.stage }}/terraform.tfstate" \
             -backend-config="region=$AWS_REGION" \
             -backend-config="encrypt=true"
 
