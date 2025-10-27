@@ -7,13 +7,48 @@ permissions:
   contents: read
 
 jobs:
+  env_setup:
+    runs-on: ubuntu-latest
+    outputs:
+      repo_url:       ${{ steps.expose.outputs.repo_url }}
+      project_name:   ${{ steps.expose.outputs.project_name }}
+      stage:          ${{ steps.expose.outputs.stage }}
+      config_map:     ${{ steps.expose.outputs.config_map }}
+      secret_map:     ${{ steps.expose.outputs.secret_map }}
+      key_name:       ${{ steps.expose.outputs.key_name }}
+      ssh_cidr:       ${{ steps.expose.outputs.ssh_cidr }}
+      bucket_name:    ${{ steps.expose.outputs.bucket_name }}
+      aws_region:     ${{ steps.expose.outputs.aws_region }}
+    steps:
+      - name: Setup environment values
+        id: expose
+        run: |
+          echo "repo_url=https://github.com/${{ github.repository }}.git" >> $GITHUB_OUTPUT
+          echo "project_name=$(echo '${{ github.event.repository.name }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+          echo "stage=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          echo "config_map='${{ vars.CONFIG_MAP }}'" >> $GITHUB_OUTPUT
+          echo "secret_map='${{ secrets.SECRET_MAP }}'" >> $GITHUB_OUTPUT
+          echo "key_name=${{ vars.KEY_NAME }}" >> $GITHUB_OUTPUT
+          echo "ssh_cidr=${{ secrets.SSH_CIDR }}" >> $GITHUB_OUTPUT
+          echo "bucket_name=${{ vars.BUCKET_NAME }}" >> $GITHUB_OUTPUT
+          echo "aws_region=${{ fromJSON(vars.CONFIG_MAP).AWS_REGION }}" >> $GITHUB_OUTPUT
+
   build_uploads:
+    needs: env_setup
     runs-on: ubuntu-latest
     outputs:
       bucket_name:  ${{ steps.capture.outputs.bucket }}
       cdn_url:      ${{ steps.capture.outputs.cdn }}
-      project_name: ${{ steps.meta.outputs.project_name }}
-      stage:        ${{ steps.meta.outputs.stage }}
+      project_name: ${{ needs.env_setup.outputs.project_name }}
+      stage:        ${{ needs.env_setup.outputs.stage }}
+    env:
+      TF_VAR_repo_url:   ${{ needs.env_setup.outputs.repo_url }}
+      TF_VAR_stage:      ${{ needs.env_setup.outputs.stage }}
+      TF_VAR_config_map: ${{ needs.env_setup.outputs.config_map }}
+      TF_VAR_secret_map: ${{ needs.env_setup.outputs.secret_map }}
+      TF_VAR_key_name:   ${{ needs.env_setup.outputs.key_name }}
+      TF_VAR_ssh_cidr:   ${{ needs.env_setup.outputs.ssh_cidr }}
+      TF_VAR_aws_region: ${{ needs.env_setup.outputs.aws_region }}
     steps:
       - uses: actions/checkout@v4
 
@@ -22,7 +57,7 @@ jobs:
         with:
           aws-access-key-id:     ${{ fromJSON(secrets.AWS_CREDENTIALS).AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ fromJSON(secrets.AWS_CREDENTIALS).AWS_SECRET_ACCESS_KEY }}
-          aws-region:            ${{ fromJSON(vars.CONFIG_MAP).AWS_REGION }}
+          aws-region:            ${{ needs.env_setup.outputs.aws_region }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -30,18 +65,16 @@ jobs:
       - name: Setup project name and stage
         id: meta
         run: |
-          PROJECT_NAME="$(echo '${{ github.event.repository.name }}' | tr '[:upper:]' '[:lower:]')"
-          STAGE="${{ github.ref_name }}"
-          echo "TF_VAR_project_name=${PROJECT_NAME}" >> $GITHUB_ENV
-          echo "TF_VAR_stage=${STAGE}" >> $GITHUB_ENV
-          echo "project_name=${PROJECT_NAME}" >> $GITHUB_OUTPUT
-          echo "stage=${STAGE}" >> $GITHUB_OUTPUT
+          echo "TF_VAR_project_name=${{ needs.env_setup.outputs.project_name }}" >> $GITHUB_ENV
+          echo "TF_VAR_stage=${{ needs.env_setup.outputs.stage }}" >> $GITHUB_ENV
+          echo "project_name=${{ needs.env_setup.outputs.project_name }}" >> $GITHUB_OUTPUT
+          echo "stage=${{ needs.env_setup.outputs.stage }}" >> $GITHUB_OUTPUT
 
       - name: Terraform Init (uploads resources only)
         working-directory: iac
         env:
-          AWS_REGION:  ${{ fromJSON(vars.CONFIG_MAP).AWS_REGION }}
-          BUCKET_NAME: ${{ vars.BUCKET_NAME }}
+          AWS_REGION:  ${{ needs.env_setup.outputs.aws_region }}
+          BUCKET_NAME: ${{ needs.env_setup.outputs.bucket_name }}
         run: |
           terraform init -reconfigure \
             -backend-config="bucket=$BUCKET_NAME" \
@@ -105,15 +138,15 @@ jobs:
       - build_images
     runs-on: ubuntu-latest
     environment:
-      name: ${{ github.ref_name }}
+      name: ${{ needs.env_setup.outputs.stage }}
     env:
-      TF_VAR_repo_url:   https://github.com/${{ github.repository }}.git
-      TF_VAR_stage:      ${{ github.ref_name }}
-      TF_VAR_config_map: ${{ vars.CONFIG_MAP }}
-      TF_VAR_secret_map: ${{ secrets.SECRET_MAP }}
-      TF_VAR_key_name:   ${{ vars.KEY_NAME }}
-      TF_VAR_ssh_cidr:   ${{ secrets.SSH_CIDR }}
-
+      TF_VAR_repo_url:   ${{ needs.env_setup.outputs.repo_url }}
+      TF_VAR_stage:      ${{ needs.env_setup.outputs.stage }}
+      TF_VAR_config_map: ${{ needs.env_setup.outputs.config_map }}
+      TF_VAR_secret_map: ${{ needs.env_setup.outputs.secret_map }}
+      TF_VAR_key_name:   ${{ needs.env_setup.outputs.key_name }}
+      TF_VAR_ssh_cidr:   ${{ needs.env_setup.outputs.ssh_cidr }}
+      TF_VAR_aws_region: ${{ needs.env_setup.outputs.aws_region }}
     steps:
       - uses: actions/checkout@v4
 
@@ -123,11 +156,11 @@ jobs:
       - name: Build dynamic CONFIG_MAP (add S3/CDN + project/stage)
         run: |
           echo "TF_VAR_config_map=$(jq -n \
-            --argjson base '${{ vars.CONFIG_MAP }}' \
+            --argjson base '${{ needs.env_setup.outputs.config_map }}' \
             --arg bucket '${{ needs.build_uploads.outputs.bucket_name }}' \
             --arg cdn '${{ needs.build_uploads.outputs.cdn_url }}' \
-            --arg project '${{ needs.build_uploads.outputs.project_name }}' \
-            --arg stage   '${{ needs.build_uploads.outputs.stage }}' \
+            --arg project '${{ needs.env_setup.outputs.project_name }}' \
+            --arg stage   '${{ needs.env_setup.outputs.stage }}' \
             '$base + { S3_BUCKET: $bucket, CDN_DOMAIN: $cdn, PROJECT_NAME: $project, STAGE: $stage }')" >> $GITHUB_ENV
       - name: Show merged CONFIG_MAP
         run: echo "$TF_VAR_config_map" | jq .
@@ -137,7 +170,7 @@ jobs:
         with:
           aws-access-key-id:     ${{ fromJSON(secrets.AWS_CREDENTIALS).AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ fromJSON(secrets.AWS_CREDENTIALS).AWS_SECRET_ACCESS_KEY }}
-          aws-region:            ${{ fromJSON(vars.CONFIG_MAP).AWS_REGION }}
+          aws-region:            ${{ needs.env_setup.outputs.aws_region }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -145,12 +178,12 @@ jobs:
       - name: Terraform Init (EC2)
         working-directory: iac
         env:
-          AWS_REGION:  ${{ fromJSON(vars.CONFIG_MAP).AWS_REGION }}
-          BUCKET_NAME: ${{ vars.BUCKET_NAME }}
+          AWS_REGION:  ${{ needs.env_setup.outputs.aws_region }}
+          BUCKET_NAME: ${{ needs.env_setup.outputs.bucket_name }}
         run: |
           terraform init -reconfigure \
             -backend-config="bucket=$BUCKET_NAME" \
-            -backend-config="key=${{ needs.build_uploads.outputs.project_name }}/${{ needs.build_uploads.outputs.stage }}/terraform.tfstate" \
+            -backend-config="key=${{ needs.env_setup.outputs.project_name }}/${{ needs.env_setup.outputs.stage }}/terraform.tfstate" \
             -backend-config="region=$AWS_REGION" \
             -backend-config="encrypt=true"
 
