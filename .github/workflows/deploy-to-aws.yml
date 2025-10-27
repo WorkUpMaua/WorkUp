@@ -49,19 +49,14 @@ jobs:
             -backend-config="region=$AWS_REGION" \
             -backend-config="encrypt=true"
 
-      - name: Terraform Plan (uploads only)
+      - name: Terraform Apply (uploads only)
         working-directory: iac
         run: |
-          terraform plan \
+          terraform apply -auto-approve \
             -target=aws_s3_bucket.uploads \
             -target=aws_s3_bucket_public_access_block.uploads_public_access \
             -target=aws_s3_bucket_policy.uploads_public_policy \
-            -target=aws_cloudfront_distribution.uploads_cdn \
-            -out=tfplan_uploads
-
-      - name: Terraform Apply (uploads only)
-        working-directory: iac
-        run: terraform apply -auto-approve tfplan_uploads
+            -target=aws_cloudfront_distribution.uploads_cdn
 
       - name: Capture TF Outputs
         id: capture
