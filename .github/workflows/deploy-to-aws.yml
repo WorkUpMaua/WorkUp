@@ -30,7 +30,8 @@ jobs:
         env:
           AWS_REGION: ${{ fromJSON(vars.CONFIG_MAP).AWS_REGION }}
           BUCKET_NAME: ${{ vars.BUCKET_NAME }}
-        run: terraform init -reconfigure -backend-config="bucket=$BUCKET_NAME" \
+        run: | 
+            terraform init -reconfigure -backend-config="bucket=$BUCKET_NAME" \
             -backend-config="region=$AWS_REGION" \
             -backend-config="encrypt=true"
 
@@ -135,7 +136,8 @@ jobs:
         env:
           AWS_REGION: ${{ fromJSON(vars.CONFIG_MAP).AWS_REGION }}
           BUCKET_NAME: ${{ vars.BUCKET_NAME }}
-        run: terraform init -reconfigure -backend-config="bucket=$BUCKET_NAME" \
+        run: | 
+            terraform init -reconfigure -backend-config="bucket=$BUCKET_NAME" \
             -backend-config="region=$AWS_REGION" \
             -backend-config="encrypt=true"
 
