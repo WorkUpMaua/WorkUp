@@ -24,7 +24,7 @@ cat > .env << 'EOFENV'
 ${env_map}
 EOFENV
 
-if [ -n "${secret_lines}" ]; then
+if [ -n "${secret_map}" ]; then
 cat >> .env << 'EOFSECRETS'
 ${secret_map}
 EOFSECRETS
