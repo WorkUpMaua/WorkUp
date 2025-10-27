@@ -7,6 +7,12 @@ variable "project_name" {
   type        = string
   description = "Nome base do projeto"
 }
+
+variable "aws_region" {
+  type = string
+  description = "Região de deploy"
+}
+
 variable "ssh_cidr"     {
   type = number
 }
@@ -17,12 +23,12 @@ variable "repo_url" {
 }
 
 variable "config_map" {
-  type = string
+  type = map(string)
   description = "Config Map k3s"
 }
 
 variable "secret_map" {
-type = string
+type = map(string)
 description = "Secret Map k3s"
 }
 
