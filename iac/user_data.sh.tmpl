@@ -21,12 +21,12 @@ git sparse-checkout set back/microsservicos/kubernetes
 cd "$HOME/$REPO_DIR/back"
 
 cat > .env << 'EOFENV'
-${env_lines}
+${env_map}
 EOFENV
 
 if [ -n "${secret_lines}" ]; then
 cat >> .env << 'EOFSECRETS'
-${secret_lines}
+${secret_map}
 EOFSECRETS
 fi
 
