@@ -110,7 +110,7 @@ jobs:
 
       - name: Build & Push images dynamically
         run: |
-          cd microsservicos
+          cd back/microsservicos
           for dir in */ ; do
             service=$(basename "$dir")
             # Ignorar pastas específicas
