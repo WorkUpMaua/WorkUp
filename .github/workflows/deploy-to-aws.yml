@@ -150,14 +150,28 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y jq
 
       - name: Build dynamic CONFIG_MAP (add S3/CDN + project/stage)
+        shell: bash
         run: |
-          echo "TF_VAR_config_map=$(jq -n \
-            --argjson base '${{ needs.env_setup.outputs.config_map }}' \
+          # 1) Base vindo do job anterior
+          BASE='${{ needs.env_setup.outputs.config_map }}'
+          
+          # 2) Se BASE estiver vazio ou não for JSON -> usa {}
+          if [ -z "$BASE" ] || ! echo "$BASE" | jq -e . >/dev/null 2>&1; then
+            BASE='{}'
+          fi
+          
+          # 3) Mescla com os campos dinâmicos
+          MERGED=$(jq -n \
+            --argjson base "$BASE" \
             --arg bucket '${{ needs.build_uploads.outputs.bucket_name }}' \
-            --arg cdn '${{ needs.build_uploads.outputs.cdn_url }}' \
+            --arg cdn    '${{ needs.build_uploads.outputs.cdn_url }}' \
             --arg project '${{ needs.env_setup.outputs.project_name }}' \
             --arg stage   '${{ needs.env_setup.outputs.stage }}' \
-            '$base + { S3_BUCKET: $bucket, CDN_DOMAIN: $cdn, PROJECT_NAME: $project, STAGE: $stage }')" >> $GITHUB_ENV
+            '$base + { S3_BUCKET: $bucket, CDN_DOMAIN: $cdn, PROJECT_NAME: $project, STAGE: $stage }')
+          
+          # 4) Exporta para o ambiente no formato que o Terraform entende (JSON puro)
+          echo "TF_VAR_config_map=$MERGED" >> "$GITHUB_ENV"
+          
       - name: Show merged CONFIG_MAP
         run: echo "$TF_VAR_config_map" | jq .
 
