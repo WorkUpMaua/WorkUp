@@ -1,7 +1,7 @@
 name: Deploy to AWS
 
 on:
-  workflow_dispatch: 
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -17,6 +17,8 @@ jobs:
       bucket_name:    ${{ steps.expose.outputs.bucket_name }}
       aws_region:     ${{ steps.expose.outputs.aws_region }}
     steps:
+      - uses: actions/checkout@v4
+
       - name: Setup environment values
         id: expose
         run: |
@@ -26,6 +28,29 @@ jobs:
           echo "key_name=${{ vars.KEY_NAME }}" >> $GITHUB_OUTPUT
           echo "bucket_name=${{ vars.BUCKET_NAME }}" >> $GITHUB_OUTPUT
           echo "aws_region=${{ fromJSON(vars.CONFIG_MAP).AWS_REGION }}" >> $GITHUB_OUTPUT
+
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Create base config_map.auto.tfvars.json
+        run: |
+          mkdir -p iac
+          # Aceita vars.CONFIG_MAP como objeto JSON; envolve no formato .auto.tfvars esperado.
+          RAW='${{ vars.CONFIG_MAP }}'
+          if [ -z "$RAW" ] || ! printf '%s' "$RAW" | jq -e . >/dev/null 2>&1; then
+            RAW='{}'
+          fi
+          jq -n --argjson cfg "$RAW" '{ config_map: $cfg }' > iac/config_map.auto.tfvars.json
+          echo "Base config written:"
+          cat iac/config_map.auto.tfvars.json
+
+      - name: Upload tfvars artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfvars
+          path: iac/config_map.auto.tfvars.json
+          if-no-files-found: error
+          retention-days: 7
 
   build_uploads:
     needs: env_setup
@@ -41,7 +66,6 @@ jobs:
       TF_VAR_config_map: ${{ vars.CONFIG_MAP }}
       TF_VAR_secret_map: ${{ secrets.AWS_CREDENTIALS }}
       TF_VAR_key_name:   ${{ needs.env_setup.outputs.key_name }}
-      TF_VAR_ssh_cidr:   ${{ secrets.SSH_CIDR }}
       TF_VAR_aws_region: ${{ needs.env_setup.outputs.aws_region }}
     steps:
       - uses: actions/checkout@v4
@@ -113,7 +137,6 @@ jobs:
           cd back/microsservicos
           for dir in */ ; do
             service=$(basename "$dir")
-            # Ignorar pastas específicas
             if [ "$service" = "kubernetes" ] || [ "$service" = "aluguel_ts" ]; then
               echo "⏭️ Skipping folder: $service"
               continue
@@ -136,34 +159,50 @@ jobs:
       name: ${{ needs.env_setup.outputs.stage }}
     env:
       TF_VAR_project_name: ${{ needs.env_setup.outputs.project_name }}
-      TF_VAR_repo_url:   ${{ needs.env_setup.outputs.repo_url }}
-      TF_VAR_stage:      ${{ needs.env_setup.outputs.stage }}
-      TF_VAR_config_map: ${{ vars.CONFIG_MAP }}
-      TF_VAR_secret_map: ${{ secrets.AWS_CREDENTIALS }}
-      TF_VAR_key_name:   ${{ needs.env_setup.outputs.key_name }}
-      TF_VAR_ssh_cidr:   ${{ secrets.SSH_CIDR }}
-      TF_VAR_aws_region: ${{ needs.env_setup.outputs.aws_region }}
+      TF_VAR_repo_url:     ${{ needs.env_setup.outputs.repo_url }}
+      TF_VAR_stage:        ${{ needs.env_setup.outputs.stage }}
+      TF_VAR_config_map:   ${{ vars.CONFIG_MAP }}
+      TF_VAR_secret_map:   ${{ secrets.AWS_CREDENTIALS }}
+      TF_VAR_key_name:     ${{ needs.env_setup.outputs.key_name }}
+      TF_VAR_aws_region:   ${{ needs.env_setup.outputs.aws_region }}
     steps:
       - uses: actions/checkout@v4
 
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
 
-      - name: Build config_map.auto.tfvars.json
+      - name: Download tfvars artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: tfvars
+          path: iac
+
+      - name: Merge new values into config_map.auto.tfvars.json
         run: |
-          BASE='${{ needs.env_setup.outputs.config_map }}'
-          if [ -z "$BASE" ] || ! echo "$BASE" | jq -e . >/dev/null 2>&1; then
-            BASE='{}'
+          set -euo pipefail
+          FILE="iac/config_map.auto.tfvars.json"
+          if [ ! -f "$FILE" ]; then
+            echo "Missing $FILE (artifact not found)"; exit 1
           fi
-          
-          jq -n \
-            --argjson base "$BASE" \
-            --arg bucket '${{ needs.build_uploads.outputs.bucket_name }}' \
-            --arg cdn    '${{ needs.build_uploads.outputs.cdn_url }}' \
+
+          EXISTING=$(jq -c '.config_map // {}' "$FILE")
+
+          NEW=$(jq -n -c \
+            --arg bucket  '${{ needs.build_uploads.outputs.bucket_name }}' \
+            --arg cdn     '${{ needs.build_uploads.outputs.cdn_url }}' \
             --arg project '${{ needs.env_setup.outputs.project_name }}' \
             --arg stage   '${{ needs.env_setup.outputs.stage }}' \
-            '{ config_map: ( $base + { S3_BUCKET: $bucket, CDN_DOMAIN: $cdn, PROJECT_NAME: $project, STAGE: $stage } ) }' \
-            > iac/config_map.auto.tfvars.json
+            '{ S3_BUCKET: $bucket, CDN_DOMAIN: $cdn, PROJECT_NAME: $project, STAGE: $stage }')
+
+          MERGED=$(jq -c -n \
+            --argjson a "$EXISTING" \
+            --argjson b "$NEW" \
+            '$a + $b')
+
+          jq -n --argjson config_map "$MERGED" '{ config_map: $config_map }' > "$FILE"
+
+          echo "Final merged tfvars:"
+          cat "$FILE"
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -171,6 +210,7 @@ jobs:
           aws-access-key-id:     ${{ fromJSON(secrets.AWS_CREDENTIALS).AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ fromJSON(secrets.AWS_CREDENTIALS).AWS_SECRET_ACCESS_KEY }}
           aws-region:            ${{ env.TF_VAR_aws_region }}
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
