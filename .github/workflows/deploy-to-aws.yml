@@ -165,7 +165,7 @@ jobs:
         with:
           aws-access-key-id:     ${{ fromJSON(secrets.AWS_CREDENTIALS).AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ fromJSON(secrets.AWS_CREDENTIALS).AWS_SECRET_ACCESS_KEY }}
-          aws-region:            ${{ TF_VAR_aws_region }}
+          aws-region:            ${{ env.TF_VAR_aws_region }}
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
