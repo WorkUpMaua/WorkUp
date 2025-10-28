@@ -130,6 +130,7 @@ jobs:
     needs:
       - build_uploads
       - build_images
+      - env_setup
     runs-on: ubuntu-latest
     environment:
       name: ${{ needs.env_setup.outputs.stage }}
@@ -164,8 +165,7 @@ jobs:
         with:
           aws-access-key-id:     ${{ fromJSON(secrets.AWS_CREDENTIALS).AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ fromJSON(secrets.AWS_CREDENTIALS).AWS_SECRET_ACCESS_KEY }}
-          aws-region:            ${{ needs.env_setup.outputs.aws_region }}
-
+          aws-region:            ${{ TF_VAR_aws_region }}
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
