@@ -135,6 +135,7 @@ jobs:
     environment:
       name: ${{ needs.env_setup.outputs.stage }}
     env:
+      TF_VAR_project_name: ${{ needs.env_setup.outputs.project_name }}
       TF_VAR_repo_url:   ${{ needs.env_setup.outputs.repo_url }}
       TF_VAR_stage:      ${{ needs.env_setup.outputs.stage }}
       TF_VAR_config_map: ${{ vars.CONFIG_MAP }}
