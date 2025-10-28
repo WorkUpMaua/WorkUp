@@ -13,10 +13,6 @@ variable "aws_region" {
   description = "Região de deploy"
 }
 
-variable "ssh_cidr"     {
-  type = number
-}
-
 variable "repo_url" {
   type = string
   description = "URL do repositório remoto"
