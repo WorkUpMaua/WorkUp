@@ -2,6 +2,13 @@ resource "aws_s3_bucket" "uploads" {
   bucket = "${var.project_name}-${var.stage}-uploads"
 }
 
+resource "aws_s3_account_public_access_block" "account_unblock" {
+  block_public_acls       = false
+  ignore_public_acls      = false
+  block_public_policy     = false
+  restrict_public_buckets = false
+}
+
 resource "aws_s3_bucket_public_access_block" "uploads_public_access" {
   bucket                  = aws_s3_bucket.uploads.id
   block_public_acls       = false
