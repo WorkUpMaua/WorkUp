@@ -46,10 +46,10 @@ Além de seu propósito funcional, o sistema serve como aplicação prática de 
 
 ## 🗺️ Diagramas
 
-![Arquitetura](docs/Diagrama_fluxo.drawio.svg)
+![Arquitetura](docs/fluxo.png)
 *Figura 1: Arquitetura do projeto*
 
-![Fluxo deploy](docs/deploy_to_aws.svg)
+![Fluxo deploy](docs/deploy_to_aws.png)
 *Figura 2: Fluxo de deploy*
 
 ---
