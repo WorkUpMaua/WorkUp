@@ -7,6 +7,7 @@ class Aluguel {
   final int people;
   final double finalPrice;
   final String status;
+  final String? doorCode;
   final int createdAt;
   final int updatedAt;
 
@@ -19,6 +20,7 @@ class Aluguel {
     required this.people,
     required this.finalPrice,
     required this.status,
+    this.doorCode,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -33,6 +35,7 @@ class Aluguel {
       'people': people,
       'finalPrice': finalPrice,
       'status': status,
+      'doorCode': doorCode,
       'createdAt': createdAt,
       'updatedAt': updatedAt,
     };

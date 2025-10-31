@@ -9,6 +9,7 @@ abstract class AluguelRepository {
     required int people,
     required double finalPrice,
     required String status,
+    String? doorCode,
   });
 
   Future<Aluguel?> getAluguel(String id);
@@ -22,6 +23,7 @@ abstract class AluguelRepository {
     int? people,
     double? finalPrice,
     String? status,
+    String? doorCode,
   });
 
 
