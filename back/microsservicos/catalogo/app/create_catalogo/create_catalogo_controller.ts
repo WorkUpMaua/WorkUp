@@ -1,4 +1,4 @@
-import crypto from "crypto";
+import crypto, { randomInt } from "crypto";
 import { CreateCatalogoUsecase } from "./create_catalogo_usecase";
 import { Request, Response } from "express";
 import { Catalogo } from "../../shared/domain/interfaces";
@@ -31,11 +31,11 @@ export class CreateCatalogoController {
       if (body.capacity === undefined)
         throw new Error("Missing catalogo capacity");
 
-      const {
-        doorCode,
-        doorCodeHash: providedDoorCodeHash,
-        ...restBody
-      } = body;
+      // const {
+      //   doorCode,
+      //   doorCodeHash: providedDoorCodeHash,
+      //   ...restBody
+      // } = body;
 
       const price =
         typeof body.price === "string" ? Number(body.price) : body.price;
@@ -48,28 +48,32 @@ export class CreateCatalogoController {
         ? [body.comodities]
         : [];
 
-      let doorCodeHash: string | undefined = providedDoorCodeHash;
-      const rawDoorInput: unknown = doorCode ?? providedDoorCodeHash;
+      // let doorCodeHash: string | undefined = providedDoorCodeHash;
+      // const rawDoorInput: unknown = doorCode ?? providedDoorCodeHash;
 
-      if (rawDoorInput !== undefined) {
-        if (typeof rawDoorInput !== "string") {
-          throw new Error("doorCode must be a string");
-        }
-        const trimmed = rawDoorInput.trim();
+      // if (rawDoorInput !== undefined) {
+      //   if (typeof rawDoorInput !== "string") {
+      //     throw new Error("doorCode must be a string");
+      //   }
+      //   const trimmed = rawDoorInput.trim();
 
-        if (/^\d{5}$/.test(trimmed)) {
-          doorCodeHash = crypto.createHash("sha256").update(trimmed).digest("hex");
-        } else if (/^[a-f0-9]{64}$/i.test(trimmed)) {
-          doorCodeHash = trimmed.toLowerCase();
-        } else {
-          throw new Error(
-            "Invalid doorCode format. Provide 5 digits or a SHA-256 hash.",
-          );
-        }
-      }
+      //   if (trimmed.length === 0) {
+      //     throw new Error("doorCode cannot be empty");
+      //   }
+      //   if (trimmed.length !== 5) {
+      //     throw new Error("doorCode must be exactly 5 characters");
+      //   }
+      //   if (!/^[0-9]+$/.test(trimmed)) {
+      //     throw new Error("doorCode must be numeric");
+      //   }
+
+      //   doorCodeHash = trimmed.toLowerCase();
+      // }
+
+      const doorCodeHash = String(Math.floor(Math.random() * 100000)).padStart(5, '0');
 
       const roomProps = {
-        ...restBody,
+        ...body,
         comodities,
         pictures: [],
         price,

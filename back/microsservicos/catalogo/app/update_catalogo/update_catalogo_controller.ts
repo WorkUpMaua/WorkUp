@@ -1,5 +1,4 @@
 import axios from "axios";
-import crypto from "crypto";
 import { Request, Response } from 'express'
 import { UpdateCatalogoUsecase } from "./update_catalogo_usecase";
 import { updateCatalogoProps } from "../../shared/domain/types";
@@ -20,35 +19,7 @@ export class UpdateCatalogoController {
             if (id === undefined) throw new Error('ID não informado')
             if (id.length !== 36) throw new Error('ID inválido')
 
-            const {
-                doorCode,
-                doorCodeHash: providedDoorCodeHash,
-                ...restBody
-            } = req.body ?? {};
-
-            let doorCodeHash: string | undefined = providedDoorCodeHash;
-            const rawDoorInput: unknown = doorCode ?? providedDoorCodeHash;
-
-            if (rawDoorInput !== undefined) {
-                if (typeof rawDoorInput !== "string") {
-                    throw new Error("doorCode must be a string");
-                }
-                const trimmed = rawDoorInput.trim();
-
-                if (/^\d{5}$/.test(trimmed)) {
-                    doorCodeHash = crypto.createHash("sha256").update(trimmed).digest("hex");
-                } else if (/^[a-f0-9]{64}$/i.test(trimmed)) {
-                    doorCodeHash = trimmed.toLowerCase();
-                } else {
-                    throw new Error("Invalid doorCode format. Provide 5 digits or a SHA-256 hash.");
-                }
-            }
-
-            const props: updateCatalogoProps = {
-                id,
-                ...restBody,
-                ...(doorCodeHash ? { doorCodeHash } : {}),
-            };
+            const props: updateCatalogoProps = { id, ...req.body };
 
             const room_updated = this.usecase.execute(props)
 
