@@ -21,6 +21,20 @@ import 'package:aluguel_dart/presentation/http/controllers/create_aluguel_contro
 import 'package:aluguel_dart/presentation/http/controllers/update_aluguel_controller.dart';
 import 'package:aluguel_dart/presentation/http/controllers/delete_aluguel_controller.dart';
 
+Future<void> _shutdownServer(HttpServer server, String message) async {
+  stdout.writeln(message);
+  try {
+    await closeRabbitMQConnection();
+  } catch (e) {
+    stderr.writeln('Erro ao fechar RabbitMQ: $e');
+  } finally {
+    try {
+      await server.close(force: true);
+    } catch (_) {}
+    exit(0);
+  }
+}
+
 Future<void> main() async {
   final AluguelRepository repo = Environments.getAluguelRepo();
 
@@ -57,30 +71,12 @@ Future<void> main() async {
   final server = await io.serve(handler, InternetAddress.anyIPv4, port);
   print('Aluguel. Porta: $port');
   await startQueue();
-  ProcessSignal.sigint.watch().listen((_) async {
-    stdout.writeln('Service aluguel interrupted!');
-    try {
-      await closeRabbitMQConnection();
-    } catch (e) {
-      stderr.writeln('Erro ao fechar RabbitMQ: $e');
-    } finally {
-      try {
-        await server.close(force: true);
-      } catch (_) {}
-      exit(0);
-    }
-  });
-  ProcessSignal.sigterm.watch().listen((_) async {
-    stdout.writeln('Service aluguel terminated!');
-    try {
-      await closeRabbitMQConnection();
-    } catch (e) {
-      stderr.writeln('Erro ao fechar RabbitMQ: $e');
-    } finally {
-      try {
-        await server.close(force: true);
-      } catch (_) {}
-      exit(0);
-    }
-  });
+  ProcessSignal.sigint.watch().listen(
+    (_) async => _shutdownServer(server, 'Service aluguel interrupted!'),
+  );
+  if (!Platform.isWindows) {
+    ProcessSignal.sigterm.watch().listen(
+      (_) async => _shutdownServer(server, 'Service aluguel terminated!'),
+    );
+  }
 }
