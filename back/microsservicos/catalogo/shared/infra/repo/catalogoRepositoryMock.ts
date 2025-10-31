@@ -16,7 +16,7 @@ export class CatalogoRepositoryMock implements CatalogoRepository {
         return this.baseCatalogo
     }
 
-    public getCatalogo(id: string): Catalogo {
+    public getCatalogo(id: string): Catalogo | undefined {
         return this.baseCatalogo[id]
     }
 
@@ -32,7 +32,8 @@ export class CatalogoRepositoryMock implements CatalogoRepository {
             comodities: props.comodities,
             pictures: props.pictures,
             price: props.price,
-            capacity: props.capacity
+            capacity: props.capacity,
+            doorCodeHash: props.doorCodeHash
         }
 
         this.baseCatalogo[id] = room
@@ -45,6 +46,10 @@ export class CatalogoRepositoryMock implements CatalogoRepository {
 
         const room_to_update = this.getCatalogo(props.id)
 
+        if (!room_to_update) {
+            throw new Error(`Catalogo with id "${props.id}" not found.`)
+        }
+
         if(props.name) room_to_update.name = props.name
         if(props.description) room_to_update.description = props.description
         if(props.address) room_to_update.address = props.address
@@ -52,6 +57,7 @@ export class CatalogoRepositoryMock implements CatalogoRepository {
         if(props.pictures && props.pictures.length > 0) room_to_update.pictures = props.pictures
         if(props.price) room_to_update.price = props.price
         if(props.capacity) room_to_update.capacity = props.capacity
+        if(props.doorCodeHash) room_to_update.doorCodeHash = props.doorCodeHash
         
         return room_to_update
         
@@ -60,6 +66,10 @@ export class CatalogoRepositoryMock implements CatalogoRepository {
     public deleteCatalogo(id: string): Catalogo {
         
         const room_to_delete = this.getCatalogo(id)
+
+        if (!room_to_delete) {
+            throw new Error(`Catalogo with id "${id}" not found.`)
+        }
 
         delete this.baseCatalogo[id]
 

@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { CreateCatalogoUsecase } from "./create_catalogo_usecase";
 import { Request, Response } from "express";
 import { Catalogo } from "../../shared/domain/interfaces";
@@ -30,6 +31,12 @@ export class CreateCatalogoController {
       if (body.capacity === undefined)
         throw new Error("Missing catalogo capacity");
 
+      const {
+        doorCode,
+        doorCodeHash: providedDoorCodeHash,
+        ...restBody
+      } = body;
+
       const price =
         typeof body.price === "string" ? Number(body.price) : body.price;
       const capacity =
@@ -41,12 +48,33 @@ export class CreateCatalogoController {
         ? [body.comodities]
         : [];
 
+      let doorCodeHash: string | undefined = providedDoorCodeHash;
+      const rawDoorInput: unknown = doorCode ?? providedDoorCodeHash;
+
+      if (rawDoorInput !== undefined) {
+        if (typeof rawDoorInput !== "string") {
+          throw new Error("doorCode must be a string");
+        }
+        const trimmed = rawDoorInput.trim();
+
+        if (/^\d{5}$/.test(trimmed)) {
+          doorCodeHash = crypto.createHash("sha256").update(trimmed).digest("hex");
+        } else if (/^[a-f0-9]{64}$/i.test(trimmed)) {
+          doorCodeHash = trimmed.toLowerCase();
+        } else {
+          throw new Error(
+            "Invalid doorCode format. Provide 5 digits or a SHA-256 hash.",
+          );
+        }
+      }
+
       const roomProps = {
-        ...body,
+        ...restBody,
         comodities,
         pictures: [],
         price,
         capacity,
+        doorCodeHash,
       } as Catalogo;
 
       const createdRoom = this.usecase.execute(roomProps);
