@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/side_bar.dart';
 
 class TelaPropriedadePage extends StatefulWidget {
   const TelaPropriedadePage({Key? key}) : super(key: key);
@@ -190,6 +191,7 @@ class _TelaPropriedadePageState extends State<TelaPropriedadePage> {
   final List<Listing> _properties = [];
   bool _isLoading = true;
   String? _errorMessage;
+  bool _sidebarActive = false;
 
   @override
   void initState() {
@@ -241,192 +243,155 @@ class _TelaPropriedadePageState extends State<TelaPropriedadePage> {
   Widget build(BuildContext context) {
     final primaryColor = const Color(0xFF34495E);
 
-    return Scaffold(
-      backgroundColor: Colors.grey[100],
-      appBar: AppBar(
-        title: const Text("Suas Propriedades"),
-        backgroundColor: primaryColor,
-        centerTitle: true,
-        elevation: 3,
-      ),
-      body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF34495E)),
-              ),
-            )
-          : _errorMessage != null
-              ? Center(
-                  child: Text(
-                    _errorMessage!,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      color: Colors.red,
-                    ),
-                    textAlign: TextAlign.center,
+    return Stack(
+      children: [
+        Scaffold(
+          backgroundColor: Colors.grey[100],
+          appBar: AppBar(
+            backgroundColor: primaryColor,
+            leading: IconButton(
+              icon: const Icon(Icons.menu, color: Colors.white),
+              onPressed: () => setState(() => _sidebarActive = true),
+            ),
+            title: const Text(
+              'Propriedades',
+              style: TextStyle(color: Colors.white),
+            ),
+            centerTitle: true,
+            elevation: 3,
+          ),
+          body: _isLoading
+              ? const Center(
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF34495E)),
                   ),
                 )
-              : SingleChildScrollView(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    children: [
-                      // Título principal
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 16),
-                        child: Text(
-                          "Suas Propriedades",
-                          style: TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF2C3E50),
-                          ),
-                          textAlign: TextAlign.center,
+              : _errorMessage != null
+                  ? Center(
+                      child: Text(
+                        _errorMessage!,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: Colors.red,
                         ),
+                        textAlign: TextAlign.center,
                       ),
-
-                      // Seção de Propriedades Ativas
-                      Container(
-                        width: double.infinity,
-                        margin: const EdgeInsets.only(bottom: 24),
-                        child: Column(
-                          children: [
-                            // Header com linhas gradientes
-                            Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: Container(
-                                      height: 1,
-                                      decoration: const BoxDecoration(
-                                        gradient: LinearGradient(
-                                          colors: [
-                                            Color(0xFF34495E),
-                                            Colors.blue,
-                                            Colors.transparent,
-                                          ],
-                                          stops: [0.0, 0.5, 1.0],
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  const Padding(
-                                    padding: EdgeInsets.symmetric(horizontal: 16),
-                                    child: Text(
-                                      "Propriedades Ativas",
-                                      style: TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.w600,
-                                        color: Color(0xFF34495E),
-                                      ),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: Container(
-                                      height: 1,
-                                      decoration: const BoxDecoration(
-                                        gradient: LinearGradient(
-                                          colors: [
-                                            Colors.transparent,
-                                            Colors.blue,
-                                            Color(0xFF34495E),
-                                          ],
-                                          stops: [0.0, 0.5, 1.0],
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                    )
+                  : SingleChildScrollView(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        children: [
+                          // Título principal
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 16),
+                            child: Text(
+                              "Suas Propriedades",
+                              style: TextStyle(
+                                fontSize: 28,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF2C3E50),
                               ),
+                              textAlign: TextAlign.center,
                             ),
+                          ),
 
-                            // Grid de propriedades
-                            _properties.isEmpty
-                                ? const Padding(
-                                    padding: EdgeInsets.symmetric(vertical: 32),
-                                    child: Text(
-                                      "Nenhuma propriedade ativa no momento.",
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        color: Colors.grey,
+                          // Seção de Propriedades Ativas
+                          Container(
+                            width: double.infinity,
+                            margin: const EdgeInsets.only(bottom: 24),
+                            child: Column(
+                              children: [
+                                // Header com linhas gradientes
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: Container(
+                                          height: 1,
+                                          decoration: const BoxDecoration(
+                                            gradient: LinearGradient(
+                                              colors: [
+                                                Color(0xFF34495E),
+                                                Colors.blue,
+                                                Colors.transparent,
+                                              ],
+                                              stops: [0.0, 0.5, 1.0],
+                                            ),
+                                          ),
+                                        ),
                                       ),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  )
-                                : GridView.builder(
-                                    shrinkWrap: true,
-                                    physics: const NeverScrollableScrollPhysics(),
-                                    gridDelegate:
-                                        const SliverGridDelegateWithFixedCrossAxisCount(
-                                      crossAxisCount: 1,
-                                      crossAxisSpacing: 16,
-                                      mainAxisSpacing: 16,
-                                      childAspectRatio: 0.8,
-                                    ),
-                                    itemCount: _properties.length,
-                                    itemBuilder: (context, index) {
-                                      final property = _properties[index];
-                                      return ListingCard(listing: property);
-                                    },
+                                      const Padding(
+                                        padding: EdgeInsets.symmetric(horizontal: 16),
+                                        child: Text(
+                                          "Propriedades Ativas",
+                                          style: TextStyle(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.w600,
+                                            color: Color(0xFF34495E),
+                                          ),
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: Container(
+                                          height: 1,
+                                          decoration: const BoxDecoration(
+                                            gradient: LinearGradient(
+                                              colors: [
+                                                Colors.transparent,
+                                                Colors.blue,
+                                                Color(0xFF34495E),
+                                              ],
+                                              stops: [0.0, 0.5, 1.0],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                          ],
-                        ),
+                                ),
+
+                                // Grid de propriedades
+                                _properties.isEmpty
+                                    ? const Padding(
+                                        padding: EdgeInsets.symmetric(vertical: 32),
+                                        child: Text(
+                                          "Nenhuma propriedade ativa no momento.",
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            color: Colors.grey,
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      )
+                                    : GridView.builder(
+                                        shrinkWrap: true,
+                                        physics: const NeverScrollableScrollPhysics(),
+                                        gridDelegate:
+                                            const SliverGridDelegateWithFixedCrossAxisCount(
+                                          crossAxisCount: 1,
+                                          crossAxisSpacing: 16,
+                                          mainAxisSpacing: 16,
+                                          childAspectRatio: 0.8,
+                                        ),
+                                        itemCount: _properties.length,
+                                        itemBuilder: (context, index) {
+                                          final property = _properties[index];
+                                          return ListingCard(listing: property);
+                                        },
+                                      ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-
-                      /**
-                       * @todo: colocar propriedades antigas ?
-                       */
-
-                      // // Divisória para histórico (comentada)
-                      // Padding(
-                      //   padding: const EdgeInsets.symmetric(vertical: 16),
-                      //   child: Row(
-                      //     children: [
-                      //       Expanded(
-                      //         child: Container(
-                      //           height: 2,
-                      //           decoration: const BoxDecoration(
-                      //             gradient: LinearGradient(
-                      //               colors: [
-                      //                 Colors.grey,
-                      //                 Color(0xFF34495E),
-                      //                 Colors.transparent,
-                      //               ],
-                      //             ),
-                      //           ),
-                      //         ),
-                      //       ),
-                      //       const Padding(
-                      //         padding: EdgeInsets.symmetric(horizontal: 16),
-                      //         child: Text(
-                      //           "Histórico",
-                      //           style: TextStyle(
-                      //             fontSize: 18,
-                      //             fontWeight: FontWeight.w600,
-                      //             color: Colors.grey,
-                      //           ),
-                      //         ),
-                      //       ),
-                      //       Expanded(
-                      //         child: Container(
-                      //           height: 2,
-                      //           decoration: const BoxDecoration(
-                      //             gradient: LinearGradient(
-                      //               colors: [
-                      //                 Colors.transparent,
-                      //                 Color(0xFF34495E),
-                      //                 Colors.grey,
-                      //               ],
-                      //             ),
-                      //           ),
-                      //         ),
-                      //       ),
-                      //     ],
-                      //   ),
-                      // ),
-                    ],
-                  ),
-                ),
+                    ),
+        ),
+        SidebarMenu(
+          active: _sidebarActive,
+          onClose: () => setState(() => _sidebarActive = false),
+        ),
+      ],
     );
   }
 }

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import '../screens/create_propriedade_page.dart';
+import 'package:mobile/screens/user_profile_screen.dart';
 
 void main() {
   runApp(
     const MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: CreatePropriedadePage (),
+      home: UserProfilePage(),
     ),
   );
 }

@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
+import 'package:flutter/services.dart';
 import '../widgets/commodities_selector.dart';
 import '../widgets/alert_widget.dart';
 import '../widgets/side_bar.dart';
@@ -19,6 +20,7 @@ class _CreatePropriedadePageState extends State<CreatePropriedadePage> {
   final _priceController = TextEditingController();
   final _addressController = TextEditingController();
   final _capacityController = TextEditingController();
+  final _serialPortaController = TextEditingController();
 
   List<String> _comodidades = [];
   final List<File> _images = [];
@@ -97,6 +99,28 @@ class _CreatePropriedadePageState extends State<CreatePropriedadePage> {
     });
   }
 
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String labelText,
+    String? hintText,
+    TextInputType keyboardType = TextInputType.text,
+    List<TextInputFormatter>? inputFormatters,
+    String? Function(String?)? validator,
+    InputDecoration? decoration,
+  }) {
+    return TextFormField(
+      controller: controller,
+      decoration: decoration ?? InputDecoration(
+        labelText: labelText,
+        hintText: hintText,
+        border: OutlineInputBorder(),
+      ),
+      keyboardType: keyboardType,
+      inputFormatters: inputFormatters,
+      validator: validator,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final primaryColor = const Color(0xFF34495E);
@@ -154,51 +178,60 @@ class _CreatePropriedadePageState extends State<CreatePropriedadePage> {
                         ),
                         const SizedBox(height: 20),
 
-                        // Nome
-                        TextFormField(
+                        _buildTextField(
                           controller: _nameController,
-                          decoration: const InputDecoration(
-                            labelText: "Nome da Sala",
-                            hintText: "Ex: Sala de Reunião Executive",
-                            border: OutlineInputBorder(),
-                          ),
+                          labelText: "Nome da Sala",
+                          hintText: "Ex: Sala de Reunião Executive",
                         ),
                         const SizedBox(height: 16),
 
-                        // Preço
-                        TextFormField(
+                        _buildTextField(
                           controller: _priceController,
+                          labelText: "Preço por hora",
+                          hintText: "0,00",
+                          keyboardType: TextInputType.number,
                           inputFormatters: [_moneyMask],
-                          decoration: const InputDecoration(
-                            prefixText: "R\$ ",
+                          decoration: InputDecoration(
                             labelText: "Preço por hora",
                             hintText: "0,00",
+                            prefixText: "R\$ ",
                             border: OutlineInputBorder(),
                           ),
-                          keyboardType: TextInputType.number,
                         ),
                         const SizedBox(height: 16),
 
-                        // Endereço
-                        TextFormField(
+                        _buildTextField(
                           controller: _addressController,
-                          decoration: const InputDecoration(
-                            labelText: "Endereço",
-                            hintText: "Av. Paulista, 1000 - São Paulo/SP",
-                            border: OutlineInputBorder(),
-                          ),
+                          labelText: "Endereço",
+                          hintText: "Ex: Av. Paulista, 1000 - São Paulo/SP",
                         ),
                         const SizedBox(height: 16),
 
-                        // Capacidade
-                        TextFormField(
+                        _buildTextField(
                           controller: _capacityController,
-                          decoration: const InputDecoration(
-                            labelText: "Capacidade",
-                            hintText: "Número de pessoas",
-                            border: OutlineInputBorder(),
-                          ),
+                          labelText: "Capacidade",
+                          hintText: "Número de pessoas",
                           keyboardType: TextInputType.number,
+                        ),
+                        const SizedBox(height: 16),
+
+                        _buildTextField(
+                          controller: _serialPortaController,
+                          labelText: 'Serial da Porta',
+                          hintText: 'Ex: 123456789',
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                          ],
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'O campo serial é obrigatório';
+                            }
+                            if (!RegExp(r'^\d+$').hasMatch(value)) {
+                              return 'Ex: 123456789';
+                            }
+                            return null;
+                          },
                         ),
                         const SizedBox(height: 16),
 

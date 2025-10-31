@@ -28,34 +28,37 @@ class Reservation {
 }
 
 class _TelaAluguelPageState extends State<TelaAluguelPage> {
-  // Temporary mock data - this should be replaced with actual API calls
+  // Mock data
   final List<Reservation> _mockReservations = [
     Reservation(
       id: '1',
       workspaceId: '1',
       workspaceName: 'Escritório Moderno no Centro',
-      workspaceImage: 'https://images.pexels.com/photos/380768/pexels-photo-380768.jpeg',
+      workspaceImage:
+          'https://images.pexels.com/photos/380768/pexels-photo-380768.jpeg',
       startDate: '2025-05-20',
-      endDate: '2025-03-31',
+      endDate: '2025-05-31',
       status: 'active',
     ),
     Reservation(
       id: '2',
       workspaceId: '2',
       workspaceName: 'Sala Comercial Premium',
-      workspaceImage: 'https://images.pexels.com/photos/380769/pexels-photo-380769.jpeg',
-      startDate: '2024-04-01',
-      endDate: '2024-04-05',
-      status: 'active',
+      workspaceImage:
+          'https://images.pexels.com/photos/380769/pexels-photo-380769.jpeg',
+      startDate: '2025-04-01',
+      endDate: '2025-04-05',
+      status: 'completed',
     ),
     Reservation(
       id: '3',
       workspaceId: '3',
-      workspaceName: 'Sala Comercial Premium',
-      workspaceImage: 'https://images.pexels.com/photos/380769/pexels-photo-380769.jpeg',
-      startDate: '2024-04-01',
-      endDate: '2024-04-05',
-      status: 'active',
+      workspaceName: 'Coworking Vista Panorâmica',
+      workspaceImage:
+          'https://images.pexels.com/photos/3184357/pexels-photo-3184357.jpeg',
+      startDate: '2025-03-10',
+      endDate: '2025-03-15',
+      status: 'cancelled',
     ),
   ];
 
@@ -104,7 +107,6 @@ class _TelaAluguelPageState extends State<TelaAluguelPage> {
   }
 
   void _handleCancelReservation(String reservationId) {
-    // Implement cancellation logic
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -117,7 +119,6 @@ class _TelaAluguelPageState extends State<TelaAluguelPage> {
           ),
           TextButton(
             onPressed: () {
-              // Implement cancellation API call
               Navigator.of(context).pop();
             },
             child: const Text('Sim'),
@@ -158,7 +159,7 @@ class _TelaAluguelPageState extends State<TelaAluguelPage> {
               ),
               child: Column(
                 children: [
-                  // Header com gradiente
+                  // Header
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(32),
@@ -202,8 +203,9 @@ class _TelaAluguelPageState extends State<TelaAluguelPage> {
                         : GridView.builder(
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
-                            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: _mockReservations.length < 3 ? 1 : 2,
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 1,
                               crossAxisSpacing: 16,
                               mainAxisSpacing: 16,
                               childAspectRatio: 0.8,
@@ -216,148 +218,153 @@ class _TelaAluguelPageState extends State<TelaAluguelPage> {
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(12),
-                                    color: Colors.white,
-                                  ),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      // Imagem do workspace
-                                      ClipRRect(
-                                        borderRadius: const BorderRadius.only(
-                                          topLeft: Radius.circular(12),
-                                          topRight: Radius.circular(12),
-                                        ),
-                                        child: Image.network(
-                                          reservation.workspaceImage,
-                                          height: 150,
-                                          width: double.infinity,
-                                          fit: BoxFit.cover,
-                                          errorBuilder: (context, error, stackTrace) {
-                                            return Container(
-                                              height: 150,
-                                              color: Colors.grey[300],
-                                              child: const Icon(
-                                                Icons.photo_outlined,
-                                                size: 50,
-                                                color: Colors.grey,
-                                              ),
-                                            );
-                                          },
-                                        ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // Imagem (igual ao ListingCard)
+                                    ClipRRect(
+                                      borderRadius: const BorderRadius.only(
+                                        topLeft: Radius.circular(12),
+                                        topRight: Radius.circular(12),
                                       ),
+                                      child: Image.network(
+                                        reservation.workspaceImage,
+                                        height: 160,
+                                        width: double.infinity,
+                                        fit: BoxFit.cover,
+                                        errorBuilder:
+                                            (context, error, stackTrace) {
+                                          return Container(
+                                            height: 160,
+                                            color: Colors.grey[300],
+                                            child: const Icon(
+                                              Icons.photo_outlined,
+                                              size: 50,
+                                              color: Colors.grey,
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
 
-                                      // Informações da reserva
-                                      Padding(
-                                        padding: const EdgeInsets.all(16),
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            // Nome do workspace
-                                            Text(
-                                              reservation.workspaceName,
-                                              style: const TextStyle(
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.w600,
-                                                color: Colors.black87,
+                                    // Conteúdo do card
+                                    Padding(
+                                      padding: const EdgeInsets.all(16),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          // Nome
+                                          Text(
+                                            reservation.workspaceName,
+                                            style: const TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
+                                              color: Color(0xFF34495E),
+                                            ),
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          const SizedBox(height: 8),
+
+                                          // Datas
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              const Text(
+                                                "Check-in:",
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  color: Colors.grey,
+                                                ),
                                               ),
-                                              maxLines: 2,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                            const SizedBox(height: 12),
-
-                                            // Datas
-                                            Column(
-                                              children: [
-                                                Row(
-                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                  children: [
-                                                    const Text(
-                                                      "Check-in:",
-                                                      style: TextStyle(
-                                                        fontSize: 14,
-                                                        color: Colors.grey,
-                                                      ),
-                                                    ),
-                                                    Text(
-                                                      _formatDate(reservation.startDate),
-                                                      style: const TextStyle(
-                                                        fontSize: 14,
-                                                        fontWeight: FontWeight.w500,
-                                                      ),
-                                                    ),
-                                                  ],
+                                              Text(
+                                                _formatDate(
+                                                    reservation.startDate),
+                                                style: const TextStyle(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w500,
+                                                  color: Colors.black87,
                                                 ),
-                                                const SizedBox(height: 6),
-                                                Row(
-                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                  children: [
-                                                    const Text(
-                                                      "Check-out:",
-                                                      style: TextStyle(
-                                                        fontSize: 14,
-                                                        color: Colors.grey,
-                                                      ),
-                                                    ),
-                                                    Text(
-                                                      _formatDate(reservation.endDate),
-                                                      style: const TextStyle(
-                                                        fontSize: 14,
-                                                        fontWeight: FontWeight.w500,
-                                                      ),
-                                                    ),
-                                                  ],
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              const Text(
+                                                "Check-out:",
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  color: Colors.grey,
                                                 ),
-                                              ],
-                                            ),
-                                            const SizedBox(height: 12),
+                                              ),
+                                              Text(
+                                                _formatDate(reservation.endDate),
+                                                style: const TextStyle(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w500,
+                                                  color: Colors.black87,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 12),
 
-                                            // Status e botão de cancelar
-                                            Row(
-                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                              children: [
-                                                // Status
-                                                Container(
-                                                  padding: const EdgeInsets.symmetric(
-                                                    horizontal: 12,
-                                                    vertical: 6,
+                                          // Status e botão
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                  horizontal: 12,
+                                                  vertical: 6,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color:
+                                                      _getStatusBackgroundColor(
+                                                          reservation.status),
+                                                  borderRadius:
+                                                      BorderRadius.circular(20),
+                                                ),
+                                                child: Text(
+                                                  _getStatusText(
+                                                      reservation.status),
+                                                  style: TextStyle(
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.w500,
+                                                    color: _getStatusColor(
+                                                        reservation.status),
                                                   ),
-                                                  decoration: BoxDecoration(
-                                                    color: _getStatusBackgroundColor(reservation.status),
-                                                    borderRadius: BorderRadius.circular(20),
-                                                  ),
-                                                  child: Text(
-                                                    _getStatusText(reservation.status),
+                                                ),
+                                              ),
+                                              if (reservation.status ==
+                                                  'active')
+                                                GestureDetector(
+                                                  onTap: () =>
+                                                      _handleCancelReservation(
+                                                          reservation.id),
+                                                  child: const Text(
+                                                    "Cancelar reserva",
                                                     style: TextStyle(
                                                       fontSize: 12,
-                                                      fontWeight: FontWeight.w500,
-                                                      color: _getStatusColor(reservation.status),
+                                                      color: Colors.red,
+                                                      fontWeight:
+                                                          FontWeight.w500,
                                                     ),
                                                   ),
                                                 ),
-
-                                                // Botão cancelar (apenas para reservas ativas)
-                                                if (reservation.status == 'active')
-                                                  GestureDetector(
-                                                    onTap: () => _handleCancelReservation(reservation.id),
-                                                    child: const Text(
-                                                      "Cancelar reserva",
-                                                      style: TextStyle(
-                                                        fontSize: 12,
-                                                        color: Colors.red,
-                                                        fontWeight: FontWeight.w500,
-                                                      ),
-                                                    ),
-                                                  ),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
+                                            ],
+                                          ),
+                                        ],
                                       ),
-                                    ],
-                                  ),
+                                    ),
+                                  ],
                                 ),
                               );
                             },

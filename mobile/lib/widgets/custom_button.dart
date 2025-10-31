@@ -10,7 +10,7 @@ class CustomButton extends StatelessWidget {
   final double? height;
 
   const CustomButton({
-    super.key,
+    Key? key,
     required this.text,
     this.onPressed,
     this.isLoading = false,
@@ -18,37 +18,42 @@ class CustomButton extends StatelessWidget {
     this.textColor,
     this.width,
     this.height,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return SizedBox(
       width: width ?? double.infinity,
       height: height ?? 56,
       child: ElevatedButton(
         onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: backgroundColor ?? Colors.blue,
+          backgroundColor: backgroundColor ?? theme.primaryColor,
           foregroundColor: textColor ?? Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          elevation: 2,
+          elevation: 3,
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         ),
         child: isLoading
             ? const SizedBox(
-                height: 20,
-                width: 20,
+                height: 22,
+                width: 22,
                 child: CircularProgressIndicator(
-                  strokeWidth: 2,
+                  strokeWidth: 2.3,
                   valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                 ),
               )
             : Text(
                 text,
-                style: const TextStyle(
+                textAlign: TextAlign.center,
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
+                  color: textColor ?? Colors.white,
                 ),
               ),
       ),

@@ -32,29 +32,36 @@ class _RegisterPageState extends State<RegisterPage> {
     setState(() {
       _isSubmitting = true;
       _apiMessage = null;
+      _isError = false;
     });
 
     try {
-      // Simula a chamada à API
-      await Future.delayed(const Duration(seconds: 1));
+      // Simulação de uma chamada de API
+      await Future.delayed(const Duration(seconds: 2));
 
-      setState(() {
-        _apiMessage = "Cadastro efetuado!";
-        _isError = false;
-      });
+      // Suponha que a resposta da API seja bem-sucedida
+      final isSuccess = true; // Substitua isso pela lógica real da API
 
-      // Aqui você pode usar o Navigator para ir para a tela de login:
-      await Future.delayed(const Duration(milliseconds: 800));
-      if (mounted) {
-        Navigator.pushReplacementNamed(context, '/login');
+      if (isSuccess) {
+        setState(() {
+          _apiMessage = "Registro bem-sucedido!";
+          _isError = false;
+        });
+      } else {
+        setState(() {
+          _apiMessage = "Ocorreu um erro ao registrar.";
+          _isError = true;
+        });
       }
     } catch (e) {
       setState(() {
-        _apiMessage = "ERRO: Falha ao cadastrar";
+        _apiMessage = "Erro inesperado: $e";
         _isError = true;
       });
     } finally {
-      setState(() => _isSubmitting = false);
+      setState(() {
+        _isSubmitting = false;
+      });
     }
   }
 
