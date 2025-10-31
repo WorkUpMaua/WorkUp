@@ -2,7 +2,6 @@ import 'package:aluguel_dart/domain/entities/aluguel.dart';
 import 'package:aluguel_dart/domain/repositories/aluguel_repository.dart';
 import 'package:aluguel_dart/infrastructure/clients/rabbitmq/rabbitmq.dart';
 import 'package:aluguel_dart/infrastructure/clients/rabbitmq/rabbitmq_event.dart';
-import 'package:aluguel_dart/shared/security/door_code_hasher.dart';
 
 class CreateAluguelUsecase {
   final AluguelRepository repository;
@@ -15,8 +14,7 @@ class CreateAluguelUsecase {
     required int startDate,
     required int endDate,
     required int people,
-    required num finalPrice,
-    String? doorCode,
+    required num finalPrice
   }) async {
     if (endDate < startDate) {
       throw StateError('endDate não pode ser menor que startDate.');
@@ -29,17 +27,6 @@ class CreateAluguelUsecase {
     if (finalPrice < 0) {
       throw StateError('finalPrice não pode ser negativo.');
     }
-    if (doorCode != null) {
-      if (doorCode.isEmpty) {
-        throw StateError('doorCode não pode ser vazio.');
-      }
-      if (!RegExp(r'^\d{5}$').hasMatch(doorCode)) {
-        throw StateError('doorCode deve conter exatamente 5 dígitos.');
-      }
-    }
-
-    final String? hashedDoorCode =
-        doorCode != null ? hashDoorCode(doorCode) : null;
 
     final createdAluguel = await repository.createAluguel(
       userId: userId,
@@ -49,7 +36,6 @@ class CreateAluguelUsecase {
       people: people,
       finalPrice: finalPrice.toDouble(),
       status: 'PENDING',
-      doorCode: hashedDoorCode,
     );
 
     final aluguelCreated = RabbitMQEvent(
