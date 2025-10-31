@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:dart_amqp/dart_amqp.dart';
+import 'package:uuid/uuid.dart';
 import 'package:aluguel_dart/shared/environments.dart';
 
 const String EXCHANGE_NAME = 'global_events';
@@ -210,6 +211,100 @@ Future<void> closeRabbitMQConnection() async {
 }
 
 
+
+Future<bool> verifyDoorCodeWithCatalog({
+  required String workspaceId,
+  required String doorCode,
+  Duration timeout = const Duration(seconds: 5),
+}) async {
+  final channel = await connectRabbitMQ();
+  final exchange =
+      await channel.exchange(EXCHANGE_NAME, ExchangeType.TOPIC, durable: true);
+  final replyQueue = await channel.queue('', exclusive: true, autoDelete: true);
+  final correlationId = const Uuid().v4();
+  final completer = Completer<bool>();
+  final consumer = await replyQueue.consume(noAck: false);
+  StreamSubscription<AmqpMessage>? subscription;
+
+  subscription = consumer.listen(
+    (AmqpMessage message) {
+      try {
+        if (message.properties?.corellationId != correlationId) {
+          message.reject(false);
+          return;
+        }
+
+        final decoded = jsonDecode(message.payloadAsString);
+        bool result = false;
+        if (decoded is Map<String, dynamic>) {
+          result = decoded['valid'] == true;
+        } else if (decoded is bool) {
+          result = decoded;
+        }
+
+        message.ack();
+        if (!completer.isCompleted) {
+          completer.complete(result);
+        }
+        subscription?.cancel();
+      } catch (error) {
+        message.reject(false);
+        if (!completer.isCompleted) {
+          completer.completeError(error);
+        }
+      }
+    },
+    onError: (error) {
+      if (!completer.isCompleted) {
+        completer.completeError(error);
+      }
+    },
+    onDone: () {
+      if (!completer.isCompleted) {
+        completer.completeError(
+          StateError('reply queue closed before receiving response'),
+        );
+      }
+    },
+    cancelOnError: false,
+  );
+
+  final payload = {
+    'eventType': 'CatalogoVerifyDoorCodeRequest',
+    'payload': {
+      'workspaceId': workspaceId,
+      'doorCode': doorCode,
+    },
+  };
+
+  final properties = MessageProperties()
+    ..replyTo = replyQueue.name
+    ..corellationId = correlationId
+    ..contentType = 'application/json'
+    ..deliveryMode = 1;
+
+  exchange.publish(
+    utf8.encode(jsonEncode(payload)),
+    'catalogo.verify-door-code.request',
+    properties: properties,
+  );
+
+  final timer = Timer(timeout, () {
+    if (!completer.isCompleted) {
+      completer.completeError(
+        TimeoutException('Door code verification timed out'),
+      );
+    }
+  });
+
+  try {
+    return await completer.future;
+  } finally {
+    timer.cancel();
+    await subscription.cancel();
+    await replyQueue.delete();
+  }
+}
 
 const String _DELAY_EXCHANGE = 'aluguel.delay.ex'; // exchange de delay (direct)
 const String _DELAY_QUEUE = 'aluguel.delay.q';     // fila de delay

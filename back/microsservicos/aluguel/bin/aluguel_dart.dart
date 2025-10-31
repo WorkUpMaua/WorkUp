@@ -15,11 +15,13 @@ import 'package:aluguel_dart/application/get_aluguel_usecase.dart';
 import 'package:aluguel_dart/application/create_aluguel_usecase.dart';
 import 'package:aluguel_dart/application/update_aluguel_usecase.dart';
 import 'package:aluguel_dart/application/delete_aluguel_usecase.dart';
+import 'package:aluguel_dart/application/verify_door_code_usecase.dart';
 import 'package:aluguel_dart/domain/repositories/aluguel_repository.dart';
 import 'package:aluguel_dart/presentation/http/controllers/get_aluguel_controller.dart';
 import 'package:aluguel_dart/presentation/http/controllers/create_aluguel_controller.dart';
 import 'package:aluguel_dart/presentation/http/controllers/update_aluguel_controller.dart';
 import 'package:aluguel_dart/presentation/http/controllers/delete_aluguel_controller.dart';
+import 'package:aluguel_dart/presentation/http/controllers/get_door_hash_controller.dart';
 
 Future<void> _shutdownServer(HttpServer server, String message) async {
   stdout.writeln(message);
@@ -43,12 +45,14 @@ Future<void> main() async {
   final updateAluguelUsecase = UpdateAluguelUsecase(repository: repo);
   final deleteAluguelUsecase = DeleteAluguelUsecase(repository: repo);
   final getAllAluguelUsecase = GetAllAluguelUsecase(repository: repo);
+  final verifyDoorCodeUsecase = VerifyDoorCodeUsecase(repository: repo);
 
   final getController = GetAluguelController(getAluguelUsecase);
   final createController = CreateAluguelController(createAluguelUsecase);
   final updateController = UpdateAluguelController(updateAluguelUsecase);
   final deleteController = DeleteAluguelController(deleteAluguelUsecase);
   final getAllAluguelController = GetAllAluguelController(getAllAluguelUsecase);
+  final getDoorHashController = GetDoorHashController(verifyDoorCodeUsecase);
 
   final router = Router()
     ..mount(
@@ -58,7 +62,8 @@ Future<void> main() async {
         createController: createController,
         updateController: updateController,
         deleteController: deleteController,
-        getAllAluguelController: getAllAluguelController
+        getAllAluguelController: getAllAluguelController,
+        getDoorHashController: getDoorHashController,
       ).call,
     );
 
