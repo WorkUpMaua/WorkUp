@@ -50,7 +50,10 @@ class GetDoorHashController {
         headers: {'content-type': 'application/json'},
       );
     } catch (e) {
-      return jsonServerError({'error': 'internal_error', 'detail': e.toString()});
+      return jsonServerError({
+        'error': 'internal_error',
+        'detail': e.toString(),
+      });
     }
   }
 }

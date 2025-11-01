@@ -1,4 +1,4 @@
-import crypto, { randomInt } from "crypto";
+import { randomInt } from "crypto";
 import { CreateCatalogoUsecase } from "./create_catalogo_usecase";
 import { Request, Response } from "express";
 import { Catalogo } from "../../shared/domain/interfaces";
@@ -70,7 +70,7 @@ export class CreateCatalogoController {
       //   doorCodeHash = trimmed.toLowerCase();
       // }
 
-      const doorCodeHash = String(Math.floor(Math.random() * 100000)).padStart(5, '0');
+      const doorCodeHash = randomInt(0, 100000).toString().padStart(5, '0');
 
       const roomProps = {
         ...body,

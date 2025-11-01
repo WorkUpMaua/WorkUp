@@ -1,6 +1,6 @@
 import 'package:aluguel_dart/domain/entities/aluguel.dart';
 import 'package:aluguel_dart/domain/repositories/aluguel_repository.dart';
-import 'package:aluguel_dart/shared/security/door_code_hasher.dart';
+import 'package:aluguel_dart/infrastructure/clients/rabbitmq/rabbitmq.dart';
 
 class UpdateAluguelUsecase {
   final AluguelRepository repository;
@@ -25,15 +25,36 @@ class UpdateAluguelUsecase {
     if (finalPrice != null && finalPrice < 0) {
       throw StateError('finalPrice não pode ser negativo.');
     }
-    String? hashedDoorCode;
-    if (doorCode != null) {
-      if (doorCode.isEmpty) {
-        throw StateError('doorCode não pode ser vazio.');
+
+    String? desiredDoorCode = doorCode;
+
+    if (status != null &&
+        status.toUpperCase() == 'CONFIRMED' &&
+        doorCode == null) {
+      final current = await repository.getAluguel(id);
+      if (current == null) {
+        throw StateError('aluguel_not_found');
       }
-      if (!RegExp(r'^\d{5}$').hasMatch(doorCode)) {
-        throw StateError('doorCode deve conter exatamente 5 dígitos.');
+
+      final fetchedDoorCode = await fetchDoorCodeFromCatalog(
+        current.workspaceId,
+      );
+      if (fetchedDoorCode == null || fetchedDoorCode.isEmpty) {
+        throw StateError('door_code_not_found');
       }
-      hashedDoorCode = hashDoorCode(doorCode);
+      desiredDoorCode = fetchedDoorCode;
+    }
+
+    String? sanitizedDoorCode;
+    if (desiredDoorCode != null) {
+      final trimmedDoorCode = desiredDoorCode.trim();
+      if (trimmedDoorCode.isEmpty) {
+        throw StateError('doorCode nǜo pode ser vazio.');
+      }
+      if (!RegExp(r'^\d{5}$').hasMatch(trimmedDoorCode)) {
+        throw StateError('doorCode deve conter exatamente 5 d��gitos.');
+      }
+      sanitizedDoorCode = trimmedDoorCode;
     }
 
     return repository.updateAluguel(
@@ -43,7 +64,7 @@ class UpdateAluguelUsecase {
       people: people,
       finalPrice: finalPrice,
       status: status,
-      doorCode: hashedDoorCode,
+      doorCode: sanitizedDoorCode,
     );
   }
 }
