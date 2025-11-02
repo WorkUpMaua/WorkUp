@@ -9,12 +9,12 @@ if (!RABBITMQ_URL) {
     process.exit(1);
 }
 
-const EXCHANGE_NAME = 'global_events'; 
+export const EXCHANGE_NAME = 'global_events'; 
 
 let connection: Connection | null = null;
 let channel: Channel | null = null;
 
-const connectRabbitMQ = async (): Promise<Channel> => {
+export const connectRabbitMQ = async (): Promise<Channel> => {
     
     if (channel) {
         return channel;

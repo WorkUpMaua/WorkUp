@@ -22,6 +22,7 @@ abstract class AluguelRepository {
     int? people,
     double? finalPrice,
     String? status,
+    String? doorCode,
   });
 
 

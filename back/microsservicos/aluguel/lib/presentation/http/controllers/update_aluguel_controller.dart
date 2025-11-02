@@ -1,9 +1,9 @@
-// lib/src/presentation/http/controllers/update_aluguel_controller.dart
 import 'dart:convert';
-import 'package:shelf/shelf.dart';
+
 import 'package:aluguel_dart/application/update_aluguel_usecase.dart';
-import 'package:aluguel_dart/shared/http/json_response.dart';
 import 'package:aluguel_dart/shared/http/app_failures.dart';
+import 'package:aluguel_dart/shared/http/json_response.dart';
+import 'package:shelf/shelf.dart';
 
 class UpdateAluguelController {
   final UpdateAluguelUsecase updateAluguelUsecase;
@@ -29,6 +29,7 @@ class UpdateAluguelController {
       final int? people = data['people'];
       final num? finalPrice = data['finalPrice'];
       final String? status = data['status'];
+      final String? doorCode = data['doorCode'];
 
       if (startDate != null && endDate != null && endDate <= startDate) {
         throw AppFailure('endDate_must_be_greater_than_startDate');
@@ -39,6 +40,9 @@ class UpdateAluguelController {
       if (finalPrice != null && finalPrice <= 0) {
         throw AppFailure('finalPrice_must_be_positive');
       }
+      if (doorCode != null && doorCode.isEmpty) {
+        throw AppFailure('doorCode_cannot_be_empty');
+      }
 
       final aluguelAtualizado = await updateAluguelUsecase.call(
         id.toString(),
@@ -47,6 +51,7 @@ class UpdateAluguelController {
         people: people,
         finalPrice: finalPrice?.toDouble(),
         status: status,
+        doorCode: doorCode,
       );
 
       return jsonOk(aluguelAtualizado.toJson());

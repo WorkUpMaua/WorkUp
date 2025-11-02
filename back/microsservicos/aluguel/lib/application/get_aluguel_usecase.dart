@@ -5,7 +5,7 @@ class GetAluguelUsecase {
   final AluguelRepository repository;
 
   GetAluguelUsecase({required this.repository});
-  
+
   Future<Aluguel> call(String id) async {
     if (id.isEmpty) {
       throw ArgumentError('ID do aluguel não pode ser vazio.');

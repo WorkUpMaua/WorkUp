@@ -60,6 +60,7 @@ class AluguelRepositoryMock implements AluguelRepository {
     int? people,
     double? finalPrice,
     String? status,
+    String? doorCode,
   }) async {
     final atual = store[id];
 
@@ -79,6 +80,7 @@ class AluguelRepositoryMock implements AluguelRepository {
       people: people ?? atual.people,
       finalPrice: finalPrice ?? atual.finalPrice,
       status: status ?? atual.status,
+      doorCode: doorCode ?? atual.doorCode,
       createdAt: atual.createdAt,
       updatedAt: DateTime.now().millisecondsSinceEpoch ~/ 1000,
     );

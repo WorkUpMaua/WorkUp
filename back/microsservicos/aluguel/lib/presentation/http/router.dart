@@ -2,6 +2,7 @@ import 'package:aluguel_dart/presentation/http/controllers/create_aluguel_contro
 import 'package:aluguel_dart/presentation/http/controllers/delete_aluguel_controller.dart';
 import 'package:aluguel_dart/presentation/http/controllers/get_all_aluguel_controller.dart';
 import 'package:aluguel_dart/presentation/http/controllers/get_aluguel_controller.dart';
+import 'package:aluguel_dart/presentation/http/controllers/get_door_hash_controller.dart';
 import 'package:aluguel_dart/presentation/http/controllers/update_aluguel_controller.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
@@ -12,7 +13,8 @@ Router buildAluguelRoutes({
   required CreateAluguelController createController,
   required UpdateAluguelController updateController,
   required DeleteAluguelController deleteController,
-  required GetAllAluguelController getAllAluguelController
+  required GetAllAluguelController getAllAluguelController,
+  required GetDoorHashController getDoorHashController,
 }) {
   final r = Router();
 
@@ -28,6 +30,8 @@ Router buildAluguelRoutes({
   r.patch('/aluguel', updateController.handle);
 
   r.delete('/aluguel', deleteController.handle);
+
+  r.post('/get-door-hash', getDoorHashController.handle);
 
   return r;
 }
