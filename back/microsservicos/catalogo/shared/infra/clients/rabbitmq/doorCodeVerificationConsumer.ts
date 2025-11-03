@@ -57,7 +57,7 @@ export const startDoorCodeVerificationConsumer = async (): Promise<void> => {
         try {
           const repo = Environments.getCatalogoRepo();
           const catalogo = repo.getCatalogo(workspaceId);
-          const storedHash = catalogo?.doorCodeHash;
+          const storedHash = catalogo?.doorSerial;
 
           if (storedHash) {
             valid = storedHash.trim() === doorCode.trim();
@@ -149,7 +149,7 @@ export const startDoorCodeFetchConsumer = async (): Promise<void> => {
         try {
           const repo = Environments.getCatalogoRepo();
           const catalogo = repo.getCatalogo(workspaceId);
-          doorCodeHash = catalogo?.doorCodeHash ?? null;
+          doorCodeHash = catalogo?.doorSerial ?? null;
         } catch (error) {
           console.error(
             '[DoorCodeFetch] Error while retrieving door code:',

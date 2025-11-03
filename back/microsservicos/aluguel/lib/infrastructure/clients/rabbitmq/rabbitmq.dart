@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:aluguel_dart/domain/entities/aluguel.dart';
 import 'package:dart_amqp/dart_amqp.dart';
 import 'package:uuid/uuid.dart';
 import 'package:aluguel_dart/shared/environments.dart';
@@ -339,8 +340,7 @@ Future<String?> fetchDoorCodeFromCatalog(
 }
 
 Future<bool> verifyDoorCodeWithCatalog({
-  required String workspaceId,
-  required String doorCode,
+  required Aluguel aluguel,
   Duration timeout = const Duration(seconds: 5),
 }) async {
   final channel = await connectRabbitMQ();
@@ -403,8 +403,8 @@ Future<bool> verifyDoorCodeWithCatalog({
   );
 
   final payload = {
-    'eventType': 'CatalogoVerifyDoorCodeRequest',
-    'payload': {'workspaceId': workspaceId, 'doorCode': doorCode},
+    'eventType': 'CatalogoRequestDoorSerial',
+    'payload': aluguel.toJson(),
   };
 
   final properties = MessageProperties()

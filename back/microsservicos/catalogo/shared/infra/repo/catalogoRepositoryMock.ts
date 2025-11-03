@@ -33,7 +33,7 @@ export class CatalogoRepositoryMock implements CatalogoRepository {
             pictures: props.pictures,
             price: props.price,
             capacity: props.capacity,
-            doorCodeHash: props.doorCodeHash
+            doorSerial: props.doorSerial
         }
 
         this.baseCatalogo[id] = room
@@ -57,7 +57,7 @@ export class CatalogoRepositoryMock implements CatalogoRepository {
         if(props.pictures && props.pictures.length > 0) room_to_update.pictures = props.pictures
         if(props.price) room_to_update.price = props.price
         if(props.capacity) room_to_update.capacity = props.capacity
-        if(props.doorCodeHash) room_to_update.doorCodeHash = props.doorCodeHash
+        if(props.doorSerial) room_to_update.doorSerial = props.doorSerial
         
         return room_to_update
         

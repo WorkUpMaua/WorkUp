@@ -20,19 +20,13 @@ class GetDoorHashController {
 
       final data = jsonDecode(body);
 
-      final aluguelId = (data['aluguelId'] ?? data['bookingId'])?.toString();
       final doorCode = data['doorCode']?.toString();
-
-      if (aluguelId == null || aluguelId.isEmpty) {
-        throw AppFailure('aluguelId_required');
-      }
       if (doorCode == null || doorCode.isEmpty) {
         throw AppFailure('doorCode_required');
       }
 
       final isValid = await verifyDoorCodeUsecase.call(
-        aluguelId: aluguelId,
-        plainDoorCode: doorCode,
+        doorCode: doorCode,
       );
 
       return jsonOk({'valid': isValid});

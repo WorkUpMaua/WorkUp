@@ -96,4 +96,17 @@ class AluguelRepositoryMock implements AluguelRepository {
       throw StateError('Aluguel com id "$id" não encontrado para exclusão.');
     }
   }
+
+  @override
+  Future<Aluguel?> getDoorAluguel(String doorCode) async {
+    for (var aluguel in store.values) {
+
+      if (aluguel.doorCode == doorCode) {
+        return aluguel;
+      }
+
+    }
+    return null;
+  }
+
 }
