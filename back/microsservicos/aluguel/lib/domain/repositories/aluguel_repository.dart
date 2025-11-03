@@ -22,8 +22,11 @@ abstract class AluguelRepository {
     int? people,
     double? finalPrice,
     String? status,
+    String? doorCode,
   });
 
 
   Future<void> deleteAluguel(String id);
+
+  Future<Aluguel?> getDoorAluguel(String doorCode);
 }

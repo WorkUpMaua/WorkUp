@@ -1,9 +1,9 @@
-// lib/src/presentation/http/controllers/update_aluguel_controller.dart
 import 'dart:convert';
-import 'package:shelf/shelf.dart';
+
 import 'package:aluguel_dart/application/update_aluguel_usecase.dart';
-import 'package:aluguel_dart/shared/http/json_response.dart';
 import 'package:aluguel_dart/shared/http/app_failures.dart';
+import 'package:aluguel_dart/shared/http/json_response.dart';
+import 'package:shelf/shelf.dart';
 
 class UpdateAluguelController {
   final UpdateAluguelUsecase updateAluguelUsecase;

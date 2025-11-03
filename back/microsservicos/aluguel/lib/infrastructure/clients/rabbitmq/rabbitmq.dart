@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:dart_amqp/dart_amqp.dart';
+import 'package:uuid/uuid.dart';
 import 'package:aluguel_dart/shared/environments.dart';
 
 const String EXCHANGE_NAME = 'global_events';
@@ -28,7 +29,9 @@ Future<void> _invalidateChannel({String reason = 'unknown'}) async {
     // ignore
   } finally {
     _channel = null;
-    stdout.writeln('[RabbitMQ] Channel invalidated (reason: $reason). Will recreate on next use.');
+    stdout.writeln(
+      '[RabbitMQ] Channel invalidated (reason: $reason). Will recreate on next use.',
+    );
   }
 }
 
@@ -39,7 +42,9 @@ Future<Client> _getConnection() async {
   _ensureRabbitUrlOrExit();
   final uri = Uri.parse(RABBITMQ_URL);
 
-  final user = uri.userInfo.isNotEmpty ? Uri.decodeComponent(uri.userInfo.split(':').first) : 'guest';
+  final user = uri.userInfo.isNotEmpty
+      ? Uri.decodeComponent(uri.userInfo.split(':').first)
+      : 'guest';
   final pass = (uri.userInfo.contains(':'))
       ? Uri.decodeComponent(uri.userInfo.split(':').last)
       : 'guest';
@@ -66,7 +71,9 @@ Future<Channel> connectRabbitMQ() async {
     // Espelha o TS: assert do exchange topic/durable
     await _channel!.exchange(EXCHANGE_NAME, ExchangeType.TOPIC, durable: true);
 
-    stdout.writeln('[RabbitMQ] Connected. Channel created and exchange asserted.');
+    stdout.writeln(
+      '[RabbitMQ] Connected. Channel created and exchange asserted.',
+    );
     return _channel!;
   } catch (e) {
     stderr.writeln('[RabbitMQ] Failed to connect/create channel: $e');
@@ -75,7 +82,10 @@ Future<Channel> connectRabbitMQ() async {
 }
 
 /// Wrapper: executa ação no canal com retry 1x se o canal morrer
-Future<T> _withChannel<T>(Future<T> Function(Channel ch) action, {required String op}) async {
+Future<T> _withChannel<T>(
+  Future<T> Function(Channel ch) action, {
+  required String op,
+}) async {
   Future<T> attempt() async {
     final ch = await connectRabbitMQ();
     return action(ch);
@@ -84,19 +94,25 @@ Future<T> _withChannel<T>(Future<T> Function(Channel ch) action, {required Strin
   try {
     return await attempt();
   } on ChannelException catch (e) {
-    stderr.writeln('[RabbitMQ] ChannelException during $op: $e. Recreating channel and retrying once...');
+    stderr.writeln(
+      '[RabbitMQ] ChannelException during $op: $e. Recreating channel and retrying once...',
+    );
     await _invalidateChannel(reason: 'ChannelException:$e');
     final result = await attempt();
     stdout.writeln('[RabbitMQ] $op succeeded after channel recreation.');
     return result;
   } on IOException catch (e) {
-    stderr.writeln('[RabbitMQ] IOException during $op: $e. Recreating channel and retrying once...');
+    stderr.writeln(
+      '[RabbitMQ] IOException during $op: $e. Recreating channel and retrying once...',
+    );
     await _invalidateChannel(reason: 'IOException:$e');
     final result = await attempt();
     stdout.writeln('[RabbitMQ] $op succeeded after channel recreation.');
     return result;
   } on StateError catch (e) {
-    stderr.writeln('[RabbitMQ] StateError during $op: $e. Recreating channel and retrying once...');
+    stderr.writeln(
+      '[RabbitMQ] StateError during $op: $e. Recreating channel and retrying once...',
+    );
     await _invalidateChannel(reason: 'StateError:$e');
     final result = await attempt();
     stdout.writeln('[RabbitMQ] $op succeeded after channel recreation.');
@@ -111,14 +127,20 @@ Future<bool> publishEvent<T extends Object>(
   T eventData,
 ) async {
   return _withChannel<bool>((ch) async {
-    final exchange = await ch.exchange(EXCHANGE_NAME, ExchangeType.TOPIC, durable: true);
+    final exchange = await ch.exchange(
+      EXCHANGE_NAME,
+      ExchangeType.TOPIC,
+      durable: true,
+    );
 
     final body = utf8.encode(jsonEncode(eventData));
     final props = MessageProperties()..deliveryMode = 2; // persistente
 
     exchange.publish(body, routingKey, properties: props);
 
-    stdout.writeln("[PUBLISHER] Topic '$routingKey' published to '$EXCHANGE_NAME': $eventData");
+    stdout.writeln(
+      "[PUBLISHER] Topic '$routingKey' published to '$EXCHANGE_NAME': $eventData",
+    );
     return true;
   }, op: 'publishEvent');
 }
@@ -132,7 +154,11 @@ Future<void> consumeEvents<T extends Object>(
 ) async {
   await _withChannel<void>((ch) async {
     // Declarar exchange (assert) como no TS
-    final exchange = await ch.exchange(EXCHANGE_NAME, ExchangeType.TOPIC, durable: true);
+    final exchange = await ch.exchange(
+      EXCHANGE_NAME,
+      ExchangeType.TOPIC,
+      durable: true,
+    );
 
     final queue = await ch.queue(
       queueName,
@@ -146,7 +172,9 @@ Future<void> consumeEvents<T extends Object>(
     // ✅ Correção: bind usando o objeto Exchange, não a string
     await queue.bind(exchange, bindingKey);
 
-    stdout.writeln("[CONSUMER] Listening on queue '$queueName' with binding '$bindingKey'");
+    stdout.writeln(
+      "[CONSUMER] Listening on queue '$queueName' with binding '$bindingKey'",
+    );
 
     final consumer = await queue.consume(noAck: false);
 
@@ -155,7 +183,9 @@ Future<void> consumeEvents<T extends Object>(
         bool ackedOrRejected = false;
         try {
           final payload = jsonDecode(msg.payloadAsString) as T;
-          stdout.writeln('[CONSUMER] Received (${msg.routingKey ?? bindingKey}): $payload');
+          stdout.writeln(
+            '[CONSUMER] Received (${msg.routingKey ?? bindingKey}): $payload',
+          );
 
           await callback(payload);
 
@@ -166,13 +196,17 @@ Future<void> consumeEvents<T extends Object>(
         } catch (err) {
           stderr.writeln('[CONSUMER] Error processing message: $err');
           if (!ackedOrRejected) {
-            msg.reject(false); // nack sem requeue (equivalente ao TS: nack(msg, false, false))
+            msg.reject(
+              false,
+            ); // nack sem requeue (equivalente ao TS: nack(msg, false, false))
             ackedOrRejected = true;
           }
         }
       },
       onError: (err) async {
-        stderr.writeln('[CONSUMER] Stream error: $err. Marking channel as dead.');
+        stderr.writeln(
+          '[CONSUMER] Stream error: $err. Marking channel as dead.',
+        );
         await _invalidateChannel(reason: 'consumer.onError:$err');
       },
       onDone: () async {
@@ -209,16 +243,116 @@ Future<void> closeRabbitMQConnection() async {
   }
 }
 
+Future<String?> fetchDoorCodeFromCatalog(
+  String workspaceId, {
+  Duration timeout = const Duration(seconds: 5),
+}) async {
+  final channel = await connectRabbitMQ();
+  final exchange = await channel.exchange(
+    EXCHANGE_NAME,
+    ExchangeType.TOPIC,
+    durable: true,
+  );
+  final replyQueue = await channel.queue('', exclusive: true, autoDelete: true);
+  final correlationId = const Uuid().v4();
+  final completer = Completer<String?>();
+  final consumer = await replyQueue.consume(noAck: false);
+  late final StreamSubscription<AmqpMessage> subscription;
 
+  subscription = consumer.listen(
+    (AmqpMessage message) {
+      try {
+        if (message.properties?.corellationId != correlationId) {
+          message.reject(false);
+          return;
+        }
+
+        final decoded = jsonDecode(message.payloadAsString);
+        String? doorCode;
+        if (decoded is Map<String, dynamic>) {
+          final rawDoorCode = decoded['doorSerial'] ??
+              decoded['doorCodeHash'] ??
+              decoded['doorCode'] ??
+              decoded['code'];
+          if (rawDoorCode is String && rawDoorCode.isNotEmpty) {
+            doorCode = rawDoorCode;
+          }
+        } else if (decoded is String && decoded.isNotEmpty) {
+          doorCode = decoded;
+        }
+
+        message.ack();
+        if (!completer.isCompleted) {
+          completer.complete(doorCode);
+        }
+        subscription.cancel();
+      } catch (error) {
+        message.reject(false);
+        if (!completer.isCompleted) {
+          completer.completeError(error);
+        }
+      }
+    },
+    onError: (error) {
+      if (!completer.isCompleted) {
+        completer.completeError(error);
+      }
+    },
+    onDone: () {
+      if (!completer.isCompleted) {
+        completer.completeError(
+          StateError('reply queue closed before receiving response'),
+        );
+      }
+    },
+    cancelOnError: false,
+  );
+
+  final payload = {
+    'eventType': 'CatalogoDoorCodeRequest',
+    'payload': {'workspaceId': workspaceId},
+  };
+
+  final properties = MessageProperties()
+    ..replyTo = replyQueue.name
+    ..corellationId = correlationId
+    ..contentType = 'application/json'
+    ..deliveryMode = 1;
+
+  exchange.publish(
+    utf8.encode(jsonEncode(payload)),
+    'catalogo.door-code.request',
+    properties: properties,
+  );
+
+  final timer = Timer(timeout, () {
+    if (!completer.isCompleted) {
+      completer.completeError(TimeoutException('Door code fetch timed out'));
+    }
+  });
+
+  try {
+    return await completer.future;
+  } finally {
+    timer.cancel();
+    await subscription.cancel();
+    await replyQueue.delete();
+  }
+}
 
 const String _DELAY_EXCHANGE = 'aluguel.delay.ex'; // exchange de delay (direct)
-const String _DELAY_QUEUE = 'aluguel.delay.q';     // fila de delay
-const String _DELAY_RK = 'aluguel.expire';         // routing key para entrar no delay
-const String _EXPIRED_RK = 'aluguel.expired';      // routing key de saída (vai para EXCHANGE_NAME)
+const String _DELAY_QUEUE = 'aluguel.delay.q'; // fila de delay
+const String _DELAY_RK = 'aluguel.expire'; // routing key para entrar no delay
+const String _EXPIRED_RK =
+    'aluguel.expired'; // routing key de saída (vai para EXCHANGE_NAME)
 
 Future<void> _ensureDelayInfra(Channel ch) async {
   // Exchange/Fila de delay: quando a msg expira, vai para o exchange principal (EXCHANGE_NAME)
-  final delayEx = await ch.exchange(_DELAY_EXCHANGE, ExchangeType.DIRECT, durable: true);
+  final delayEx = await ch.exchange(
+    _DELAY_EXCHANGE,
+    ExchangeType.DIRECT,
+    durable: true,
+  );
 
   final delayQ = await ch.queue(
     _DELAY_QUEUE,
@@ -236,7 +370,7 @@ Future<void> _ensureDelayInfra(Channel ch) async {
 /// Se `endDateMs` já passou, publica imediatamente em `EXCHANGE_NAME` com routing key `_EXPIRED_RK`.
 Future<void> scheduleAluguelExpiration({
   required String eventType,
-  required Map<String, dynamic> payload
+  required Map<String, dynamic> payload,
 }) async {
   final ch = await connectRabbitMQ();
   final now = DateTime.now().toUtc().millisecondsSinceEpoch;
@@ -244,28 +378,38 @@ Future<void> scheduleAluguelExpiration({
 
   if (delayMs <= 0) {
     // já venceu: publica direto no exchange principal
-    final mainEx = await ch.exchange(EXCHANGE_NAME, ExchangeType.TOPIC, durable: true);
-    final msg = {
-      'eventType': eventType,
-      'payload': payload
-    };
+    final mainEx = await ch.exchange(
+      EXCHANGE_NAME,
+      ExchangeType.TOPIC,
+      durable: true,
+    );
+    final msg = {'eventType': eventType, 'payload': payload};
     final props = MessageProperties()..deliveryMode = 2;
-    mainEx.publish(utf8.encode(jsonEncode(msg)), _EXPIRED_RK, properties: props);
-    stdout.writeln("[SCHEDULER] Expired immediately -> $_EXPIRED_RK payload=$msg");
+    mainEx.publish(
+      utf8.encode(jsonEncode(msg)),
+      _EXPIRED_RK,
+      properties: props,
+    );
+    stdout.writeln(
+      "[SCHEDULER] Expired immediately -> $_EXPIRED_RK payload=$msg",
+    );
     return;
   }
 
   await _ensureDelayInfra(ch);
 
-  final delayEx = await ch.exchange(_DELAY_EXCHANGE, ExchangeType.DIRECT, durable: true);
+  final delayEx = await ch.exchange(
+    _DELAY_EXCHANGE,
+    ExchangeType.DIRECT,
+    durable: true,
+  );
   final props = MessageProperties()
     ..deliveryMode = 2
-    ..expiration = delayMs.toString(); 
+    ..expiration = delayMs.toString();
 
-  final data = {
-      'eventType': eventType,
-      'payload': payload
-    };
+  final data = {'eventType': eventType, 'payload': payload};
   delayEx.publish(utf8.encode(jsonEncode(data)), _DELAY_RK, properties: props);
-  stdout.writeln("[SCHEDULER] Scheduled in ${delayMs}ms -> $_DELAY_EXCHANGE:$_DELAY_RK payload=$payload");
+  stdout.writeln(
+    "[SCHEDULER] Scheduled in ${delayMs}ms -> $_DELAY_EXCHANGE:$_DELAY_RK payload=$payload",
+  );
 }

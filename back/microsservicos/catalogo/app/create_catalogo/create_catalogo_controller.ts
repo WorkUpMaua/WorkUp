@@ -1,3 +1,4 @@
+import { randomInt } from "crypto";
 import { CreateCatalogoUsecase } from "./create_catalogo_usecase";
 import { Request, Response } from "express";
 import { Catalogo } from "../../shared/domain/interfaces";
@@ -29,6 +30,8 @@ export class CreateCatalogoController {
         throw new Error("Missing catalogo price");
       if (body.capacity === undefined)
         throw new Error("Missing catalogo capacity");
+      if (body.doorSerial === undefined)
+        throw new Error("Missing door serial")
 
       const price =
         typeof body.price === "string" ? Number(body.price) : body.price;
@@ -41,12 +44,15 @@ export class CreateCatalogoController {
         ? [body.comodities]
         : [];
 
+      const doorSerial = body.doorSerial
+
       const roomProps = {
         ...body,
         comodities,
         pictures: [],
         price,
         capacity,
+        doorSerial,
       } as Catalogo;
 
       const createdRoom = this.usecase.execute(roomProps);

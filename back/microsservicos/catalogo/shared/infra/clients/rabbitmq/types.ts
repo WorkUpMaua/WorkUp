@@ -8,6 +8,7 @@ export type catalogo = {
     pictures: string[]
     price: number
     capacity: number
+    doorCodeHash?: string
 }
 
 export type userInformation = {

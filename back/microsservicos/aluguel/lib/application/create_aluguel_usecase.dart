@@ -11,23 +11,24 @@ class CreateAluguelUsecase {
   Future<Aluguel> call({
     required String userId,
     required String workspaceId,
-    required int startDate, 
-    required int endDate,   
+    required int startDate,
+    required int endDate,
     required int people,
-    required num finalPrice,
+    required num finalPrice
   }) async {
-
     if (endDate < startDate) {
       throw StateError('endDate não pode ser menor que startDate.');
     }
     if (people <= 0) {
-      throw StateError('O número de pessoas para a reserva deve ser diferente de null e maior que.');
+      throw StateError(
+        'O número de pessoas para a reserva deve ser diferente de null e maior que zero.',
+      );
     }
     if (finalPrice < 0) {
       throw StateError('finalPrice não pode ser negativo.');
     }
 
-    Aluguel createdAluguel = await repository.createAluguel(
+    final createdAluguel = await repository.createAluguel(
       userId: userId,
       workspaceId: workspaceId,
       startDate: startDate,
@@ -37,18 +38,18 @@ class CreateAluguelUsecase {
       status: 'PENDING',
     );
 
-    RabbitMQEvent aluguelCreated = RabbitMQEvent(eventType: 'AluguelCreated', payload: createdAluguel.toJson());
+    final aluguelCreated = RabbitMQEvent(
+      eventType: 'AluguelCreated',
+      payload: createdAluguel.toJson(),
+    );
 
-    final published = await publishEvent('aluguel.created', aluguelCreated.toJson());
+    final published =
+        await publishEvent('aluguel.created', aluguelCreated.toJson());
 
-    if(published){
+    if (published) {
       return createdAluguel;
     } else {
       throw StateError('Não foi possível criar o aluguel');
     }
-
   }
 }
-    
-    
-    

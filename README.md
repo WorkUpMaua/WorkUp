@@ -44,6 +44,20 @@ Além de seu propósito funcional, o sistema serve como aplicação prática de 
 
 ---
 
+## 🗺️ Diagramas
+
+<figure>
+  <img src="docs/fluxo.png" width="800">
+  <figcaption><strong>Figura 1:</strong> Arquitetura do projeto</figcaption>
+</figure>
+
+<figure>
+  <img src="docs/deploy_to_aws.png" width="800">
+  <figcaption><strong>Figura 2:</strong> Fluxo de deploy</figcaption>
+</figure>
+
+---
+
 ## 📚 Documentação da API
 
 A coleção completa de endpoints, exemplos de requisições e esquemas de resposta está disponível no Postman:
