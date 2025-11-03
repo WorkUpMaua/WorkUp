@@ -30,12 +30,8 @@ export class CreateCatalogoController {
         throw new Error("Missing catalogo price");
       if (body.capacity === undefined)
         throw new Error("Missing catalogo capacity");
-
-      // const {
-      //   doorCode,
-      //   doorCodeHash: providedDoorCodeHash,
-      //   ...restBody
-      // } = body;
+      if (body.doorSerial === undefined)
+        throw new Error("Missing door serial")
 
       const price =
         typeof body.price === "string" ? Number(body.price) : body.price;
@@ -48,29 +44,7 @@ export class CreateCatalogoController {
         ? [body.comodities]
         : [];
 
-      // let doorCodeHash: string | undefined = providedDoorCodeHash;
-      // const rawDoorInput: unknown = doorCode ?? providedDoorCodeHash;
-
-      // if (rawDoorInput !== undefined) {
-      //   if (typeof rawDoorInput !== "string") {
-      //     throw new Error("doorCode must be a string");
-      //   }
-      //   const trimmed = rawDoorInput.trim();
-
-      //   if (trimmed.length === 0) {
-      //     throw new Error("doorCode cannot be empty");
-      //   }
-      //   if (trimmed.length !== 5) {
-      //     throw new Error("doorCode must be exactly 5 characters");
-      //   }
-      //   if (!/^[0-9]+$/.test(trimmed)) {
-      //     throw new Error("doorCode must be numeric");
-      //   }
-
-      //   doorCodeHash = trimmed.toLowerCase();
-      // }
-
-      const doorCodeHash = randomInt(0, 100000).toString().padStart(5, '0');
+      const doorSerial = body.doorSerial
 
       const roomProps = {
         ...body,
@@ -78,7 +52,7 @@ export class CreateCatalogoController {
         pictures: [],
         price,
         capacity,
-        doorCodeHash,
+        doorSerial,
       } as Catalogo;
 
       const createdRoom = this.usecase.execute(roomProps);

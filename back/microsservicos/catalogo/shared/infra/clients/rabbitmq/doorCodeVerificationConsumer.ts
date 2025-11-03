@@ -51,16 +51,20 @@ export const startDoorCodeVerificationConsumer = async (): Promise<void> => {
       const workspaceId = payload?.workspaceId;
       const doorCode: string | undefined = payload?.doorCode;
 
-      let valid = false;
+      let responseBody: any = { valid: false };
 
       if (workspaceId && typeof doorCode === 'string') {
         try {
           const repo = Environments.getCatalogoRepo();
           const catalogo = repo.getCatalogo(workspaceId);
-          const storedHash = catalogo?.doorCodeHash;
+          const storedSerial = catalogo?.doorSerial;
 
-          if (storedHash) {
-            valid = storedHash.trim() === doorCode.trim();
+          if (storedSerial) {
+            const isValid = storedSerial.trim() === doorCode.trim();
+            responseBody = {
+              valid: isValid,
+              doorSerial: storedSerial.trim(),
+            };
           }
         } catch (error) {
           console.error(
@@ -72,7 +76,7 @@ export const startDoorCodeVerificationConsumer = async (): Promise<void> => {
 
       channel.sendToQueue(
         replyTo,
-        Buffer.from(JSON.stringify({ valid })),
+        Buffer.from(JSON.stringify(responseBody)),
         {
           correlationId,
           contentType: 'application/json',
@@ -143,13 +147,13 @@ export const startDoorCodeFetchConsumer = async (): Promise<void> => {
       const payload = parsedPayload?.payload ?? parsedPayload;
       const workspaceId = payload?.workspaceId;
 
-      let doorCodeHash: string | null = null;
+      let doorSerial: string | null = null;
 
       if (workspaceId) {
         try {
           const repo = Environments.getCatalogoRepo();
           const catalogo = repo.getCatalogo(workspaceId);
-          doorCodeHash = catalogo?.doorCodeHash ?? null;
+          doorSerial = catalogo?.doorSerial ?? null;
         } catch (error) {
           console.error(
             '[DoorCodeFetch] Error while retrieving door code:',
@@ -160,7 +164,7 @@ export const startDoorCodeFetchConsumer = async (): Promise<void> => {
 
       channel.sendToQueue(
         replyTo,
-        Buffer.from(JSON.stringify({ doorCodeHash })),
+        Buffer.from(JSON.stringify({ doorSerial })),
         {
           correlationId,
           contentType: 'application/json',
@@ -176,7 +180,7 @@ export const startDoorCodeFetchConsumer = async (): Promise<void> => {
         channel.sendToQueue(
           replyTo,
           Buffer.from(
-            JSON.stringify({ doorCodeHash: null, error: 'internal_error' }),
+            JSON.stringify({ doorSerial: null, error: 'internal_error' }),
           ),
           {
             correlationId,

@@ -270,8 +270,10 @@ Future<String?> fetchDoorCodeFromCatalog(
         final decoded = jsonDecode(message.payloadAsString);
         String? doorCode;
         if (decoded is Map<String, dynamic>) {
-          final rawDoorCode =
-              decoded['doorCodeHash'] ?? decoded['doorCode'] ?? decoded['code'];
+          final rawDoorCode = decoded['doorSerial'] ??
+              decoded['doorCodeHash'] ??
+              decoded['doorCode'] ??
+              decoded['code'];
           if (rawDoorCode is String && rawDoorCode.isNotEmpty) {
             doorCode = rawDoorCode;
           }
@@ -326,104 +328,6 @@ Future<String?> fetchDoorCodeFromCatalog(
   final timer = Timer(timeout, () {
     if (!completer.isCompleted) {
       completer.completeError(TimeoutException('Door code fetch timed out'));
-    }
-  });
-
-  try {
-    return await completer.future;
-  } finally {
-    timer.cancel();
-    await subscription.cancel();
-    await replyQueue.delete();
-  }
-}
-
-Future<bool> verifyDoorCodeWithCatalog({
-  required String workspaceId,
-  required String doorCode,
-  Duration timeout = const Duration(seconds: 5),
-}) async {
-  final channel = await connectRabbitMQ();
-  final exchange = await channel.exchange(
-    EXCHANGE_NAME,
-    ExchangeType.TOPIC,
-    durable: true,
-  );
-  final replyQueue = await channel.queue('', exclusive: true, autoDelete: true);
-  final correlationId = const Uuid().v4();
-  final completer = Completer<bool>();
-  final consumer = await replyQueue.consume(noAck: false);
-  late final StreamSubscription<AmqpMessage> subscription;
-
-  subscription = consumer.listen(
-    (AmqpMessage message) {
-      try {
-        if (message.properties?.corellationId != correlationId) {
-          message.reject(false);
-          return;
-        }
-
-        final decoded = jsonDecode(message.payloadAsString);
-        bool result = false;
-        if (decoded is Map<String, dynamic>) {
-          final dynamic candidate =
-              decoded['doorVerifiedHash'] ?? decoded['valid'];
-          if (candidate is bool) {
-            result = candidate;
-          }
-        } else if (decoded is bool) {
-          result = decoded;
-        }
-
-        message.ack();
-        if (!completer.isCompleted) {
-          completer.complete(result);
-        }
-        subscription.cancel();
-      } catch (error) {
-        message.reject(false);
-        if (!completer.isCompleted) {
-          completer.completeError(error);
-        }
-      }
-    },
-    onError: (error) {
-      if (!completer.isCompleted) {
-        completer.completeError(error);
-      }
-    },
-    onDone: () {
-      if (!completer.isCompleted) {
-        completer.completeError(
-          StateError('reply queue closed before receiving response'),
-        );
-      }
-    },
-    cancelOnError: false,
-  );
-
-  final payload = {
-    'eventType': 'CatalogoVerifyDoorCodeRequest',
-    'payload': {'workspaceId': workspaceId, 'doorCode': doorCode},
-  };
-
-  final properties = MessageProperties()
-    ..replyTo = replyQueue.name
-    ..corellationId = correlationId
-    ..contentType = 'application/json'
-    ..deliveryMode = 1;
-
-  exchange.publish(
-    utf8.encode(jsonEncode(payload)),
-    'catalogo.verify-door-code.request',
-    properties: properties,
-  );
-
-  final timer = Timer(timeout, () {
-    if (!completer.isCompleted) {
-      completer.completeError(
-        TimeoutException('Door code verification timed out'),
-      );
     }
   });
 

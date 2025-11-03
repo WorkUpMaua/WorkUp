@@ -20,29 +20,30 @@ class GetDoorHashController {
 
       final data = jsonDecode(body);
 
-      final aluguelId = (data['aluguelId'] ?? data['bookingId'])?.toString();
       final doorCode = data['doorCode']?.toString();
-
-      if (aluguelId == null || aluguelId.isEmpty) {
-        throw AppFailure('aluguelId_required');
-      }
       if (doorCode == null || doorCode.isEmpty) {
         throw AppFailure('doorCode_required');
       }
 
-      final isValid = await verifyDoorCodeUsecase.call(
-        aluguelId: aluguelId,
-        plainDoorCode: doorCode,
+      final doorSerial = await verifyDoorCodeUsecase.call(
+        doorCode: doorCode,
       );
 
-      return jsonOk({'valid': isValid});
+      return jsonOk({'doorSerial': doorSerial});
     } on AppFailure catch (e) {
       return jsonBadRequest({'error': e.message});
     } on StateError catch (e) {
-      if (e.message == 'aluguel_not_found') {
-        return jsonNotFound({'error': e.message});
+      final message = e.message;
+      if (message == 'door code not found') {
+        return jsonNotFound({'error': message});
       }
-      return jsonBadRequest({'error': e.message});
+      if (message == 'door serial not found') {
+        return jsonBadRequest({'error': message});
+      }
+      if (message == 'door code invalid') {
+        return jsonBadRequest({'error': message});
+      }
+      return jsonBadRequest({'error': message});
     } on TimeoutException {
       return Response(
         504,

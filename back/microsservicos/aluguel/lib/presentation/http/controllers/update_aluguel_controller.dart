@@ -29,7 +29,6 @@ class UpdateAluguelController {
       final int? people = data['people'];
       final num? finalPrice = data['finalPrice'];
       final String? status = data['status'];
-      final String? doorCode = data['doorCode'];
 
       if (startDate != null && endDate != null && endDate <= startDate) {
         throw AppFailure('endDate_must_be_greater_than_startDate');
@@ -40,9 +39,6 @@ class UpdateAluguelController {
       if (finalPrice != null && finalPrice <= 0) {
         throw AppFailure('finalPrice_must_be_positive');
       }
-      if (doorCode != null && doorCode.isEmpty) {
-        throw AppFailure('doorCode_cannot_be_empty');
-      }
 
       final aluguelAtualizado = await updateAluguelUsecase.call(
         id.toString(),
@@ -51,7 +47,6 @@ class UpdateAluguelController {
         people: people,
         finalPrice: finalPrice?.toDouble(),
         status: status,
-        doorCode: doorCode,
       );
 
       return jsonOk(aluguelAtualizado.toJson());

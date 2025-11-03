@@ -7,5 +7,5 @@ export interface Catalogo {
     pictures: string[]
     price: number
     capacity: number
-    doorCodeHash: string
+    doorSerial: string
 }
