@@ -4,6 +4,7 @@ class UserStorage {
   UserStorage._internal();
 
   final Map<String, Map<String, dynamic>> _users = {};
+  String? _loggedUserEmail;
 
   void addUser(Map<String, dynamic> user) {
     _users[user['email']] = user;
@@ -16,7 +17,31 @@ class UserStorage {
   bool validateCredentials(String email, String password) {
     final user = _users[email];
     if (user == null) return false;
-    return user['password'] == password;
+    if (user['password'] == password) {
+      _loggedUserEmail = email; // Salva o email do usuário logado
+      return true;
+    }
+    return false;
+  }
+
+  // Retorna os dados do usuário logado
+  Map<String, dynamic>? getLoggedUser() {
+    if (_loggedUserEmail == null) return null;
+    return _users[_loggedUserEmail];
+  }
+
+  // Atualiza os dados do usuário logado
+  bool updateLoggedUser(Map<String, dynamic> updatedData) {
+    if (_loggedUserEmail == null) return false;
+
+    final currentUser = _users[_loggedUserEmail];
+    if (currentUser == null) return false;
+
+    // Atualiza apenas os campos permitidos (mantém email, cpf, phone e password)
+    currentUser['name'] = updatedData['name'];
+    currentUser['birthDate'] = updatedData['birthDate'];
+
+    return true;
   }
 
   bool isEmailRegistered(String email) {
@@ -45,6 +70,6 @@ class UserStorage {
   }
 
   void clearLoggedUser() {
-    // Limpa qualquer informação de sessão que precisar
+    _loggedUserEmail = null;
   }
 }

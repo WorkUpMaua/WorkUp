@@ -3,6 +3,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../widgets/custom_button.dart';
 import '../utils/profile_image_manager.dart';
+import '../utils/user_storage.dart';
 
 class UserProfilePage extends StatefulWidget {
   const UserProfilePage({super.key});
@@ -15,12 +16,50 @@ class _UserProfilePageState extends State<UserProfilePage> {
   bool _isEditing = false;
   final ImagePicker _picker = ImagePicker();
 
+  // Controllers para os campos editáveis
+  final _nameController = TextEditingController();
+  final _birthController = TextEditingController();
+
+  // Dados fixos do usuário
+  String _email = '';
+  String _cpf = '';
+  String _phone = '';
+
+  final Color primaryColor = const Color(0xFF34495E);
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _birthController.dispose();
+    super.dispose();
+  }
+
+  void _loadUserData() {
+    final user = UserStorage().getLoggedUser();
+    if (user != null) {
+      setState(() {
+        _nameController.text = user['name'] ?? '';
+        _email = user['email'] ?? '';
+        _cpf = user['cpf'] ?? '';
+        _birthController.text = user['birthDate'] ?? '';
+        _phone = user['phone'] ?? '';
+      });
+    }
+  }
+
   Future<void> _pickImage() async {
     try {
       final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
       if (image != null) {
         final File file = File(image.path);
         ProfileImageManager().setProfileImage(file);
+        setState(() {}); // Atualiza a UI
       }
     } catch (e) {
       if (mounted) {
@@ -34,23 +73,40 @@ class _UserProfilePageState extends State<UserProfilePage> {
     }
   }
 
-  final _formData = {
-    'name': 'Tiago Tadeu',
-    'email': 'tiago@email.com',
-    'cpf': '123.456.789-00',
-    'birth': '01/01/2000',
-    'phone': '(11) 99999-9999',
-  };
+  void _handleSave() {
+    final updatedData = {
+      'name': _nameController.text.trim(),
+      'birthDate': _birthController.text,
+    };
 
-  final _reliableUser = {
-    'name': 'Tiago Tadeu',
-    'email': 'tiago@email.com',
-    'cpf': '123.456.789-00',
-    'birth': '01/01/2000',
-    'phone': '(11) 99999-9999',
-  };
+    final success = UserStorage().updateLoggedUser(updatedData);
 
-  final Color primaryColor = const Color(0xFF34495E);
+    if (success) {
+      setState(() {
+        _isEditing = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Informações atualizadas com sucesso!"),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Erro ao atualizar informações"),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  void _handleCancel() {
+    setState(() {
+      _isEditing = false;
+      _loadUserData(); // Recarrega os dados originais
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -96,17 +152,13 @@ class _UserProfilePageState extends State<UserProfilePage> {
                   const SizedBox(width: 12),
                   ElevatedButton(
                     onPressed: () {
-                      setState(() {
-                        if (_isEditing) {
-                          _formData
-                            ..['name'] = _reliableUser['name'] as String
-                            ..['email'] = _reliableUser['email'] as String
-                            ..['cpf'] = _reliableUser['cpf'] as String
-                            ..['birth'] = _reliableUser['birth'] as String
-                            ..['phone'] = _reliableUser['phone'] as String;
-                        }
-                        _isEditing = !_isEditing;
-                      });
+                      if (_isEditing) {
+                        _handleCancel();
+                      } else {
+                        setState(() {
+                          _isEditing = true;
+                        });
+                      }
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: primaryColor,
@@ -176,11 +228,21 @@ class _UserProfilePageState extends State<UserProfilePage> {
             const SizedBox(height: 20),
 
             // Campos de formulário
-            _buildTextField("Nome", "name", Icons.person),
-            _buildTextField("Email", "email", Icons.email),
-            _buildTextField("CPF", "cpf", Icons.badge),
-            _buildTextField("Data de Nascimento", "birth", Icons.cake),
-            _buildTextField("Telefone", "phone", Icons.phone),
+            _buildEditableTextField(
+              "Nome",
+              Icons.person,
+              _nameController,
+              canEdit: true,
+            ),
+            _buildFixedTextField("Email", Icons.email, _email),
+            _buildFixedTextField("CPF", Icons.badge, _cpf),
+            _buildEditableTextField(
+              "Data de Nascimento",
+              Icons.cake,
+              _birthController,
+              canEdit: true,
+            ),
+            _buildFixedTextField("Telefone", Icons.phone, _phone),
 
             const SizedBox(height: 30),
 
@@ -188,17 +250,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
             if (_isEditing)
               CustomButton(
                 text: "Salvar Alterações",
-                onPressed: () {
-                  setState(() {
-                    _isEditing = false;
-                  });
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text("Informações atualizadas com sucesso!"),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                },
+                onPressed: _handleSave,
                 backgroundColor: primaryColor,
               ),
           ],
@@ -207,41 +259,60 @@ class _UserProfilePageState extends State<UserProfilePage> {
     );
   }
 
-  // Campo de texto reutilizável
-  Widget _buildTextField(String label, String key, IconData icon) {
-    // Define quais campos não podem ser editados
-    final bool isUneditable = key == 'email' || key == 'cpf' || key == 'phone';
-
+  // Campo de texto editável
+  Widget _buildEditableTextField(
+    String label,
+    IconData icon,
+    TextEditingController controller, {
+    required bool canEdit,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: TextFormField(
-        enabled: _isEditing && !isUneditable,
-        initialValue: _formData[key],
-        onChanged: (value) => _formData[key] = value,
+        enabled: _isEditing && canEdit,
+        controller: controller,
         decoration: InputDecoration(
           labelText: label,
           prefixIcon: Icon(icon),
           filled: true,
-          fillColor: isUneditable ? Colors.grey[100] : Colors.white,
+          fillColor: (_isEditing && canEdit) ? Colors.white : Colors.grey[100],
           enabledBorder: OutlineInputBorder(
             borderSide: const BorderSide(color: Colors.transparent),
             borderRadius: BorderRadius.circular(10),
           ),
           focusedBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: const Color(0xFF34495E), width: 1.5),
+            borderSide: BorderSide(color: primaryColor, width: 1.5),
             borderRadius: BorderRadius.circular(10),
           ),
           disabledBorder: OutlineInputBorder(
             borderSide: BorderSide(color: Colors.grey.shade300),
             borderRadius: BorderRadius.circular(10),
           ),
-          // Adiciona um sufixo para indicar que o campo não pode ser editado
-          suffixIcon: isUneditable
-              ? const Tooltip(
-                  message: 'Este campo não pode ser editado',
-                  child: Icon(Icons.lock_outline, color: Colors.grey),
-                )
-              : null,
+        ),
+      ),
+    );
+  }
+
+  // Campo de texto fixo (não editável)
+  Widget _buildFixedTextField(String label, IconData icon, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: TextFormField(
+        enabled: false,
+        initialValue: value,
+        decoration: InputDecoration(
+          labelText: label,
+          prefixIcon: Icon(icon),
+          filled: true,
+          fillColor: Colors.grey[100],
+          disabledBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: Colors.grey.shade300),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          suffixIcon: const Tooltip(
+            message: 'Este campo não pode ser editado',
+            child: Icon(Icons.lock_outline, color: Colors.grey),
+          ),
         ),
       ),
     );

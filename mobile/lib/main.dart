@@ -11,13 +11,33 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'WorkUp Mobile',
+      title: 'WorkUp',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+        primaryColor: const Color(0xFF34495E),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF34495E),
+          primary: const Color(0xFF34495E),
+        ),
         useMaterial3: true,
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFF34495E),
+          foregroundColor: Colors.white,
+          elevation: 3,
+          centerTitle: true,
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF34495E),
+            foregroundColor: Colors.white,
+            elevation: 3,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        ),
       ),
       home: const LoginScreen(),
-      debugShowCheckedModeBanner: false,
     );
   }
 }
