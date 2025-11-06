@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
+import '../utils/user_storage.dart';
+import 'login_screen.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({Key? key}) : super(key: key);
@@ -19,8 +21,14 @@ class _RegisterPageState extends State<RegisterPage> {
   final _birthdateController = TextEditingController();
   final _phoneController = TextEditingController();
 
-  final _cpfMask = MaskTextInputFormatter(mask: '###.###.###-##', filter: {"#": RegExp(r'[0-9]')});
-  final _phoneMask = MaskTextInputFormatter(mask: '(##) #####-####', filter: {"#": RegExp(r'[0-9]')});
+  final _cpfMask = MaskTextInputFormatter(
+    mask: '###.###.###-##',
+    filter: {"#": RegExp(r'[0-9]')},
+  );
+  final _phoneMask = MaskTextInputFormatter(
+    mask: '(##) #####-####',
+    filter: {"#": RegExp(r'[0-9]')},
+  );
 
   bool _isSubmitting = false;
   String? _apiMessage;
@@ -34,34 +42,73 @@ class _RegisterPageState extends State<RegisterPage> {
       _apiMessage = null;
       _isError = false;
     });
-
     try {
-      // Simulação de uma chamada de API
-      await Future.delayed(const Duration(seconds: 2));
+      final email = _emailController.text.trim();
 
-      // Suponha que a resposta da API seja bem-sucedida
-      final isSuccess = true; // Substitua isso pela lógica real da API
-
-      if (isSuccess) {
+      // Checa se já existe localmente (email, cpf, telefone)
+      if (UserStorage().isEmailRegistered(email)) {
         setState(() {
-          _apiMessage = "Registro bem-sucedido!";
-          _isError = false;
-        });
-      } else {
-        setState(() {
-          _apiMessage = "Ocorreu um erro ao registrar.";
+          _apiMessage = 'Este e-mail já está registrado!';
           _isError = true;
+          _isSubmitting = false;
         });
+        return;
       }
-    } catch (e) {
+
+      final cpf = _cpfController.text;
+      if (UserStorage().isCpfRegistered(cpf)) {
+        setState(() {
+          _apiMessage = 'CPF já em uso!';
+          _isError = true;
+          _isSubmitting = false;
+        });
+        return;
+      }
+
+      final phone = _phoneController.text;
+      if (UserStorage().isPhoneRegistered(phone)) {
+        setState(() {
+          _apiMessage = 'Telefone já em uso!';
+          _isError = true;
+          _isSubmitting = false;
+        });
+        return;
+      }
+
+      // Armazena usuário localmente (temporário)
+      final userData = {
+        'name': _nameController.text.trim(),
+        'email': email,
+        'password': _passwordController.text,
+        'cpf': _cpfController.text,
+        'birthDate': _birthdateController.text,
+        'phone': _phoneController.text,
+      };
+
+      UserStorage().addUser(userData);
+
+      // Feedback e navegação para login
+      if (!mounted) return;
       setState(() {
-        _apiMessage = "Erro inesperado: $e";
+        _apiMessage = 'Registro realizado com sucesso!';
+        _isError = false;
+      });
+
+      await Future.delayed(const Duration(milliseconds: 900));
+      if (!mounted) return;
+      setState(() => _isSubmitting = false);
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _apiMessage = 'Erro ao realizar cadastro: $e';
         _isError = true;
       });
     } finally {
-      setState(() {
-        _isSubmitting = false;
-      });
+      if (mounted) setState(() => _isSubmitting = false);
     }
   }
 
@@ -71,17 +118,13 @@ class _RegisterPageState extends State<RegisterPage> {
 
     return Scaffold(
       appBar: AppBar(
-      backgroundColor: primaryColor,
-      automaticallyImplyLeading: false,
-      toolbarHeight: 64,
-      flexibleSpace: Center(
-        child: Image.asset(
-        'assets/logo_WorkUp.png',
-        width: 64,
-        height: 64,
+        backgroundColor: primaryColor,
+        automaticallyImplyLeading: false,
+        toolbarHeight: 64,
+        flexibleSpace: Center(
+          child: Image.asset('assets/logo_WorkUp.png', width: 64, height: 64),
+        ),
       ),
-    ),
-  ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
         child: Column(
@@ -98,7 +141,9 @@ class _RegisterPageState extends State<RegisterPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(
-                      _isError ? Icons.error_outline : Icons.check_circle_outline,
+                      _isError
+                          ? Icons.error_outline
+                          : Icons.check_circle_outline,
                       color: _isError ? Colors.red : Colors.green,
                     ),
                     const SizedBox(width: 8),
@@ -150,8 +195,9 @@ class _RegisterPageState extends State<RegisterPage> {
                         border: OutlineInputBorder(),
                         hintText: "Seu nome completo",
                       ),
-                      validator: (value) =>
-                          value == null || value.isEmpty ? "Campo obrigatório" : null,
+                      validator: (value) => value == null || value.isEmpty
+                          ? "Campo obrigatório"
+                          : null,
                     ),
                     const SizedBox(height: 16),
 
@@ -165,7 +211,9 @@ class _RegisterPageState extends State<RegisterPage> {
                       ),
                       keyboardType: TextInputType.emailAddress,
                       validator: (value) =>
-                          value == null || !value.contains('@') ? "E-mail inválido" : null,
+                          value == null || !value.contains('@')
+                          ? "E-mail inválido"
+                          : null,
                     ),
                     const SizedBox(height: 16),
 
@@ -178,8 +226,9 @@ class _RegisterPageState extends State<RegisterPage> {
                         border: OutlineInputBorder(),
                         hintText: "Digite sua senha",
                       ),
-                      validator: (value) =>
-                          value == null || value.length < 6 ? "Mínimo 6 caracteres" : null,
+                      validator: (value) => value == null || value.length < 6
+                          ? "Mínimo 6 caracteres"
+                          : null,
                     ),
                     const SizedBox(height: 16),
 
@@ -193,8 +242,9 @@ class _RegisterPageState extends State<RegisterPage> {
                         hintText: "000.000.000-00",
                       ),
                       keyboardType: TextInputType.number,
-                      validator: (value) =>
-                          value == null || value.isEmpty ? "Campo obrigatório" : null,
+                      validator: (value) => value == null || value.isEmpty
+                          ? "Campo obrigatório"
+                          : null,
                     ),
                     const SizedBox(height: 16),
 
@@ -214,12 +264,14 @@ class _RegisterPageState extends State<RegisterPage> {
                           lastDate: DateTime.now(),
                         );
                         if (date != null) {
-                          _birthdateController.text =
-                              DateFormat('dd/MM/yyyy').format(date);
+                          _birthdateController.text = DateFormat(
+                            'dd/MM/yyyy',
+                          ).format(date);
                         }
                       },
-                      validator: (value) =>
-                          value == null || value.isEmpty ? "Campo obrigatório" : null,
+                      validator: (value) => value == null || value.isEmpty
+                          ? "Campo obrigatório"
+                          : null,
                     ),
                     const SizedBox(height: 16),
 
@@ -233,8 +285,9 @@ class _RegisterPageState extends State<RegisterPage> {
                         hintText: "(00) 00000-0000",
                       ),
                       keyboardType: TextInputType.phone,
-                      validator: (value) =>
-                          value == null || value.isEmpty ? "Campo obrigatório" : null,
+                      validator: (value) => value == null || value.isEmpty
+                          ? "Campo obrigatório"
+                          : null,
                     ),
                     const SizedBox(height: 24),
 
@@ -251,10 +304,15 @@ class _RegisterPageState extends State<RegisterPage> {
                           ),
                         ),
                         child: _isSubmitting
-                            ? const CircularProgressIndicator(color: Colors.white)
+                            ? const CircularProgressIndicator(
+                                color: Colors.white,
+                              )
                             : const Text(
                                 "Cadastrar",
-                                style: TextStyle(fontSize: 16, color: Colors.white),
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.white,
+                                ),
                               ),
                       ),
                     ),
@@ -262,7 +320,14 @@ class _RegisterPageState extends State<RegisterPage> {
 
                     // Ir para login
                     TextButton(
-                      onPressed: () => Navigator.pushNamed(context, '/login'),
+                      onPressed: () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const LoginScreen(),
+                          ),
+                        );
+                      },
                       child: Text(
                         "Já tem uma conta? Faça login",
                         style: TextStyle(color: primaryColor, fontSize: 15),

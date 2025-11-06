@@ -14,10 +14,26 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   List<Listing> filteredListings = [];
-  String searchQuery = "";
   TextEditingController searchController = TextEditingController();
   bool isLoading = false;
   bool _sidebarActive = false;
+
+  String normalizeText(String text) {
+    return text
+        .toLowerCase()
+        .replaceAll('á', 'a')
+        .replaceAll('à', 'a')
+        .replaceAll('ã', 'a')
+        .replaceAll('â', 'a')
+        .replaceAll('é', 'e')
+        .replaceAll('ê', 'e')
+        .replaceAll('í', 'i')
+        .replaceAll('ó', 'o')
+        .replaceAll('ô', 'o')
+        .replaceAll('õ', 'o')
+        .replaceAll('ú', 'u')
+        .replaceAll('ç', 'c');
+  }
 
   // Filtros (declarados mas não usados na UI - PROBLEMA)
   DateTime? startDate;
@@ -26,10 +42,61 @@ class _HomePageState extends State<HomePage> {
   String minPrice = "";
   String maxPrice = "";
 
+  final List<Listing> mockRooms = [
+    Listing(
+      id: '1',
+      name: 'Escritório Moderno no Centro',
+      address: 'Rua Augusta, 1500 - São Paulo, SP',
+      comodities: ['Wi-Fi', 'Ar Condicionado', 'Café', 'Estacionamento'],
+      pictures: [
+        'https://images.pexels.com/photos/380768/pexels-photo-380768.jpeg',
+      ],
+      price: 75.0,
+      capacity: 8,
+    ),
+    Listing(
+      id: '2',
+      name: 'Sala de Reunião Premium',
+      address: 'Av. Paulista, 1000 - São Paulo, SP',
+      comodities: ['Projetor', 'Wi-Fi', 'Lousa', 'Café'],
+      pictures: [
+        'https://images.pexels.com/photos/380769/pexels-photo-380769.jpeg',
+      ],
+      price: 120.0,
+      capacity: 12,
+    ),
+    Listing(
+      id: '3',
+      name: 'Coworking Vista Panorâmica',
+      address: 'Rua Oscar Freire, 2500 - São Paulo, SP',
+      comodities: ['Vista Panorâmica', 'Wi-Fi', 'Copa', 'Academia'],
+      pictures: [
+        'https://images.pexels.com/photos/3184357/pexels-photo-3184357.jpeg',
+      ],
+      price: 45.0,
+      capacity: 20,
+    ),
+    Listing(
+      id: '4',
+      name: 'Sala Executiva Premium',
+      address: 'Av. Brigadeiro Faria Lima, 3477 - São Paulo, SP',
+      comodities: ['Secretária', 'Wi-Fi', 'Café', 'Estacionamento VIP'],
+      pictures: [
+        'https://images.pexels.com/photos/1743555/pexels-photo-1743555.jpeg',
+      ],
+      price: 200.0,
+      capacity: 4,
+    ),
+  ];
+
   @override
   void initState() {
     super.initState();
-    fetchAllRooms();
+    // Usando dados mockados em vez de fazer chamada à API
+    setState(() {
+      filteredListings = mockRooms;
+      isLoading = false;
+    });
   }
 
   Future<void> fetchAllRooms() async {
@@ -65,47 +132,22 @@ class _HomePageState extends State<HomePage> {
     return double.tryParse(normalized) ?? 0.0;
   }
 
-  Future<void> handleSearch() async {
-    setState(() => isLoading = true);
+  void filterRooms(String query) {
+    final normalizedQuery = normalizeText(query.trim());
 
-    final params = <String, String>{};
-    if (minPrice.isNotEmpty) {
-      params['minPrice'] = parseMoney(minPrice).toString();
-    }
-    if (maxPrice.isNotEmpty) {
-      params['maxPrice'] = parseMoney(maxPrice).toString();
-    }
-    if (guests.isNotEmpty) params['capacity'] = guests;
-
-    final uri = Uri.http("10.0.2.2:3000", "/availability", params);
-
-    try {
-      final response = await http.get(uri);
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final rooms = data["rooms"];
-        List<Listing> availableRooms = (rooms as Map).values
-            .map((room) => Listing.fromJson(room))
-            .toList();
-
-        if (searchQuery.trim().isNotEmpty) {
-          final lower = searchQuery.toLowerCase();
-          availableRooms = availableRooms
-              .where((room) => room.name.toLowerCase().contains(lower))
-              .toList();
-        }
-
-        setState(() {
-          filteredListings = availableRooms;
-        });
+    setState(() {
+      if (normalizedQuery.isEmpty) {
+        filteredListings = List<Listing>.from(mockRooms);
       } else {
-        debugPrint("Erro ao buscar disponibilidade: ${response.statusCode}");
-      }
-    } catch (e) {
-      debugPrint("Erro: $e");
-    }
+        filteredListings = mockRooms.where((room) {
+          final normalizedName = normalizeText(room.name);
+          final normalizedAddress = normalizeText(room.address);
 
-    setState(() => isLoading = false);
+          return normalizedName.contains(normalizedQuery) ||
+              normalizedAddress.contains(normalizedQuery);
+        }).toList();
+      }
+    });
   }
 
   Widget buildRoomCard(Listing room) {
@@ -173,27 +215,11 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget buildBody() {
-    if (isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    if (filteredListings.isEmpty) {
-      return const Center(child: Text("Nenhum espaço encontrado."));
-    }
-    return ListView.builder(
-      itemCount: filteredListings.length,
-      itemBuilder: (context, index) => buildRoomCard(filteredListings[index]),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
         Scaffold(
-          appBar: HeaderBar(
-            onMenuClick: () => setState(() => _sidebarActive = true),
-          ),
           body: Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
@@ -202,69 +228,87 @@ class _HomePageState extends State<HomePage> {
                 end: Alignment.bottomRight,
               ),
             ),
-            child: Column(
-              children: [
-                const SizedBox(height: 16),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Column(
-                    children: [
-                      const Text(
-                        "Encontre o espaço perfeito para seu negócio",
-                        style: TextStyle(
-                          fontSize: 20,
-                          color: Color(0xFF2C3E50),
-                          fontWeight: FontWeight.bold,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        "Descubra escritórios e salas comerciais que combinam com sua necessidade",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 14, color: Colors.grey),
-                      ),
-                      const SizedBox(height: 20),
-                      TextField(
-                        controller: searchController,
-                        decoration: InputDecoration(
-                          hintText: "Buscar sala...",
-                          prefixIcon: const Icon(Icons.search),
-                          filled: true,
-                          fillColor: Colors.white,
-                          contentPadding: const EdgeInsets.symmetric(
-                            vertical: 14,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(
-                              color: Colors.grey,
-                              width: 0.5,
-                            ),
-                          ),
-                        ),
-                        onChanged: (v) => setState(() => searchQuery = v),
-                      ),
-                      const SizedBox(height: 10),
-                      ElevatedButton(
-                        onPressed: handleSearch,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF34495E),
-                          minimumSize: const Size.fromHeight(50),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: const Text(
-                          "Buscar Disponibilidade",
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ),
-                    ],
+            child: CustomScrollView(
+              slivers: [
+                SliverAppBar(
+                  pinned: true,
+                  automaticallyImplyLeading: false,
+                  flexibleSpace: HeaderBar(
+                    onMenuClick: () => setState(() => _sidebarActive = true),
                   ),
                 ),
-                const SizedBox(height: 20),
-                Expanded(child: buildBody()),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                    child: Column(
+                      children: [
+                        const Text(
+                          "Encontre o espaço perfeito para seu negócio",
+                          style: TextStyle(
+                            fontSize: 20,
+                            color: Color(0xFF2C3E50),
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          "Descubra escritórios e salas comerciais que combinam com sua necessidade",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 14, color: Colors.grey),
+                        ),
+                        const SizedBox(height: 20),
+                        TextField(
+                          controller: searchController,
+                          decoration: InputDecoration(
+                            hintText: "Buscar sala...",
+                            prefixIcon: const Icon(Icons.search),
+                            filled: true,
+                            fillColor: Colors.white,
+                            contentPadding: const EdgeInsets.symmetric(
+                              vertical: 14,
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(
+                                color: Colors.grey,
+                                width: 0.5,
+                              ),
+                            ),
+                          ),
+                          onChanged: filterRooms,
+                        ),
+                        const SizedBox(height: 20),
+                      ],
+                    ),
+                  ),
+                ),
+                if (isLoading)
+                  const SliverToBoxAdapter(
+                    child: Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(20.0),
+                        child: CircularProgressIndicator(),
+                      ),
+                    ),
+                  )
+                else if (filteredListings.isEmpty)
+                  const SliverToBoxAdapter(
+                    child: Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(20.0),
+                        child: Text("Nenhum espaço encontrado."),
+                      ),
+                    ),
+                  )
+                else
+                  SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) =>
+                          buildRoomCard(filteredListings[index]),
+                      childCount: filteredListings.length,
+                    ),
+                  ),
               ],
             ),
           ),

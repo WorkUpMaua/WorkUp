@@ -1,25 +1,31 @@
 import 'package:flutter/material.dart';
+import 'dart:ui';
+import '../screens/user_profile_screen.dart';
+import '../screens/login_screen.dart';
+import '../screens/create_propriedade_page.dart';
+import '../screens/properties_screen.dart';
+import '../screens/rent_screen.dart';
+import '../screens/home_page.dart';
+import '../utils/user_storage.dart';
 
 class SidebarMenu extends StatelessWidget {
   final bool active;
   final VoidCallback onClose;
 
-  const SidebarMenu({
-    Key? key,
-    required this.active,
-    required this.onClose,
-  }) : super(key: key);
+  const SidebarMenu({Key? key, required this.active, required this.onClose})
+    : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // Backdrop
+        // Backdrop com blur
         if (active)
           GestureDetector(
             onTap: onClose,
-            child: Container(
-              color: Colors.black.withOpacity(0.3),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
+              child: Container(color: Colors.black.withOpacity(0.3)),
             ),
           ),
 
@@ -29,7 +35,7 @@ class SidebarMenu extends StatelessWidget {
           left: active ? 0 : -280,
           top: 0,
           bottom: 0,
-          child: Material( // <-- Material adicionado aqui
+          child: Material(
             color: const Color(0xFF34495E),
             elevation: 8,
             child: Container(
@@ -40,7 +46,9 @@ class SidebarMenu extends StatelessWidget {
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
                       border: Border(
-                        bottom: BorderSide(color: Colors.white.withOpacity(0.1)),
+                        bottom: BorderSide(
+                          color: Colors.white.withOpacity(0.1),
+                        ),
                       ),
                     ),
                     child: const Center(
@@ -63,8 +71,13 @@ class SidebarMenu extends StatelessWidget {
                           icon: Icons.home,
                           label: 'Home',
                           onTap: () {
-                            Navigator.pushNamed(context, '/');
-                            onClose();
+                            Navigator.pushAndRemoveUntil(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const HomePage(),
+                              ),
+                              (route) => false,
+                            );
                           },
                         ),
                         _buildMenuItem(
@@ -72,7 +85,12 @@ class SidebarMenu extends StatelessWidget {
                           icon: Icons.person,
                           label: 'Perfil',
                           onTap: () {
-                            Navigator.pushNamed(context, '/user-profile');
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const UserProfilePage(),
+                              ),
+                            );
                             onClose();
                           },
                         ),
@@ -81,7 +99,12 @@ class SidebarMenu extends StatelessWidget {
                           icon: Icons.calendar_today,
                           label: 'Minhas Reservas',
                           onTap: () {
-                            Navigator.pushNamed(context, '/rent');
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const TelaAluguelPage(),
+                              ),
+                            );
                             onClose();
                           },
                         ),
@@ -90,7 +113,13 @@ class SidebarMenu extends StatelessWidget {
                           icon: Icons.business,
                           label: 'Gerenciar Propriedades',
                           onTap: () {
-                            Navigator.pushNamed(context, '/properties');
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const TelaPropriedadePage(),
+                              ),
+                            );
                             onClose();
                           },
                         ),
@@ -99,7 +128,13 @@ class SidebarMenu extends StatelessWidget {
                           icon: Icons.add_circle,
                           label: 'Criar Sala',
                           onTap: () {
-                            Navigator.pushNamed(context, '/create-property');
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const CreatePropriedadePage(),
+                              ),
+                            );
                             onClose();
                           },
                         ),
@@ -111,19 +146,48 @@ class SidebarMenu extends StatelessWidget {
                             showDialog(
                               context: context,
                               builder: (context) => AlertDialog(
-                                title: const Text('Confirmar'),
-                                content: const Text('Certeza que deseja sair?'),
+                                title: const Text(
+                                  'Confirmar Logout',
+                                  style: TextStyle(
+                                    color: Color(0xFF34495E),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                content: const Text(
+                                  'Tem certeza que deseja sair da sua conta?',
+                                  style: TextStyle(fontSize: 16),
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
                                 actions: [
                                   TextButton(
                                     onPressed: () => Navigator.pop(context),
-                                    child: const Text('Cancelar'),
+                                    child: const Text(
+                                      'Cancelar',
+                                      style: TextStyle(color: Colors.grey),
+                                    ),
                                   ),
                                   TextButton(
                                     onPressed: () {
-                                      // TODO: implementar logout
-                                      Navigator.pushReplacementNamed(context, '/login');
+                                      UserStorage().clearLoggedUser();
+                                      Navigator.pop(context);
+                                      Navigator.pushAndRemoveUntil(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              const LoginScreen(),
+                                        ),
+                                        (route) => false,
+                                      );
                                     },
-                                    child: const Text('Sair'),
+                                    child: const Text(
+                                      'Sair',
+                                      style: TextStyle(
+                                        color: Color(0xFF34495E),
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
                                   ),
                                 ],
                               ),

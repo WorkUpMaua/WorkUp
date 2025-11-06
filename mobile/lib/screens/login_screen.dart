@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import '../utils/user_storage.dart';
+import 'home_page.dart';
+import 'register_page.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -23,14 +26,27 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
 
-    // Simular login
-    await Future.delayed(const Duration(seconds: 1));
-    
-    if (mounted) {
+    setState(() {});
+
+    // small local check against UserStorage
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
+    // simulate small delay
+    await Future.delayed(const Duration(milliseconds: 400));
+
+    final ok = UserStorage().validateCredentials(email, password);
+    if (!mounted) return;
+    if (ok) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const HomePage()),
+      );
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Login realizado com sucesso!'),
-          backgroundColor: Colors.green,
+          content: Text('Usuário não encontrado ou senha incorreta'),
+          backgroundColor: Colors.red,
         ),
       );
     }
@@ -56,7 +72,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
           ),
-          
+
           // Conteúdo principal
           Expanded(
             child: Padding(
@@ -98,7 +114,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           decoration: const InputDecoration(
                             hintText: 'exemplo@email.com',
                             border: OutlineInputBorder(
-                              borderRadius: BorderRadius.all(Radius.circular(8)),
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(8),
+                              ),
                             ),
                             contentPadding: EdgeInsets.symmetric(
                               horizontal: 16,
@@ -138,7 +156,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           decoration: InputDecoration(
                             hintText: 'Digite sua senha',
                             border: const OutlineInputBorder(
-                              borderRadius: BorderRadius.all(Radius.circular(8)),
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(8),
+                              ),
                             ),
                             contentPadding: const EdgeInsets.symmetric(
                               horizontal: 16,
@@ -146,7 +166,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             suffixIcon: IconButton(
                               icon: Icon(
-                                _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                                _obscurePassword
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
                                 color: Colors.grey,
                               ),
                               onPressed: () {
@@ -168,9 +190,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ],
                     ),
-                const SizedBox(height: 24),
+                    const SizedBox(height: 24),
 
-                    // Botão de Login 
+                    // Botão de Login
                     Container(
                       width: double.infinity,
                       height: 48,
@@ -196,12 +218,13 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    // Link para cadastro 
+                    // Link para cadastro
                     TextButton(
                       onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Tela de cadastro em desenvolvimento'),
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const RegisterPage(),
                           ),
                         );
                       },
