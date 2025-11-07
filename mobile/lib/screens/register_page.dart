@@ -33,6 +33,8 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _isSubmitting = false;
   String? _apiMessage;
   bool _isError = false;
+  bool _obscurePassword =
+      true; // Adicionado para controlar visibilidade da senha
 
   Future<void> _handleSubmit() async {
     if (!_formKey.currentState!.validate()) return;
@@ -217,14 +219,27 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                     const SizedBox(height: 16),
 
-                    // Senha
+                    // Senha (com ícone de visibilidade)
                     TextFormField(
                       controller: _passwordController,
-                      obscureText: true,
-                      decoration: const InputDecoration(
+                      obscureText: _obscurePassword,
+                      decoration: InputDecoration(
                         labelText: "Senha",
-                        border: OutlineInputBorder(),
+                        border: const OutlineInputBorder(),
                         hintText: "Digite sua senha",
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscurePassword
+                                ? Icons.visibility
+                                : Icons.visibility_off,
+                            color: Colors.grey,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _obscurePassword = !_obscurePassword;
+                            });
+                          },
+                        ),
                       ),
                       validator: (value) => value == null || value.length < 6
                           ? "Mínimo 6 caracteres"
