@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import '../utils/user_storage.dart';
-import 'home_page.dart';
+import 'rent_screen.dart';
 
 class WorkSpacePage extends StatefulWidget {
   final String propertyId;
@@ -71,6 +71,10 @@ class _WorkSpacePageState extends State<WorkSpacePage> {
     super.dispose();
   }
 
+  int _getDaysBetween(DateTime start, DateTime end) {
+    return end.difference(start).inDays;
+  }
+
   Future<void> _fetchRoom() async {
     try {
       await Future.delayed(const Duration(milliseconds: 500));
@@ -99,37 +103,324 @@ class _WorkSpacePageState extends State<WorkSpacePage> {
   }
 
   Future<void> _selectDateRange() async {
-    final now = DateTime.now();
-
-    final DateTimeRange? picked = await showDateRangePicker(
+    // Seleciona data de check-in
+    final DateTime? checkIn = await _showCustomDatePicker(
       context: context,
-      firstDate: now,
-      lastDate: DateTime(now.year + 2, 12, 31),
-      initialDateRange: _startDate != null && _endDate != null
-          ? DateTimeRange(start: _startDate!, end: _endDate!)
-          : null,
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.light(
-              primary: primaryColor,
-              onPrimary: Colors.white,
-              surface: Colors.white,
-              onSurface: Colors.black,
-            ),
-            dialogBackgroundColor: Colors.white,
-          ),
-          child: child!,
+      initialDate: _startDate ?? DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime(DateTime.now().year + 2),
+      helpText: 'Selecione a data de Check-in',
+    );
+
+    if (checkIn == null) return;
+
+    // Seleciona data de check-out (deve ser após check-in)
+    final DateTime? checkOut = await _showCustomDatePicker(
+      context: context,
+      initialDate: checkIn.add(const Duration(days: 1)),
+      firstDate: checkIn.add(const Duration(days: 1)),
+      lastDate: DateTime(DateTime.now().year + 2),
+      helpText: 'Selecione a data de Check-out',
+    );
+
+    if (checkOut != null) {
+      setState(() {
+        _startDate = checkIn;
+        _endDate = checkOut;
+      });
+    }
+  }
+
+  Future<DateTime?> _showCustomDatePicker({
+    required BuildContext context,
+    required DateTime initialDate,
+    required DateTime firstDate,
+    required DateTime lastDate,
+    String? helpText,
+  }) async {
+    DateTime selectedDate = initialDate;
+    DateTime focusedMonth = DateTime(initialDate.year, initialDate.month);
+
+    return showDialog<DateTime>(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      helpText ?? 'Selecione uma data',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF2C3E50),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.chevron_left),
+                          onPressed: () {
+                            setDialogState(() {
+                              focusedMonth = DateTime(
+                                focusedMonth.year,
+                                focusedMonth.month - 1,
+                              );
+                            });
+                          },
+                        ),
+                        GestureDetector(
+                          onTap: () async {
+                            final year = await _showYearPicker(
+                              context,
+                              focusedMonth.year,
+                            );
+                            if (year != null) {
+                              setDialogState(() {
+                                focusedMonth = DateTime(
+                                  year,
+                                  focusedMonth.month,
+                                );
+                              });
+                            }
+                          },
+                          child: Text(
+                            '${_getMonthName(focusedMonth.month)} ${focusedMonth.year}',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.chevron_right),
+                          onPressed: () {
+                            setDialogState(() {
+                              focusedMonth = DateTime(
+                                focusedMonth.year,
+                                focusedMonth.month + 1,
+                              );
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    _buildCalendarGrid(
+                      focusedMonth,
+                      selectedDate,
+                      firstDate,
+                      lastDate,
+                      (date) {
+                        setDialogState(() {
+                          selectedDate = date;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: const Text('Cancelar'),
+                        ),
+                        const SizedBox(width: 8),
+                        ElevatedButton(
+                          onPressed: () =>
+                              Navigator.of(context).pop(selectedDate),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: primaryColor,
+                          ),
+                          child: const Text(
+                            'OK',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
         );
       },
     );
+  }
 
-    if (picked != null) {
-      setState(() {
-        _startDate = picked.start;
-        _endDate = picked.end;
-      });
-    }
+  Widget _buildCalendarGrid(
+    DateTime focusedMonth,
+    DateTime selectedDate,
+    DateTime firstDate,
+    DateTime lastDate,
+    Function(DateTime) onDateSelected,
+  ) {
+    final daysInMonth = DateTime(
+      focusedMonth.year,
+      focusedMonth.month + 1,
+      0,
+    ).day;
+    final firstDayOfMonth = DateTime(focusedMonth.year, focusedMonth.month, 1);
+    final weekdayOfFirstDay = firstDayOfMonth.weekday;
+
+    // Calcula o tamanho dos itens baseado na largura disponível
+    final itemSize = 36.0; // Tamanho fixo menor para os dias
+
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: ['D', 'S', 'T', 'Q', 'Q', 'S', 'S']
+              .map(
+                (day) => SizedBox(
+                  width: itemSize,
+                  child: Center(
+                    child: Text(
+                      day,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ),
+              )
+              .toList(),
+        ),
+        const SizedBox(height: 8),
+        ...List.generate(6, (weekIndex) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 2),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: List.generate(7, (dayIndex) {
+                final dayNumber =
+                    weekIndex * 7 + dayIndex - (weekdayOfFirstDay % 7) + 1;
+
+                if (dayNumber < 1 || dayNumber > daysInMonth) {
+                  return SizedBox(width: itemSize, height: itemSize);
+                }
+
+                final date = DateTime(
+                  focusedMonth.year,
+                  focusedMonth.month,
+                  dayNumber,
+                );
+                final isSelected =
+                    date.year == selectedDate.year &&
+                    date.month == selectedDate.month &&
+                    date.day == selectedDate.day;
+                final isDisabled =
+                    date.isBefore(firstDate) || date.isAfter(lastDate);
+
+                return GestureDetector(
+                  onTap: isDisabled ? null : () => onDateSelected(date),
+                  child: Container(
+                    width: itemSize,
+                    height: itemSize,
+                    decoration: BoxDecoration(
+                      color: isSelected ? primaryColor : Colors.transparent,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Center(
+                      child: Text(
+                        '$dayNumber',
+                        style: TextStyle(
+                          color: isDisabled
+                              ? Colors.grey[300]
+                              : isSelected
+                              ? Colors.white
+                              : Colors.black,
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              }),
+            ),
+          );
+        }),
+      ],
+    );
+  }
+
+  Future<int?> _showYearPicker(BuildContext context, int currentYear) async {
+    return showDialog<int>(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          child: Container(
+            height: 300,
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                const Text(
+                  'Selecione o ano',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 16),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: 10,
+                    itemBuilder: (context, index) {
+                      final year = DateTime.now().year + index;
+                      return ListTile(
+                        title: Text(
+                          '$year',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontWeight: year == currentYear
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                            color: year == currentYear
+                                ? primaryColor
+                                : Colors.black,
+                          ),
+                        ),
+                        onTap: () => Navigator.of(context).pop(year),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  String _getMonthName(int month) {
+    const months = [
+      'Janeiro',
+      'Fevereiro',
+      'Março',
+      'Abril',
+      'Maio',
+      'Junho',
+      'Julho',
+      'Agosto',
+      'Setembro',
+      'Outubro',
+      'Novembro',
+      'Dezembro',
+    ];
+    return months[month - 1];
   }
 
   void _handleReserve() async {
@@ -170,7 +461,7 @@ class _WorkSpacePageState extends State<WorkSpacePage> {
         _isError = false;
       });
 
-      await Future.delayed(const Duration(milliseconds: 1500));
+      await Future.delayed(const Duration(milliseconds: 600));
 
       if (mounted) {
         if (widget.onReserve != null) {
@@ -179,7 +470,7 @@ class _WorkSpacePageState extends State<WorkSpacePage> {
 
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const HomePage()),
+          MaterialPageRoute(builder: (context) => const TelaAluguelPage()),
         );
       }
     } else {
@@ -250,6 +541,44 @@ class _WorkSpacePageState extends State<WorkSpacePage> {
     }
   }
 
+  Widget _buildThumbnail(String imagePath) {
+    if (imagePath.startsWith('http')) {
+      return Image.network(
+        imagePath,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            color: Colors.grey[300],
+            child: const Icon(
+              Icons.photo_outlined,
+              size: 30,
+              color: Colors.grey,
+            ),
+          );
+        },
+      );
+    } else {
+      final file = File(imagePath);
+      return FutureBuilder<bool>(
+        future: file.exists(),
+        builder: (context, snapshot) {
+          if (snapshot.hasData && snapshot.data == true) {
+            return Image.file(file, fit: BoxFit.cover);
+          } else {
+            return Container(
+              color: Colors.grey[300],
+              child: const Icon(
+                Icons.photo_outlined,
+                size: 30,
+                color: Colors.grey,
+              ),
+            );
+          }
+        },
+      );
+    }
+  }
+
   Widget _buildPhotoCarousel() {
     if (_room == null || _room!.pictures.isEmpty) {
       return Container(
@@ -266,7 +595,6 @@ class _WorkSpacePageState extends State<WorkSpacePage> {
 
     return Column(
       children: [
-        // Imagem principal com PageView
         Container(
           height: 320,
           decoration: BoxDecoration(
@@ -295,7 +623,6 @@ class _WorkSpacePageState extends State<WorkSpacePage> {
                     return _buildPropertyImage(_room!.pictures[index]);
                   },
                 ),
-                // Indicador de posição
                 if (_room!.pictures.length > 1)
                   Positioned(
                     bottom: 12,
@@ -323,8 +650,6 @@ class _WorkSpacePageState extends State<WorkSpacePage> {
             ),
           ),
         ),
-
-        // Miniaturas clicáveis
         if (_room!.pictures.length > 1) ...[
           const SizedBox(height: 16),
           SizedBox(
@@ -379,44 +704,6 @@ class _WorkSpacePageState extends State<WorkSpacePage> {
     );
   }
 
-  Widget _buildThumbnail(String imagePath) {
-    if (imagePath.startsWith('http')) {
-      return Image.network(
-        imagePath,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) {
-          return Container(
-            color: Colors.grey[300],
-            child: const Icon(
-              Icons.photo_outlined,
-              size: 30,
-              color: Colors.grey,
-            ),
-          );
-        },
-      );
-    } else {
-      final file = File(imagePath);
-      return FutureBuilder<bool>(
-        future: file.exists(),
-        builder: (context, snapshot) {
-          if (snapshot.hasData && snapshot.data == true) {
-            return Image.file(file, fit: BoxFit.cover);
-          } else {
-            return Container(
-              color: Colors.grey[300],
-              child: const Icon(
-                Icons.photo_outlined,
-                size: 30,
-                color: Colors.grey,
-              ),
-            );
-          }
-        },
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -425,7 +712,6 @@ class _WorkSpacePageState extends State<WorkSpacePage> {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              // Botão voltar
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
@@ -433,72 +719,23 @@ class _WorkSpacePageState extends State<WorkSpacePage> {
                   alignment: Alignment.centerLeft,
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: primaryColor,
                       borderRadius: BorderRadius.circular(8),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 10,
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
                       ],
                     ),
                     child: IconButton(
-                      icon: Icon(Icons.arrow_back, color: primaryColor),
-                      onPressed: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const HomePage(),
-                          ),
-                        );
-                      },
+                      icon: const Icon(Icons.arrow_back, color: Colors.white),
+                      onPressed: () => Navigator.pop(context),
                     ),
                   ),
                 ),
               ),
-
-              // Alert
-              if (_alertMessage != null)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Container(
-                    margin: const EdgeInsets.only(bottom: 16),
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: _isError ? Colors.red[100] : Colors.green[100],
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: _isError ? Colors.red : Colors.green,
-                        width: 1.5,
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          _isError
-                              ? Icons.error_outline
-                              : Icons.check_circle_outline,
-                          color: _isError ? Colors.red : Colors.green,
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            _alertMessage!,
-                            style: TextStyle(
-                              color: _isError
-                                  ? Colors.red[800]
-                                  : Colors.green[800],
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-
-              // Conteúdo principal
               if (_loading)
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 60),
@@ -533,11 +770,8 @@ class _WorkSpacePageState extends State<WorkSpacePage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Carrossel de fotos
                       _buildPhotoCarousel(),
                       const SizedBox(height: 24),
-
-                      // Nome
                       Text(
                         _room!.name,
                         style: const TextStyle(
@@ -547,8 +781,6 @@ class _WorkSpacePageState extends State<WorkSpacePage> {
                         ),
                       ),
                       const SizedBox(height: 12),
-
-                      // Endereço
                       Row(
                         children: [
                           Icon(
@@ -569,8 +801,6 @@ class _WorkSpacePageState extends State<WorkSpacePage> {
                         ],
                       ),
                       const SizedBox(height: 8),
-
-                      // Capacidade
                       Row(
                         children: [
                           Icon(
@@ -589,12 +819,8 @@ class _WorkSpacePageState extends State<WorkSpacePage> {
                         ],
                       ),
                       const SizedBox(height: 24),
-
-                      // Divisória
                       Container(height: 1, color: Colors.grey[300]),
                       const SizedBox(height: 24),
-
-                      // Comodidades
                       const Text(
                         'Comodidades',
                         style: TextStyle(
@@ -630,12 +856,8 @@ class _WorkSpacePageState extends State<WorkSpacePage> {
                         }).toList(),
                       ),
                       const SizedBox(height: 24),
-
-                      // Divisória
                       Container(height: 1, color: Colors.grey[300]),
                       const SizedBox(height: 24),
-
-                      // Seleção de datas
                       const Text(
                         'Período da Reserva',
                         style: TextStyle(
@@ -663,19 +885,43 @@ class _WorkSpacePageState extends State<WorkSpacePage> {
                               ),
                               const SizedBox(width: 12),
                               Expanded(
-                                child: Text(
-                                  _startDate != null && _endDate != null
-                                      ? '${_startDate!.day.toString().padLeft(2, '0')}/${_startDate!.month.toString().padLeft(2, '0')}/${_startDate!.year} - ${_endDate!.day.toString().padLeft(2, '0')}/${_endDate!.month.toString().padLeft(2, '0')}/${_endDate!.year}'
-                                      : 'Selecione as datas',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: _startDate != null
-                                        ? const Color(0xFF2C3E50)
-                                        : Colors.grey,
-                                    fontWeight: _startDate != null
-                                        ? FontWeight.w500
-                                        : FontWeight.normal,
-                                  ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      _startDate != null && _endDate != null
+                                          ? 'Check-in: ${_startDate!.day.toString().padLeft(2, '0')}/${_startDate!.month.toString().padLeft(2, '0')}/${_startDate!.year}'
+                                          : 'Selecione as datas',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: _startDate != null
+                                            ? const Color(0xFF2C3E50)
+                                            : Colors.grey,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    if (_startDate != null &&
+                                        _endDate != null) ...[
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        'Check-out: ${_endDate!.day.toString().padLeft(2, '0')}/${_endDate!.month.toString().padLeft(2, '0')}/${_endDate!.year}',
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          color: Color(0xFF2C3E50),
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        '${_getDaysBetween(_startDate!, _endDate!)} dias',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.blue[700],
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ],
                                 ),
                               ),
                               Icon(
@@ -688,12 +934,45 @@ class _WorkSpacePageState extends State<WorkSpacePage> {
                         ),
                       ),
                       const SizedBox(height: 24),
-
-                      // Divisória
                       Container(height: 1, color: Colors.grey[300]),
                       const SizedBox(height: 24),
-
-                      // Preço e botão reservar
+                      if (_alertMessage != null)
+                        Container(
+                          margin: const EdgeInsets.only(bottom: 16),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: _isError
+                                ? Colors.red[100]
+                                : Colors.green[100],
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: _isError ? Colors.red : Colors.green,
+                              width: 1.5,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                _isError
+                                    ? Icons.error_outline
+                                    : Icons.check_circle_outline,
+                                color: _isError ? Colors.red : Colors.green,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  _alertMessage!,
+                                  style: TextStyle(
+                                    color: _isError
+                                        ? Colors.red[900]
+                                        : Colors.green[900],
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         crossAxisAlignment: CrossAxisAlignment.center,
@@ -724,15 +1003,16 @@ class _WorkSpacePageState extends State<WorkSpacePage> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: primaryColor,
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 32,
-                                vertical: 16,
+                                horizontal: 24,
+                                vertical: 14,
                               ),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(10),
                               ),
                               elevation: 2,
                             ),
                             child: const Row(
+                              mainAxisSize: MainAxisSize.min,
                               children: [
                                 Icon(
                                   Icons.check_circle_outline,
@@ -741,7 +1021,7 @@ class _WorkSpacePageState extends State<WorkSpacePage> {
                                 ),
                                 SizedBox(width: 8),
                                 Text(
-                                  'Reservar',
+                                  'Reservar Agora',
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
