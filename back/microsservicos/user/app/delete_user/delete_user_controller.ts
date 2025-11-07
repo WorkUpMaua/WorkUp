@@ -1,9 +1,9 @@
-import axios from "axios";
+import { UserEventNames } from "../../shared/infra/clients/rabbitmq/enums";
+import { UserEvent } from "../../shared/infra/clients/rabbitmq/interfaces";
+import { publishEvent } from "../../shared/infra/clients/rabbitmq/rabbitmq";
 import { DeleteUserUsecase } from "./delete_user_usecase";
 import { Request, Response } from "express";
-import { UserEvent } from "common/interfaces";
-import { UserEventNames } from "common/enums";
-import { publishEvent } from "common";
+
 
 export class DeleteUserController {
   constructor(private usecase: DeleteUserUsecase) {}

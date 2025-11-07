@@ -1,8 +1,7 @@
-import { CatalogoRepositoryMock } from "../../shared/repo/catalogoRepositoryMock"
-
+import { CatalogoRepository } from "../../shared/domain/repo/catalogoRepository"
 export class DeleteCatalogoUsecase {
     
-    constructor(private repo: CatalogoRepositoryMock) {}
+    constructor(private repo: CatalogoRepository) {}
     
     public execute(id: string) {
 

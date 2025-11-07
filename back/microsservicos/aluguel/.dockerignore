@@ -1,0 +1,19 @@
+# Dependências locais e cache
+.dart_tool/
+.packages
+build/
+
+# Testes e docs
+test/
+coverage/
+CHANGELOG*
+README*
+
+# Configuração local
+.env
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.iml

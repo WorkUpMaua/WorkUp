@@ -1,5 +1,4 @@
-import { UnifiedCatalogo } from "../../shared/interfaces";
-import { getAllDisponibilidadeProps } from "../../shared/types";
+import { getAllDisponibilidadeProps } from "../../shared/domain/types";
 import { GetAllDisponibilidadeUsecase } from "./get_all_disponibilidade_usecase";
 import { Request, Response } from "express";
 
