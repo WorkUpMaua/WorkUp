@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Logo from "../assets/logo_WorkUp.png";
+import Logo from "../../assets/logo_WorkUp.png";
 import { getCookie } from "../../utils/cookies";
 import userClient from "../../utils/userClient";
 import { Alert } from "../../components/Alert";
