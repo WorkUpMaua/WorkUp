@@ -1,9 +1,10 @@
-import { CatalogoRepositoryMock } from "../../shared/repo/catalogoRepositoryMock";
-import { updateCatalogoProps } from "../../shared/types";
+import { CatalogoRepository } from "../../shared/domain/repo/catalogoRepository"
+import { updateCatalogoProps } from "../../shared/domain/types"
+
 
 export class UpdateCatalogoUsecase {
 
-    constructor(private repo: CatalogoRepositoryMock) {}
+    constructor(private repo: CatalogoRepository) {}
 
     public execute(props: updateCatalogoProps) {
 

@@ -1,8 +1,9 @@
-import { authType, UserRepositoryMock } from "../../shared/repo/userRepositoryMock";
+import { UserRepository } from "../../shared/domain/repo/userRepository";
+import { authType } from "../../shared/domain/validations/types";
 
 export class LoginUserUsecase {
 
-    constructor(private repo: UserRepositoryMock) {}
+    constructor(private repo: UserRepository) {}
 
     public execute(props: authType) {
 

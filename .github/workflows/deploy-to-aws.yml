@@ -1,0 +1,231 @@
+name: Deploy to AWS
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  env_setup:
+    runs-on: ubuntu-latest
+    outputs:
+      repo_url:       ${{ steps.expose.outputs.repo_url }}
+      project_name:   ${{ steps.expose.outputs.project_name }}
+      stage:          ${{ steps.expose.outputs.stage }}
+      key_name:       ${{ steps.expose.outputs.key_name }}
+      bucket_name:    ${{ steps.expose.outputs.bucket_name }}
+      aws_region:     ${{ steps.expose.outputs.aws_region }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup environment values
+        id: expose
+        run: |
+          echo "repo_url=https://github.com/${{ github.repository }}.git" >> $GITHUB_OUTPUT
+          echo "project_name=$(echo '${{ github.event.repository.name }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+          echo "stage=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          echo "key_name=${{ vars.KEY_NAME }}" >> $GITHUB_OUTPUT
+          echo "bucket_name=${{ vars.BUCKET_NAME }}" >> $GITHUB_OUTPUT
+          echo "aws_region=${{ fromJSON(vars.CONFIG_MAP).AWS_REGION }}" >> $GITHUB_OUTPUT
+
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Create base config_map.auto.tfvars.json
+        run: |
+          mkdir -p iac
+          # Aceita vars.CONFIG_MAP como objeto JSON; envolve no formato .auto.tfvars esperado.
+          RAW='${{ vars.CONFIG_MAP }}'
+          if [ -z "$RAW" ] || ! printf '%s' "$RAW" | jq -e . >/dev/null 2>&1; then
+            RAW='{}'
+          fi
+          jq -n --argjson cfg "$RAW" '{ config_map: $cfg }' > iac/config_map.auto.tfvars.json
+          echo "Base config written:"
+          cat iac/config_map.auto.tfvars.json
+
+      - name: Upload tfvars artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfvars
+          path: iac/config_map.auto.tfvars.json
+          if-no-files-found: error
+          retention-days: 7
+
+  build_uploads:
+    needs: env_setup
+    runs-on: ubuntu-latest
+    outputs:
+      bucket_name:  ${{ steps.capture.outputs.bucket }}
+      cdn_url:      ${{ steps.capture.outputs.cdn }}
+      project_name: ${{ needs.env_setup.outputs.project_name }}
+      stage:        ${{ needs.env_setup.outputs.stage }}
+    env:
+      TF_VAR_repo_url:   ${{ needs.env_setup.outputs.repo_url }}
+      TF_VAR_stage:      ${{ needs.env_setup.outputs.stage }}
+      TF_VAR_config_map: ${{ vars.CONFIG_MAP }}
+      TF_VAR_secret_map: ${{ secrets.AWS_CREDENTIALS }}
+      TF_VAR_key_name:   ${{ needs.env_setup.outputs.key_name }}
+      TF_VAR_aws_region: ${{ needs.env_setup.outputs.aws_region }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id:     ${{ fromJSON(secrets.AWS_CREDENTIALS).AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ fromJSON(secrets.AWS_CREDENTIALS).AWS_SECRET_ACCESS_KEY }}
+          aws-region:            ${{ needs.env_setup.outputs.aws_region }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Setup project name and stage
+        id: meta
+        run: |
+          echo "TF_VAR_project_name=${{ needs.env_setup.outputs.project_name }}" >> $GITHUB_ENV
+          echo "TF_VAR_stage=${{ needs.env_setup.outputs.stage }}" >> $GITHUB_ENV
+          echo "project_name=${{ needs.env_setup.outputs.project_name }}" >> $GITHUB_OUTPUT
+          echo "stage=${{ needs.env_setup.outputs.stage }}" >> $GITHUB_OUTPUT
+
+      - name: Terraform Init (uploads resources only)
+        working-directory: iac
+        env:
+          AWS_REGION:  ${{ needs.env_setup.outputs.aws_region }}
+          BUCKET_NAME: ${{ needs.env_setup.outputs.bucket_name }}
+        run: |
+          terraform init -reconfigure \
+            -backend-config="bucket=$BUCKET_NAME" \
+            -backend-config="key=${TF_VAR_project_name}/${TF_VAR_stage}/terraform.tfstate" \
+            -backend-config="region=$AWS_REGION" \
+            -backend-config="encrypt=true"
+
+      - name: Terraform Apply (uploads only)
+        working-directory: iac
+        run: |
+          terraform apply -auto-approve \
+            -target=aws_s3_bucket.uploads \
+            -target=aws_s3_bucket_public_access_block.uploads_public_access \
+            -target=aws_s3_bucket_policy.uploads_public_policy \
+            -target=aws_cloudfront_distribution.uploads_cdn
+
+      - name: Capture TF Outputs
+        id: capture
+        working-directory: iac
+        run: |
+          echo "bucket=$(terraform output -raw uploads_bucket_name)" >> $GITHUB_OUTPUT
+          echo "cdn=$(terraform output -raw uploads_cdn_url)" >> $GITHUB_OUTPUT
+
+  build_images:
+    needs: build_uploads
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build & Push images dynamically
+        run: |
+          cd back/microsservicos
+          for dir in */ ; do
+            service=$(basename "$dir")
+            if [ "$service" = "kubernetes" ] || [ "$service" = "aluguel_ts" ]; then
+              echo "⏭️ Skipping folder: $service"
+              continue
+            fi
+            echo "🚀 Building image for service: $service"
+            docker buildx build \
+              --platform=linux/amd64 \
+              -t victorgasperi/workup-$service \
+              ./$service \
+              --push
+          done
+
+  deploy_ec2:
+    needs:
+      - build_uploads
+      - build_images
+      - env_setup
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ needs.env_setup.outputs.stage }}
+    env:
+      TF_VAR_project_name: ${{ needs.env_setup.outputs.project_name }}
+      TF_VAR_repo_url:     ${{ needs.env_setup.outputs.repo_url }}
+      TF_VAR_stage:        ${{ needs.env_setup.outputs.stage }}
+      TF_VAR_config_map:   ${{ vars.CONFIG_MAP }}
+      TF_VAR_secret_map:   ${{ secrets.AWS_CREDENTIALS }}
+      TF_VAR_key_name:     ${{ needs.env_setup.outputs.key_name }}
+      TF_VAR_aws_region:   ${{ needs.env_setup.outputs.aws_region }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Download tfvars artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: tfvars
+          path: iac
+
+      - name: Merge new values into config_map.auto.tfvars.json
+        run: |
+          set -euo pipefail
+          FILE="iac/config_map.auto.tfvars.json"
+          if [ ! -f "$FILE" ]; then
+            echo "Missing $FILE (artifact not found)"; exit 1
+          fi
+
+          EXISTING=$(jq -c '.config_map // {}' "$FILE")
+
+          NEW=$(jq -n -c \
+            --arg bucket  '${{ needs.build_uploads.outputs.bucket_name }}' \
+            --arg cdn     '${{ needs.build_uploads.outputs.cdn_url }}' \
+            --arg project '${{ needs.env_setup.outputs.project_name }}' \
+            --arg stage   '${{ needs.env_setup.outputs.stage }}' \
+            '{ S3_BUCKET: $bucket, CDN_DOMAIN: $cdn, PROJECT_NAME: $project, STAGE: $stage }')
+
+          MERGED=$(jq -c -n \
+            --argjson a "$EXISTING" \
+            --argjson b "$NEW" \
+            '$a + $b')
+
+          jq -n --argjson config_map "$MERGED" '{ config_map: $config_map }' > "$FILE"
+
+          echo "Final merged tfvars:"
+          cat "$FILE"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id:     ${{ fromJSON(secrets.AWS_CREDENTIALS).AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ fromJSON(secrets.AWS_CREDENTIALS).AWS_SECRET_ACCESS_KEY }}
+          aws-region:            ${{ env.TF_VAR_aws_region }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init (EC2)
+        working-directory: iac
+        env:
+          AWS_REGION:  ${{ needs.env_setup.outputs.aws_region }}
+          BUCKET_NAME: ${{ needs.env_setup.outputs.bucket_name }}
+        run: |
+          terraform init -reconfigure \
+            -backend-config="bucket=$BUCKET_NAME" \
+            -backend-config="key=${{ needs.env_setup.outputs.project_name }}/${{ needs.env_setup.outputs.stage }}/terraform.tfstate" \
+            -backend-config="region=$AWS_REGION" \
+            -backend-config="encrypt=true"
+
+      - name: Terraform Apply (EC2)
+        working-directory: iac
+        run: terraform apply -auto-approve

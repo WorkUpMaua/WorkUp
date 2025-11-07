@@ -15,11 +15,11 @@ spec:
       containers:
       - name: workup-disponibilidade
         image: victorgasperi/workup-disponibilidade
-        env:
-          - name: RABBITMQ_URL
-            value: amqp://rabbitmq:5672
-          - name: DISPONIBILIDADE_MSS_PORT
-            value: "4003"
+        envFrom:
+          - configMapRef:
+              name: workup-config
+          - secretRef:
+              name: workup-secrets
 ---
 apiVersion: v1
 kind: Service

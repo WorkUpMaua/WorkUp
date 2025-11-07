@@ -1,9 +1,9 @@
-import { PropertyRepositoryMock } from "../../shared/repo/propertyRepositoryMock";
-import { CatalogoType } from "../../shared/types";
+import { CatalogoType } from "../../shared/domain/types";
+import { PropertyRepository } from "../../shared/domain/repo/propertyRepository";
 
 export class CreatePropertyUsecase {
 
-    constructor(private repo: PropertyRepositoryMock) {}
+    constructor(private repo: PropertyRepository) {}
 
     public execute(userID: string, catalog: CatalogoType) {
 

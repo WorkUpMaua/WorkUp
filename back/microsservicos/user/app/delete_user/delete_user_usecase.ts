@@ -1,8 +1,8 @@
-import { UserRepositoryMock } from "../../shared/repo/userRepositoryMock";
+import { UserRepository } from "../../shared/domain/repo/userRepository";
 
 export class DeleteUserUsecase {
 
-    constructor (private repo: UserRepositoryMock) {}
+    constructor (private repo: UserRepository) {}
 
     public execute(id: string) {
 

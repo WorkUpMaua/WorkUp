@@ -38,8 +38,23 @@ Além de seu propósito funcional, o sistema serve como aplicação prática de 
 ## 🛠️ Tecnologias Utilizadas
 
 - **Frontend:** React, TypeScript (TSX), TailwindCSS
-- **Backend:** Node.js, Express, Typescript
+- **Backend:** Node.js, Express, Typescript, Docker, K8s
+- **Infra:** Terraform, AWS
 - **Comunicação entre serviços**: RabbitMQ
+
+---
+
+## 🗺️ Diagramas
+
+<figure>
+  <img src="docs/fluxo.png" width="800">
+  <figcaption><strong>Figura 1:</strong> Arquitetura do projeto</figcaption>
+</figure>
+
+<figure>
+  <img src="docs/deploy_to_aws.png" width="800">
+  <figcaption><strong>Figura 2:</strong> Fluxo de deploy</figcaption>
+</figure>
 
 ---
 

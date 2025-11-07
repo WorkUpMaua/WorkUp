@@ -1,0 +1,48 @@
+#!/bin/bash -xe
+
+export HOME=/home/ec2-user
+cd "$HOME"
+
+sudo dnf update -y
+sudo dnf install -y git
+
+curl -sfL https://get.k3s.io | sudo INSTALL_K3S_EXEC="--write-kubeconfig-mode 644" sh -
+
+sleep 8
+kubectl get nodes || true
+
+REPO_URL="${repo_url}"
+REPO_DIR="$(basename -s .git "$REPO_URL")"
+
+git clone --filter=blob:none --sparse "$REPO_URL"
+cd "$REPO_DIR"
+git sparse-checkout set back/microsservicos/kubernetes
+
+cd "$HOME/$REPO_DIR/back"
+
+cat > .env << 'EOFENV'
+${env_map}
+EOFENV
+
+if [ -n "${secret_map}" ]; then
+cat >> .env << 'EOFSECRETS'
+${secret_map}
+EOFSECRETS
+fi
+
+cd "$HOME/$REPO_DIR/back/microsservicos/kubernetes"
+
+kubectl create configmap workup-config \
+  --from-env-file=<(grep -vE '^(AWS_ACCESS_KEY_ID|AWS_SECRET_ACCESS_KEY)=' ../../.env) \
+  --dry-run=client -o yaml | kubectl apply -f -
+
+if grep -qE '^(AWS_ACCESS_KEY_ID|AWS_SECRET_ACCESS_KEY)=' ../../.env; then
+  kubectl create secret generic workup-secrets \
+    --from-env-file=<(grep -E '^(AWS_ACCESS_KEY_ID|AWS_SECRET_ACCESS_KEY)=' ../../.env) \
+    --dry-run=client -o yaml | kubectl apply -f -
+fi
+
+kubectl apply -f . --validate=false || true
+
+kubectl get nodes || true
+kubectl get pods -A || true

@@ -1,9 +1,9 @@
-import { DisponibilidadeRepositoryMock } from "../../shared/repo/disponibilidadeRepositoryMock";
-import { createDisponibilidadeProps } from "../../shared/types";
+import { createDisponibilidadeProps } from "../../shared/domain/types";
+import { DisponibilidadeRepository } from "../../shared/domain/repo/disponibilidadeRepository";
 
 export class CreateDisponibilidadeUsecase {
 
-    constructor(private repo: DisponibilidadeRepositoryMock) {}
+    constructor(private repo: DisponibilidadeRepository) {}
 
     public execute(props: createDisponibilidadeProps) {
 

@@ -2,6 +2,8 @@
     "compilerOptions": {
         "target": "es2020",
         "module": "commonjs",
+        "moduleResolution": "node",
+        "allowSyntheticDefaultImports": true,
         "rootDir": "./",
         "outDir": "./dist", 
         "esModuleInterop": true,
@@ -20,8 +22,5 @@
     "exclude": [
         "node_modules",
         "./dist"
-    ],
-    "paths": [
-        
     ]
 }

@@ -2,7 +2,7 @@ import axios from "axios";
 
 import { UpdateUserUsecase } from "./update_user_usecase";
 import { Request, Response } from "express";
-import { updateUserPropsType } from "../../shared/types";
+import { updateUserPropsType } from "../../shared/domain/validations/types";
 
 export class UpdateUserController {
   constructor(private usecase: UpdateUserUsecase) {}

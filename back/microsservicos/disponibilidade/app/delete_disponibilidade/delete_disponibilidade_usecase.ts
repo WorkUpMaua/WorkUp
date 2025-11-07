@@ -1,8 +1,8 @@
-import { DisponibilidadeRepositoryMock } from "../../shared/repo/disponibilidadeRepositoryMock";
+import { DisponibilidadeRepository } from "../../shared/domain/repo/disponibilidadeRepository";
 
 export class DeleteDisponibilidadeUsecase {
 
-    constructor(private repo: DisponibilidadeRepositoryMock) {}
+    constructor(private repo: DisponibilidadeRepository) {}
 
     public execute(id: string) {
 
