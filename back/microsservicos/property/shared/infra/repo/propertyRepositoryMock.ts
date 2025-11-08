@@ -63,4 +63,18 @@ export class PropertyRepositoryMock implements PropertyRepository{
 
   }
 
+  public deleteProperty(userID: string, catalogID: string): PropertyManagement {
+
+    const userProperties = this.baseProperty[userID]
+
+    if(!userProperties) throw new Error('Usuário não foi encontrado')
+
+    if(!userProperties.properties[catalogID]) throw new Error('Não foi encontrado o catálogo para esse usuário')
+
+    delete userProperties.properties[catalogID]
+
+    return userProperties
+
+  }
+
 } 

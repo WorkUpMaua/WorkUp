@@ -1,9 +1,10 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
-import '../widgets/side_bar.dart';
-import '../widgets/models_listing.dart';
-import '../widgets/header_bar.dart';
+
+import '../models/listing.dart';
+import '../services/workup_api.dart';
 import '../utils/user_storage.dart';
+import '../widgets/header_bar.dart';
+import '../widgets/side_bar.dart';
 import 'workspace.dart';
 
 class HomePage extends StatefulWidget {
@@ -14,10 +15,13 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final WorkupApi _api = WorkupApi();
   List<Listing> filteredListings = [];
+  List<Listing> _allListings = [];
   TextEditingController searchController = TextEditingController();
-  bool isLoading = false;
+  bool isLoading = true;
   bool _sidebarActive = false;
+  String? _errorMessage;
 
   String normalizeText(String text) {
     return text
@@ -42,46 +46,60 @@ class _HomePageState extends State<HomePage> {
     _loadAllProperties();
   }
 
-  void _loadAllProperties() {
-    setState(() => isLoading = true);
-
-    // Carrega APENAS propriedades criadas pelos usuários (sem mock)
-    List<Listing> allListings = [];
-
-    // Carrega propriedades disponíveis (não alugadas ou canceladas)
-    final availableProperties = UserStorage().getAvailableProperties();
-
-    for (var propData in availableProperties) {
-      allListings.add(Listing.fromJson(propData));
-    }
-
+  Future<void> _loadAllProperties() async {
     setState(() {
-      filteredListings = allListings;
-      isLoading = false;
+      isLoading = true;
+      _errorMessage = null;
     });
+
+    try {
+      final rooms = await _api.fetchCatalogo();
+      UserStorage().cacheCatalog(rooms);
+      if (!mounted) return;
+      setState(() {
+        _allListings = rooms;
+        filteredListings = rooms;
+      });
+    } on ApiException catch (err) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = err.message;
+      });
+    } catch (err) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = 'Erro ao carregar propriedades: $err';
+      });
+    } finally {
+      if (mounted) {
+        setState(() => isLoading = false);
+      }
+    }
   }
 
   void filterRooms(String query) {
-    _loadAllProperties(); // Recarrega todas as propriedades primeiro
-
     final normalizedQuery = normalizeText(query.trim());
 
-    if (normalizedQuery.isEmpty) {
-      return; // Já foi carregado tudo no _loadAllProperties
-    }
-
     setState(() {
-      filteredListings = filteredListings.where((room) {
-        final normalizedName = normalizeText(room.name);
-        final normalizedAddress = normalizeText(room.address);
+      if (normalizedQuery.isEmpty) {
+        filteredListings = List<Listing>.from(_allListings);
+      } else {
+        filteredListings = _allListings.where((room) {
+          final normalizedName = normalizeText(room.name);
+          final normalizedAddress = normalizeText(room.address);
 
-        return normalizedName.contains(normalizedQuery) ||
-            normalizedAddress.contains(normalizedQuery);
-      }).toList();
+          return normalizedName.contains(normalizedQuery) ||
+              normalizedAddress.contains(normalizedQuery);
+        }).toList();
+      }
     });
   }
 
   Widget buildRoomCard(Listing room) {
+    final imageUrl = room.pictures
+        .firstWhere((pic) => pic.trim().isNotEmpty, orElse: () => '')
+        .trim();
+
     return GestureDetector(
       onTap: () {
         // Navega para a tela de detalhes do workspace
@@ -105,12 +123,12 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (room.pictures.isNotEmpty)
+            if (imageUrl.isNotEmpty)
               ClipRRect(
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(16),
                 ),
-                child: _buildRoomImage(room.pictures.first),
+                child: _buildRoomImage(imageUrl),
               ),
             Padding(
               padding: const EdgeInsets.all(12),
@@ -161,68 +179,36 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Método para construir a imagem (local ou da internet)
   Widget _buildRoomImage(String imagePath) {
-    // Verifica se é uma URL (começa com http)
-    if (imagePath.startsWith('http')) {
-      return Image.network(
-        imagePath,
-        width: double.infinity,
-        height: 180,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) {
-          return Container(
-            height: 180,
-            color: Colors.grey[300],
-            child: const Icon(
-              Icons.photo_outlined,
-              size: 50,
-              color: Colors.grey,
-            ),
-          );
-        },
-      );
-    } else {
-      // É um arquivo local - verifica se o arquivo existe
-      final file = File(imagePath);
-      return FutureBuilder<bool>(
-        future: file.exists(),
-        builder: (context, snapshot) {
-          if (snapshot.hasData && snapshot.data == true) {
-            return Image.file(
-              file,
-              width: double.infinity,
-              height: 180,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  height: 180,
-                  color: Colors.grey[300],
-                  child: const Icon(
-                    Icons.photo_outlined,
-                    size: 50,
-                    color: Colors.grey,
-                  ),
-                );
-              },
-            );
-          } else {
-            // Arquivo não existe ou ainda carregando
-            return Container(
-              height: 180,
-              color: Colors.grey[300],
-              child: snapshot.connectionState == ConnectionState.waiting
-                  ? const Center(child: CircularProgressIndicator())
-                  : const Icon(
-                      Icons.photo_outlined,
-                      size: 50,
-                      color: Colors.grey,
-                    ),
-            );
-          }
-        },
-      );
+    final url = imagePath.trim();
+    if (!url.startsWith('http')) {
+      return _imagePlaceholder();
     }
+
+    return Image.network(
+      url,
+      width: double.infinity,
+      height: 180,
+      fit: BoxFit.cover,
+      loadingBuilder: (context, child, loadingProgress) {
+        if (loadingProgress == null) return child;
+        return Container(
+          height: 180,
+          color: Colors.grey[200],
+          alignment: Alignment.center,
+          child: const CircularProgressIndicator(strokeWidth: 2),
+        );
+      },
+      errorBuilder: (context, error, stackTrace) => _imagePlaceholder(),
+    );
+  }
+
+  Widget _imagePlaceholder() {
+    return Container(
+      height: 180,
+      color: Colors.grey[300],
+      child: const Icon(Icons.photo_outlined, size: 50, color: Colors.grey),
+    );
   }
 
   @override
@@ -238,114 +224,148 @@ class _HomePageState extends State<HomePage> {
                 end: Alignment.bottomRight,
               ),
             ),
-            child: CustomScrollView(
-              slivers: [
-                SliverAppBar(
-                  pinned: true,
-                  automaticallyImplyLeading: false,
-                  flexibleSpace: HeaderBar(
-                    onMenuClick: () => setState(() => _sidebarActive = true),
+            child: RefreshIndicator(
+              onRefresh: _loadAllProperties,
+              child: CustomScrollView(
+                slivers: [
+                  SliverAppBar(
+                    pinned: true,
+                    automaticallyImplyLeading: false,
+                    flexibleSpace: HeaderBar(
+                      onMenuClick: () => setState(() => _sidebarActive = true),
+                    ),
                   ),
-                ),
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                    child: Column(
-                      children: [
-                        const Text(
-                          "Encontre o espaço perfeito para seu negócio",
-                          style: TextStyle(
-                            fontSize: 20,
-                            color: Color(0xFF2C3E50),
-                            fontWeight: FontWeight.bold,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          "Descubra escritórios e salas comerciais que combinam com sua necessidade",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 14, color: Colors.grey),
-                        ),
-                        const SizedBox(height: 20),
-                        TextField(
-                          controller: searchController,
-                          decoration: InputDecoration(
-                            hintText: "Buscar sala...",
-                            prefixIcon: const Icon(Icons.search),
-                            filled: true,
-                            fillColor: Colors.white,
-                            contentPadding: const EdgeInsets.symmetric(
-                              vertical: 14,
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                      child: Column(
+                        children: [
+                          const Text(
+                            "Encontre o espaço perfeito para seu negócio",
+                            style: TextStyle(
+                              fontSize: 20,
+                              color: Color(0xFF2C3E50),
+                              fontWeight: FontWeight.bold,
                             ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: const BorderSide(
-                                color: Colors.grey,
-                                width: 0.5,
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            "Descubra escritórios e salas comerciais que combinam com sua necessidade",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 14, color: Colors.grey),
+                          ),
+                          const SizedBox(height: 20),
+                          TextField(
+                            controller: searchController,
+                            decoration: InputDecoration(
+                              hintText: "Buscar sala...",
+                              prefixIcon: const Icon(Icons.search),
+                              filled: true,
+                              fillColor: Colors.white,
+                              contentPadding: const EdgeInsets.symmetric(
+                                vertical: 14,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(
+                                  color: Colors.grey,
+                                  width: 0.5,
+                                ),
                               ),
                             ),
+                            onChanged: filterRooms,
                           ),
-                          onChanged: filterRooms,
-                        ),
-                        const SizedBox(height: 20),
-                      ],
-                    ),
-                  ),
-                ),
-                if (isLoading)
-                  const SliverToBoxAdapter(
-                    child: Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(20.0),
-                        child: CircularProgressIndicator(),
+                          const SizedBox(height: 20),
+                        ],
                       ),
                     ),
-                  )
-                else if (filteredListings.isEmpty)
-                  SliverToBoxAdapter(
-                    child: Center(
+                  ),
+                  if (isLoading)
+                    const SliverToBoxAdapter(
+                      child: Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(20.0),
+                          child: CircularProgressIndicator(),
+                        ),
+                      ),
+                    )
+                  else if (_errorMessage != null)
+                    SliverToBoxAdapter(
                       child: Padding(
-                        padding: const EdgeInsets.all(48.0),
+                        padding: const EdgeInsets.all(32.0),
                         child: Column(
                           children: [
                             Icon(
-                              Icons.business_outlined,
-                              size: 64,
-                              color: Colors.grey[400],
+                              Icons.warning_amber_rounded,
+                              size: 56,
+                              color: Colors.red[300],
                             ),
-                            const SizedBox(height: 16),
-                            const Text(
-                              "Nenhum espaço disponível no momento.",
-                              style: TextStyle(
-                                fontSize: 18,
-                                color: Colors.grey,
+                            const SizedBox(height: 12),
+                            Text(
+                              _errorMessage!,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                color: Colors.red,
+                                fontWeight: FontWeight.w500,
                               ),
                               textAlign: TextAlign.center,
                             ),
-                            const SizedBox(height: 8),
-                            const Text(
-                              "Crie uma nova propriedade ou aguarde novos espaços!",
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey,
-                              ),
-                              textAlign: TextAlign.center,
+                            const SizedBox(height: 12),
+                            ElevatedButton.icon(
+                              onPressed: _loadAllProperties,
+                              icon: const Icon(Icons.refresh),
+                              label: const Text('Tentar novamente'),
                             ),
                           ],
                         ),
                       ),
+                    )
+                  else if (filteredListings.isEmpty)
+                    SliverToBoxAdapter(
+                      child: Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(48.0),
+                          child: Column(
+                            children: [
+                              Icon(
+                                Icons.business_outlined,
+                                size: 64,
+                                color: Colors.grey[400],
+                              ),
+                              const SizedBox(height: 16),
+                              const Text(
+                                "Nenhum espaço disponível no momento.",
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.grey,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 8),
+                              const Text(
+                                "Crie uma nova propriedade ou aguarde novos espaços!",
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    )
+                  else
+                    SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) =>
+                            buildRoomCard(filteredListings[index]),
+                        childCount: filteredListings.length,
+                      ),
                     ),
-                  )
-                else
-                  SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) =>
-                          buildRoomCard(filteredListings[index]),
-                      childCount: filteredListings.length,
-                    ),
-                  ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

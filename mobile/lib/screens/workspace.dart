@@ -1,5 +1,8 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+
+import '../models/listing.dart';
+import '../services/workup_api.dart';
 import '../utils/user_storage.dart';
 import 'rent_screen.dart';
 
@@ -14,40 +17,9 @@ class WorkSpacePage extends StatefulWidget {
   State<WorkSpacePage> createState() => _WorkSpacePageState();
 }
 
-class RoomDetails {
-  final String id;
-  final String name;
-  final String address;
-  final List<String> comodities;
-  final List<String> pictures;
-  final double price;
-  final int capacity;
-
-  RoomDetails({
-    required this.id,
-    required this.name,
-    required this.address,
-    required this.comodities,
-    required this.pictures,
-    required this.price,
-    required this.capacity,
-  });
-
-  factory RoomDetails.fromJson(Map<String, dynamic> json) {
-    return RoomDetails(
-      id: json['id']?.toString() ?? '',
-      name: json['name'] ?? '',
-      address: json['address'] ?? '',
-      comodities: List<String>.from(json['comodities'] ?? []),
-      pictures: List<String>.from(json['pictures'] ?? []),
-      price: (json['price'] as num?)?.toDouble() ?? 0.0,
-      capacity: (json['capacity'] as num?)?.toInt() ?? 0,
-    );
-  }
-}
-
 class _WorkSpacePageState extends State<WorkSpacePage> {
-  RoomDetails? _room;
+  final WorkupApi _api = WorkupApi();
+  Listing? _room;
   bool _loading = true;
   String? _alertMessage;
   bool _isError = false;
@@ -55,6 +27,7 @@ class _WorkSpacePageState extends State<WorkSpacePage> {
   DateTime? _endDate;
   int _selectedImageIndex = 0;
   final PageController _pageController = PageController();
+  bool _isReserving = false;
 
   final Color primaryColor = const Color(0xFF34495E);
   final Color backgroundColor = const Color(0xFFF4F6FA);
@@ -62,6 +35,11 @@ class _WorkSpacePageState extends State<WorkSpacePage> {
   @override
   void initState() {
     super.initState();
+    final cached = UserStorage().getCatalogRoom(widget.propertyId);
+    if (cached != null) {
+      _room = cached;
+      _loading = false;
+    }
     _fetchRoom();
   }
 
@@ -71,29 +49,35 @@ class _WorkSpacePageState extends State<WorkSpacePage> {
     super.dispose();
   }
 
-  int _getDaysBetween(DateTime start, DateTime end) {
-    return end.difference(start).inDays;
+  double _calculateTotalPrice() {
+    if (_room == null || _startDate == null || _endDate == null) return 0;
+    final minutes = _endDate!.difference(_startDate!).inMinutes;
+    final totalHours = minutes <= 0 ? 1 : (minutes / 60);
+    return _room!.price * totalHours;
   }
 
   Future<void> _fetchRoom() async {
+    if (_room == null) {
+      setState(() => _loading = true);
+    }
+
     try {
-      await Future.delayed(const Duration(milliseconds: 500));
-
-      final property = UserStorage().getPropertyById(widget.propertyId);
-
-      if (property != null) {
-        setState(() {
-          _room = RoomDetails.fromJson(property);
-          _loading = false;
-        });
-      } else {
-        setState(() {
-          _alertMessage = 'Propriedade não encontrada.';
-          _isError = true;
-          _loading = false;
-        });
-      }
+      final room = await _api.fetchCatalogoById(widget.propertyId);
+      if (!mounted) return;
+      setState(() {
+        _room = room;
+        _loading = false;
+      });
+      UserStorage().upsertCatalogRoom(room);
+    } on ApiException catch (err) {
+      if (!mounted) return;
+      setState(() {
+        _alertMessage = err.message;
+        _isError = true;
+        _loading = false;
+      });
     } catch (err) {
+      if (!mounted) return;
       setState(() {
         _alertMessage = 'ERRO: Não foi possível carregar detalhes da sala.';
         _isError = true;
@@ -103,32 +87,68 @@ class _WorkSpacePageState extends State<WorkSpacePage> {
   }
 
   Future<void> _selectDateRange() async {
-    // Seleciona data de check-in
-    final DateTime? checkIn = await _showCustomDatePicker(
-      context: context,
-      initialDate: _startDate ?? DateTime.now(),
-      firstDate: DateTime.now(),
-      lastDate: DateTime(DateTime.now().year + 2),
+    final DateTime now = DateTime.now();
+    final start = await _selectDateTime(
+      initialDate: _startDate ?? now,
+      firstDate: now,
       helpText: 'Selecione a data de Check-in',
     );
+    if (start == null) return;
 
-    if (checkIn == null) return;
-
-    // Seleciona data de check-out (deve ser após check-in)
-    final DateTime? checkOut = await _showCustomDatePicker(
-      context: context,
-      initialDate: checkIn.add(const Duration(days: 1)),
-      firstDate: checkIn.add(const Duration(days: 1)),
-      lastDate: DateTime(DateTime.now().year + 2),
+    final end = await _selectDateTime(
+      initialDate: (_endDate != null && _endDate!.isAfter(start))
+          ? _endDate!
+          : start.add(const Duration(hours: 1)),
+      firstDate: start.add(const Duration(hours: 1)),
       helpText: 'Selecione a data de Check-out',
     );
+    if (end == null) return;
 
-    if (checkOut != null) {
-      setState(() {
-        _startDate = checkIn;
-        _endDate = checkOut;
-      });
+    if (!end.isAfter(start)) {
+      _showAlert(
+        'A data/horário de check-out deve ser maior que o check-in.',
+        true,
+      );
+      return;
     }
+
+    setState(() {
+      _startDate = start;
+      _endDate = end;
+    });
+  }
+
+  Future<DateTime?> _selectDateTime({
+    required DateTime initialDate,
+    required DateTime firstDate,
+    DateTime? lastDate,
+    String? helpText,
+  }) async {
+    final pickedDate = await _showCustomDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: DateTime(firstDate.year, firstDate.month, firstDate.day),
+      lastDate: lastDate ?? DateTime(DateTime.now().year + 2),
+      helpText: helpText,
+    );
+
+    if (pickedDate == null) return null;
+
+    final initialTime = TimeOfDay.fromDateTime(initialDate);
+    final pickedTime = await showTimePicker(
+      context: context,
+      initialTime: initialTime,
+    );
+
+    if (pickedTime == null) return null;
+
+    return DateTime(
+      pickedDate.year,
+      pickedDate.month,
+      pickedDate.day,
+      pickedTime.hour,
+      pickedTime.minute,
+    );
   }
 
   Future<DateTime?> _showCustomDatePicker({
@@ -423,160 +443,154 @@ class _WorkSpacePageState extends State<WorkSpacePage> {
     return months[month - 1];
   }
 
-  void _handleReserve() async {
+  Future<void> _handleReserve() async {
     if (_startDate == null || _endDate == null) {
-      setState(() {
-        _alertMessage =
-            'Por favor, selecione as datas de check-in e check-out.';
-        _isError = true;
-      });
-      Future.delayed(const Duration(seconds: 3), () {
-        if (mounted) setState(() => _alertMessage = null);
-      });
+      _showAlert(
+        'Por favor, selecione as datas de check-in e check-out.',
+        true,
+      );
       return;
     }
 
-    if (_room == null) return;
+    final room = _room;
+    final userId = UserStorage().userId;
 
-    final reservation = {
-      'id': DateTime.now().millisecondsSinceEpoch.toString(),
-      'workspaceId': _room!.id,
-      'workspaceName': _room!.name,
-      'workspaceImage': _room!.pictures.isNotEmpty ? _room!.pictures.first : '',
-      'startDate': _startDate!.toIso8601String(),
-      'endDate': _endDate!.toIso8601String(),
-      'status': 'active',
-      'address': _room!.address,
-      'price': _room!.price,
-      'capacity': _room!.capacity,
-    };
+    if (room == null) return;
+    if (userId == null) {
+      _showAlert('Faça login para reservar este espaço.', true);
+      return;
+    }
 
-    final success = UserStorage().addReservation(reservation);
+    setState(() {
+      _isReserving = true;
+      _alertMessage = null;
+    });
 
-    if (success) {
-      UserStorage().markPropertyAsRented(widget.propertyId);
+    final start = _startDate!.millisecondsSinceEpoch;
+    final end = _endDate!.millisecondsSinceEpoch;
+    final totalPrice = _calculateTotalPrice();
 
-      setState(() {
-        _alertMessage = 'Reserva realizada com sucesso!';
-        _isError = false;
-      });
+    try {
+      final availableSpots = await _api.checkAvailability(
+        workspaceId: room.id,
+        startDate: start,
+        endDate: end,
+      );
+
+      if (availableSpots <= 0) {
+        _showAlert(
+          'Este espaço já está reservado para o período informado.',
+          true,
+        );
+        return;
+      }
+
+      await _api.createReservation(
+        userId: userId,
+        workspaceId: room.id,
+        startDate: start,
+        endDate: end,
+        people: room.capacity,
+        finalPrice: totalPrice,
+      );
+
+      _showAlert('Reserva realizada com sucesso!', false);
+
+      if (widget.onReserve != null) {
+        widget.onReserve!();
+      }
 
       await Future.delayed(const Duration(milliseconds: 600));
 
       if (mounted) {
-        if (widget.onReserve != null) {
-          widget.onReserve!();
-        }
-
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const TelaAluguelPage()),
         );
       }
-    } else {
-      setState(() {
-        _alertMessage = 'Erro ao realizar reserva.';
-        _isError = true;
-      });
+    } on ApiException catch (err) {
+      _showAlert(err.message, true);
+    } catch (err) {
+      _showAlert('Erro ao realizar reserva: $err', true);
+    } finally {
+      if (mounted) setState(() => _isReserving = false);
     }
+  }
+
+  void _showAlert(String message, bool isError) {
+    setState(() {
+      _alertMessage = message;
+      _isError = isError;
+    });
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted) setState(() => _alertMessage = null);
+    });
+  }
+
+  String _formatDateTime(DateTime date) {
+    return DateFormat('dd/MM/yyyy HH:mm').format(date);
+  }
+
+  String _formatDuration() {
+    if (_startDate == null || _endDate == null) return '';
+    final duration = _endDate!.difference(_startDate!);
+    if (duration.inMinutes <= 0) return '';
+    final days = duration.inDays;
+    final hours = duration.inHours;
+    final minutes = duration.inMinutes % 60;
+    if (hours < 24) {
+      if (minutes == 0) return '$hours horas';
+      return '${hours}h ${minutes}min';
+    }
+    final remainingHours = hours - days * 24;
+    if (remainingHours == 0 && minutes == 0) {
+      return '$days dias';
+    }
+    final buffer = StringBuffer('$days dias');
+    if (remainingHours > 0) buffer.write(' e $remainingHours h');
+    if (minutes > 0) buffer.write(' ${minutes}min');
+    return buffer.toString();
   }
 
   Widget _buildPropertyImage(String imagePath) {
-    if (imagePath.startsWith('http')) {
-      return Image.network(
-        imagePath,
-        width: double.infinity,
-        height: 320,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) {
-          return Container(
-            height: 320,
-            color: Colors.grey[300],
-            child: const Icon(
-              Icons.photo_outlined,
-              size: 50,
-              color: Colors.grey,
-            ),
-          );
-        },
-      );
-    } else {
-      final file = File(imagePath);
-      return FutureBuilder<bool>(
-        future: file.exists(),
-        builder: (context, snapshot) {
-          if (snapshot.hasData && snapshot.data == true) {
-            return Image.file(
-              file,
-              width: double.infinity,
-              height: 320,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  height: 320,
-                  color: Colors.grey[300],
-                  child: const Icon(
-                    Icons.photo_outlined,
-                    size: 50,
-                    color: Colors.grey,
-                  ),
-                );
-              },
-            );
-          } else {
-            return Container(
-              height: 320,
-              color: Colors.grey[300],
-              child: snapshot.connectionState == ConnectionState.waiting
-                  ? const Center(child: CircularProgressIndicator())
-                  : const Icon(
-                      Icons.photo_outlined,
-                      size: 50,
-                      color: Colors.grey,
-                    ),
-            );
-          }
-        },
-      );
+    if (!imagePath.startsWith('http')) {
+      return _imagePlaceholder(height: 320);
     }
+    return Image.network(
+      imagePath,
+      width: double.infinity,
+      height: 320,
+      fit: BoxFit.cover,
+      loadingBuilder: (context, child, progress) {
+        if (progress == null) return child;
+        return Container(
+          height: 320,
+          color: Colors.grey[200],
+          alignment: Alignment.center,
+          child: const CircularProgressIndicator(strokeWidth: 2),
+        );
+      },
+      errorBuilder: (context, error, stackTrace) =>
+          _imagePlaceholder(height: 320),
+    );
   }
 
   Widget _buildThumbnail(String imagePath) {
-    if (imagePath.startsWith('http')) {
-      return Image.network(
-        imagePath,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) {
-          return Container(
-            color: Colors.grey[300],
-            child: const Icon(
-              Icons.photo_outlined,
-              size: 30,
-              color: Colors.grey,
-            ),
-          );
-        },
-      );
-    } else {
-      final file = File(imagePath);
-      return FutureBuilder<bool>(
-        future: file.exists(),
-        builder: (context, snapshot) {
-          if (snapshot.hasData && snapshot.data == true) {
-            return Image.file(file, fit: BoxFit.cover);
-          } else {
-            return Container(
-              color: Colors.grey[300],
-              child: const Icon(
-                Icons.photo_outlined,
-                size: 30,
-                color: Colors.grey,
-              ),
-            );
-          }
-        },
-      );
-    }
+    if (!imagePath.startsWith('http')) return _imagePlaceholder(size: 30);
+    return Image.network(
+      imagePath,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) => _imagePlaceholder(size: 30),
+    );
+  }
+
+  Widget _imagePlaceholder({double height = 180, double size = 50}) {
+    return Container(
+      height: height,
+      color: Colors.grey[300],
+      alignment: Alignment.center,
+      child: Icon(Icons.photo_outlined, size: size, color: Colors.grey),
+    );
   }
 
   Widget _buildPhotoCarousel() {
@@ -890,8 +904,8 @@ class _WorkSpacePageState extends State<WorkSpacePage> {
                                   children: [
                                     Text(
                                       _startDate != null && _endDate != null
-                                          ? 'Check-in: ${_startDate!.day.toString().padLeft(2, '0')}/${_startDate!.month.toString().padLeft(2, '0')}/${_startDate!.year}'
-                                          : 'Selecione as datas',
+                                          ? 'Check-in: ${_formatDateTime(_startDate!)}'
+                                          : 'Selecione data e horário',
                                       style: TextStyle(
                                         fontSize: 14,
                                         color: _startDate != null
@@ -904,7 +918,7 @@ class _WorkSpacePageState extends State<WorkSpacePage> {
                                         _endDate != null) ...[
                                       const SizedBox(height: 4),
                                       Text(
-                                        'Check-out: ${_endDate!.day.toString().padLeft(2, '0')}/${_endDate!.month.toString().padLeft(2, '0')}/${_endDate!.year}',
+                                        'Check-out: ${_formatDateTime(_endDate!)}',
                                         style: const TextStyle(
                                           fontSize: 14,
                                           color: Color(0xFF2C3E50),
@@ -913,7 +927,7 @@ class _WorkSpacePageState extends State<WorkSpacePage> {
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
-                                        '${_getDaysBetween(_startDate!, _endDate!)} dias',
+                                        _formatDuration(),
                                         style: TextStyle(
                                           fontSize: 12,
                                           color: Colors.blue[700],
@@ -996,10 +1010,22 @@ class _WorkSpacePageState extends State<WorkSpacePage> {
                                   color: Colors.green,
                                 ),
                               ),
+                              if (_startDate != null && _endDate != null)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 4),
+                                  child: Text(
+                                    'Total estimado: R\$ ${_calculateTotalPrice().toStringAsFixed(2)}',
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      color: Color(0xFF2C3E50),
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
                             ],
                           ),
                           ElevatedButton(
-                            onPressed: _handleReserve,
+                            onPressed: _isReserving ? null : _handleReserve,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: primaryColor,
                               padding: const EdgeInsets.symmetric(
@@ -1011,25 +1037,36 @@ class _WorkSpacePageState extends State<WorkSpacePage> {
                               ),
                               elevation: 2,
                             ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.check_circle_outline,
-                                  color: Colors.white,
-                                  size: 20,
-                                ),
-                                SizedBox(width: 8),
-                                Text(
-                                  'Reservar Agora',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.white,
+                            child: _isReserving
+                                ? const SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.white,
+                                      ),
+                                    ),
+                                  )
+                                : const Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.check_circle_outline,
+                                        color: Colors.white,
+                                        size: 20,
+                                      ),
+                                      SizedBox(width: 8),
+                                      Text(
+                                        'Reservar Agora',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ),
-                              ],
-                            ),
                           ),
                         ],
                       ),
