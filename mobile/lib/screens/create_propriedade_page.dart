@@ -235,7 +235,8 @@ class _CreatePropriedadePageState extends State<CreatePropriedadePage> {
         price: parseMoney(_priceController.text),
         capacity: int.parse(_capacityController.text),
         doorSerial: _serialPortaController.text.trim(),
-        pictures: List.of(_images),
+        pictures: _images.map((img) => img.file).toList(),
+        pictureBytes: _images.map((img) => img.bytes).toList(),
       );
 
       if (!mounted) return;

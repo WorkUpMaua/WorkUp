@@ -20,6 +20,7 @@ class _TelaAluguelPageState extends State<TelaAluguelPage> {
   List<Reservation> _reservations = [];
   bool _isLoading = true;
   String? _errorMessage;
+  final Set<String> _doorCodeVisible = {};
 
   @override
   void initState() {
@@ -323,6 +324,10 @@ class _TelaAluguelPageState extends State<TelaAluguelPage> {
                     ),
                   ],
                 ),
+                if (reservation.doorCode != null &&
+                    reservation.doorCode!.isNotEmpty &&
+                    reservation.status.toUpperCase() == 'CONFIRMED')
+                  _buildDoorCode(reservation),
                 if (_canCancel(reservation.status)) ...[
                   const SizedBox(height: 12),
                   SizedBox(
@@ -388,6 +393,68 @@ class _TelaAluguelPageState extends State<TelaAluguelPage> {
       height: 180,
       color: Colors.grey[300],
       child: const Icon(Icons.photo_outlined, size: 50, color: Colors.grey),
+    );
+  }
+
+  Widget _buildDoorCode(Reservation reservation) {
+    final isVisible = _doorCodeVisible.contains(reservation.id);
+    final masked = '•' * reservation.doorCode!.length;
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.green.shade50,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.green.shade200),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.lock, color: Colors.green),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Código da Porta',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xFF2C3E50),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    isVisible ? reservation.doorCode! : masked,
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 4,
+                      color: Colors.green[800],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            IconButton(
+              icon: Icon(
+                isVisible ? Icons.visibility_off : Icons.visibility,
+                color: Colors.green[700],
+              ),
+              onPressed: () {
+                setState(() {
+                  if (isVisible) {
+                    _doorCodeVisible.remove(reservation.id);
+                  } else {
+                    _doorCodeVisible.add(reservation.id);
+                  }
+                });
+              },
+            ),
+          ],
+        ),
+      ),
     );
   }
 
