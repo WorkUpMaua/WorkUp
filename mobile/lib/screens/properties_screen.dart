@@ -1,7 +1,9 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import '../widgets/side_bar.dart';
+import '../models/listing.dart';
+import '../services/workup_api.dart';
 import '../utils/user_storage.dart';
+import '../widgets/side_bar.dart';
 
 class TelaPropriedadePage extends StatefulWidget {
   const TelaPropriedadePage({Key? key}) : super(key: key);
@@ -10,39 +12,8 @@ class TelaPropriedadePage extends StatefulWidget {
   State<TelaPropriedadePage> createState() => _TelaPropriedadePageState();
 }
 
-class Listing {
-  final String id;
-  final String name;
-  final List<String> pictures;
-  final double price;
-  final String address;
-  final List<String> comodities;
-  final int capacity;
-
-  Listing({
-    required this.id,
-    required this.name,
-    required this.pictures,
-    required this.price,
-    required this.address,
-    required this.comodities,
-    required this.capacity,
-  });
-
-  factory Listing.fromJson(Map<String, dynamic> json) {
-    return Listing(
-      id: json['id']?.toString() ?? '',
-      name: json['name'] ?? '',
-      pictures: List<String>.from(json['pictures'] ?? []),
-      price: (json['price'] as num?)?.toDouble() ?? 0.0,
-      address: json['address'] ?? '',
-      comodities: List<String>.from(json['comodities'] ?? []),
-      capacity: (json['capacity'] as num?)?.toInt() ?? 0,
-    );
-  }
-}
-
 class _TelaPropriedadePageState extends State<TelaPropriedadePage> {
+  final WorkupApi _api = WorkupApi();
   List<Listing> _properties = [];
   bool _isLoading = true;
   String? _errorMessage;
@@ -54,25 +25,40 @@ class _TelaPropriedadePageState extends State<TelaPropriedadePage> {
     _loadUserProperties();
   }
 
-  void _loadUserProperties() {
-    setState(() => _isLoading = true);
+  Future<void> _loadUserProperties() async {
+    final userId = UserStorage().userId;
+    if (userId == null) {
+      setState(() {
+        _errorMessage = "Faça login para gerenciar suas propriedades.";
+        _isLoading = false;
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
 
     try {
-      // Carrega apenas as propriedades do usuário logado
-      final userPropertiesData = UserStorage().getUserProperties();
-
+      final properties = await _api.fetchUserProperties(userId);
+      UserStorage().cacheOwnedProperties(properties);
+      if (!mounted) return;
       setState(() {
-        _properties = userPropertiesData
-            .map((data) => Listing.fromJson(data))
-            .toList();
-        _isLoading = false;
+        _properties = properties;
+      });
+    } on ApiException catch (err) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = err.message;
       });
     } catch (err) {
+      if (!mounted) return;
       setState(() {
-        _errorMessage = "Erro ao carregar as propriedades";
-        _isLoading = false;
+        _errorMessage = "Erro ao carregar as propriedades: $err";
       });
-      print("Erro ao carregar propriedades do usuário: $err");
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -91,19 +77,34 @@ class _TelaPropriedadePageState extends State<TelaPropriedadePage> {
             child: const Text('Cancelar', style: TextStyle(color: Colors.grey)),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.of(context).pop();
-
-              final success = UserStorage().removeProperty(propertyId);
-
-              if (success) {
-                _loadUserProperties(); // Recarrega a lista
-
+              try {
+                await _api.deleteCatalogo(propertyId);
+                if (!mounted) return;
+                await _loadUserProperties();
+                if (!mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text('Propriedade removida com sucesso'),
                     backgroundColor: Colors.green,
                     duration: Duration(seconds: 2),
+                  ),
+                );
+              } on ApiException catch (err) {
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(err.message),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              } catch (err) {
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Erro ao remover propriedade: $err'),
+                    backgroundColor: Colors.red,
                   ),
                 );
               }

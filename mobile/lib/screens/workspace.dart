@@ -1,5 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+
+import '../models/listing.dart';
+import '../services/workup_api.dart';
 import '../utils/user_storage.dart';
 import 'rent_screen.dart';
 
@@ -14,40 +17,9 @@ class WorkSpacePage extends StatefulWidget {
   State<WorkSpacePage> createState() => _WorkSpacePageState();
 }
 
-class RoomDetails {
-  final String id;
-  final String name;
-  final String address;
-  final List<String> comodities;
-  final List<String> pictures;
-  final double price;
-  final int capacity;
-
-  RoomDetails({
-    required this.id,
-    required this.name,
-    required this.address,
-    required this.comodities,
-    required this.pictures,
-    required this.price,
-    required this.capacity,
-  });
-
-  factory RoomDetails.fromJson(Map<String, dynamic> json) {
-    return RoomDetails(
-      id: json['id']?.toString() ?? '',
-      name: json['name'] ?? '',
-      address: json['address'] ?? '',
-      comodities: List<String>.from(json['comodities'] ?? []),
-      pictures: List<String>.from(json['pictures'] ?? []),
-      price: (json['price'] as num?)?.toDouble() ?? 0.0,
-      capacity: (json['capacity'] as num?)?.toInt() ?? 0,
-    );
-  }
-}
-
 class _WorkSpacePageState extends State<WorkSpacePage> {
-  RoomDetails? _room;
+  final WorkupApi _api = WorkupApi();
+  Listing? _room;
   bool _loading = true;
   String? _alertMessage;
   bool _isError = false;
@@ -55,6 +27,7 @@ class _WorkSpacePageState extends State<WorkSpacePage> {
   DateTime? _endDate;
   int _selectedImageIndex = 0;
   final PageController _pageController = PageController();
+  bool _isReserving = false;
 
   final Color primaryColor = const Color(0xFF34495E);
   final Color backgroundColor = const Color(0xFFF4F6FA);
@@ -62,6 +35,11 @@ class _WorkSpacePageState extends State<WorkSpacePage> {
   @override
   void initState() {
     super.initState();
+    final cached = UserStorage().getCatalogRoom(widget.propertyId);
+    if (cached != null) {
+      _room = cached;
+      _loading = false;
+    }
     _fetchRoom();
   }
 
@@ -75,25 +53,35 @@ class _WorkSpacePageState extends State<WorkSpacePage> {
     return end.difference(start).inDays;
   }
 
+  double _calculateTotalPrice() {
+    if (_room == null || _startDate == null || _endDate == null) return 0;
+    final hours = _endDate!.difference(_startDate!).inHours;
+    final totalHours = hours <= 0 ? 1 : hours;
+    return _room!.price * totalHours;
+  }
+
   Future<void> _fetchRoom() async {
+    if (_room == null) {
+      setState(() => _loading = true);
+    }
+
     try {
-      await Future.delayed(const Duration(milliseconds: 500));
-
-      final property = UserStorage().getPropertyById(widget.propertyId);
-
-      if (property != null) {
-        setState(() {
-          _room = RoomDetails.fromJson(property);
-          _loading = false;
-        });
-      } else {
-        setState(() {
-          _alertMessage = 'Propriedade não encontrada.';
-          _isError = true;
-          _loading = false;
-        });
-      }
+      final room = await _api.fetchCatalogoById(widget.propertyId);
+      if (!mounted) return;
+      setState(() {
+        _room = room;
+        _loading = false;
+      });
+      UserStorage().upsertCatalogRoom(room);
+    } on ApiException catch (err) {
+      if (!mounted) return;
+      setState(() {
+        _alertMessage = err.message;
+        _isError = true;
+        _loading = false;
+      });
     } catch (err) {
+      if (!mounted) return;
       setState(() {
         _alertMessage = 'ERRO: Não foi possível carregar detalhes da sala.';
         _isError = true;
@@ -423,62 +411,88 @@ class _WorkSpacePageState extends State<WorkSpacePage> {
     return months[month - 1];
   }
 
-  void _handleReserve() async {
+  Future<void> _handleReserve() async {
     if (_startDate == null || _endDate == null) {
-      setState(() {
-        _alertMessage =
-            'Por favor, selecione as datas de check-in e check-out.';
-        _isError = true;
-      });
-      Future.delayed(const Duration(seconds: 3), () {
-        if (mounted) setState(() => _alertMessage = null);
-      });
+      _showAlert(
+        'Por favor, selecione as datas de check-in e check-out.',
+        true,
+      );
       return;
     }
 
-    if (_room == null) return;
+    final room = _room;
+    final userId = UserStorage().userId;
 
-    final reservation = {
-      'id': DateTime.now().millisecondsSinceEpoch.toString(),
-      'workspaceId': _room!.id,
-      'workspaceName': _room!.name,
-      'workspaceImage': _room!.pictures.isNotEmpty ? _room!.pictures.first : '',
-      'startDate': _startDate!.toIso8601String(),
-      'endDate': _endDate!.toIso8601String(),
-      'status': 'active',
-      'address': _room!.address,
-      'price': _room!.price,
-      'capacity': _room!.capacity,
-    };
+    if (room == null) return;
+    if (userId == null) {
+      _showAlert('Faça login para reservar este espaço.', true);
+      return;
+    }
 
-    final success = UserStorage().addReservation(reservation);
+    setState(() {
+      _isReserving = true;
+      _alertMessage = null;
+    });
 
-    if (success) {
-      UserStorage().markPropertyAsRented(widget.propertyId);
+    final start = _startDate!.millisecondsSinceEpoch;
+    final end = _endDate!.millisecondsSinceEpoch;
+    final totalPrice = _calculateTotalPrice();
 
-      setState(() {
-        _alertMessage = 'Reserva realizada com sucesso!';
-        _isError = false;
-      });
+    try {
+      final availableSpots = await _api.checkAvailability(
+        workspaceId: room.id,
+        startDate: start,
+        endDate: end,
+      );
+
+      if (availableSpots <= 0) {
+        _showAlert(
+          'Este espaço já está reservado para o período informado.',
+          true,
+        );
+        return;
+      }
+
+      await _api.createReservation(
+        userId: userId,
+        workspaceId: room.id,
+        startDate: start,
+        endDate: end,
+        people: room.capacity,
+        finalPrice: totalPrice,
+      );
+
+      _showAlert('Reserva realizada com sucesso!', false);
+
+      if (widget.onReserve != null) {
+        widget.onReserve!();
+      }
 
       await Future.delayed(const Duration(milliseconds: 600));
 
       if (mounted) {
-        if (widget.onReserve != null) {
-          widget.onReserve!();
-        }
-
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const TelaAluguelPage()),
         );
       }
-    } else {
-      setState(() {
-        _alertMessage = 'Erro ao realizar reserva.';
-        _isError = true;
-      });
+    } on ApiException catch (err) {
+      _showAlert(err.message, true);
+    } catch (err) {
+      _showAlert('Erro ao realizar reserva: $err', true);
+    } finally {
+      if (mounted) setState(() => _isReserving = false);
     }
+  }
+
+  void _showAlert(String message, bool isError) {
+    setState(() {
+      _alertMessage = message;
+      _isError = isError;
+    });
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted) setState(() => _alertMessage = null);
+    });
   }
 
   Widget _buildPropertyImage(String imagePath) {
@@ -996,10 +1010,22 @@ class _WorkSpacePageState extends State<WorkSpacePage> {
                                   color: Colors.green,
                                 ),
                               ),
+                              if (_startDate != null && _endDate != null)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 4),
+                                  child: Text(
+                                    'Total estimado: R\$ ${_calculateTotalPrice().toStringAsFixed(2)}',
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      color: Color(0xFF2C3E50),
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
                             ],
                           ),
                           ElevatedButton(
-                            onPressed: _handleReserve,
+                            onPressed: _isReserving ? null : _handleReserve,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: primaryColor,
                               padding: const EdgeInsets.symmetric(
@@ -1011,25 +1037,36 @@ class _WorkSpacePageState extends State<WorkSpacePage> {
                               ),
                               elevation: 2,
                             ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.check_circle_outline,
-                                  color: Colors.white,
-                                  size: 20,
-                                ),
-                                SizedBox(width: 8),
-                                Text(
-                                  'Reservar Agora',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.white,
+                            child: _isReserving
+                                ? const SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.white,
+                                      ),
+                                    ),
+                                  )
+                                : const Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.check_circle_outline,
+                                        color: Colors.white,
+                                        size: 20,
+                                      ),
+                                      SizedBox(width: 8),
+                                      Text(
+                                        'Reservar Agora',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ),
-                              ],
-                            ),
                           ),
                         ],
                       ),

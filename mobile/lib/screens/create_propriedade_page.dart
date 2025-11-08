@@ -1,11 +1,13 @@
-import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:flutter/services.dart';
-import '../widgets/commodities_selector.dart';
-import '../widgets/alert_widget.dart';
-import '../widgets/side_bar.dart';
+import 'package:image_picker/image_picker.dart';
+
+import '../services/workup_api.dart';
 import '../utils/user_storage.dart';
+import '../widgets/alert_widget.dart';
+import '../widgets/commodities_selector.dart';
+import '../widgets/side_bar.dart';
 import 'properties_screen.dart';
 
 class CreatePropriedadePage extends StatefulWidget {
@@ -18,17 +20,19 @@ class CreatePropriedadePage extends StatefulWidget {
 class _CreatePropriedadePageState extends State<CreatePropriedadePage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
+  final _descriptionController = TextEditingController();
   final _priceController = TextEditingController();
   final _addressController = TextEditingController();
   final _capacityController = TextEditingController();
   final _serialPortaController = TextEditingController();
 
   List<String> _comodidades = [];
-  final List<File> _images = [];
+  final List<_SelectedImage> _images = [];
   bool _isSubmitting = false;
   String? _alertMessage;
   bool _isError = false;
   bool _sidebarActive = false;
+  final WorkupApi _api = WorkupApi();
 
   final ImagePicker _picker = ImagePicker();
 
@@ -135,11 +139,16 @@ class _CreatePropriedadePageState extends State<CreatePropriedadePage> {
 
   Future<void> _pickImages() async {
     try {
-      final List<XFile>? picked = await _picker.pickMultiImage();
+      final picked = await _picker.pickMultiImage();
       if (picked != null && picked.isNotEmpty) {
-        setState(() {
-          _images.addAll(picked.map((x) => File(x.path)).toList());
-        });
+        final futures = picked.map((file) async {
+          final bytes = await file.readAsBytes();
+          return _SelectedImage(file: file, bytes: bytes);
+        }).toList();
+        final newImages = await Future.wait(futures);
+        if (mounted) {
+          setState(() => _images.addAll(newImages));
+        }
       }
     } catch (e) {
       print('Erro ao selecionar imagens: $e');
@@ -156,9 +165,24 @@ class _CreatePropriedadePageState extends State<CreatePropriedadePage> {
     });
   }
 
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _descriptionController.dispose();
+    _priceController.dispose();
+    _addressController.dispose();
+    _capacityController.dispose();
+    _serialPortaController.dispose();
+    super.dispose();
+  }
+
   bool _validateForm() {
     if (_nameController.text.isEmpty) {
       _showAlert("Nome da sala é obrigatório", error: true);
+      return false;
+    }
+    if (_descriptionController.text.isEmpty) {
+      _showAlert("Descrição é obrigatória", error: true);
       return false;
     }
     if (_priceController.text.isEmpty ||
@@ -193,51 +217,48 @@ class _CreatePropriedadePageState extends State<CreatePropriedadePage> {
     setState(() => _isSubmitting = true);
 
     try {
-      await Future.delayed(const Duration(seconds: 1));
-
-      final imagePaths = _images.map((file) => file.path).toList();
-
-      final newProperty = {
-        'id': DateTime.now().millisecondsSinceEpoch.toString(),
-        'name': _nameController.text.trim(),
-        'price': parseMoney(_priceController.text),
-        'address': _addressController.text.trim(),
-        'capacity': int.parse(_capacityController.text),
-        'serialPorta': _serialPortaController.text.trim(),
-        'comodities': _comodidades,
-        'pictures': imagePaths,
-        'createdAt': DateTime.now().toIso8601String(),
-      };
-
-      final success = UserStorage().addProperty(newProperty);
-
-      if (success) {
-        setState(() {
-          _isSubmitting = false;
-          _alertMessage = "Sala criada com sucesso!";
-          _isError = false;
-        });
-
-        // Aguarda um pouco para mostrar o alerta e então redireciona
-        // ALTERAÇÃO: Reduzido de 900ms para 600ms
-        await Future.delayed(const Duration(milliseconds: 600));
-
-        if (mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const TelaPropriedadePage(),
-            ),
-          );
-        }
-      } else {
-        throw Exception('Erro ao salvar propriedade');
+      final userId = UserStorage().userId;
+      if (userId == null) {
+        _showAlert(
+          "Você precisa estar autenticado para cadastrar um espaço.",
+          error: true,
+        );
+        return;
       }
-    } catch (e) {
+
+      await _api.createCatalogo(
+        userId: userId,
+        name: _nameController.text.trim(),
+        description: _descriptionController.text.trim(),
+        address: _addressController.text.trim(),
+        comodities: _comodidades,
+        price: parseMoney(_priceController.text),
+        capacity: int.parse(_capacityController.text),
+        doorSerial: _serialPortaController.text.trim(),
+        pictures: _images.map((img) => img.file).toList(),
+        pictureBytes: _images.map((img) => img.bytes).toList(),
+      );
+
+      if (!mounted) return;
       setState(() {
-        _isSubmitting = false;
+        _alertMessage = "Sala criada com sucesso!";
+        _isError = false;
       });
+
+      await Future.delayed(const Duration(milliseconds: 600));
+
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const TelaPropriedadePage()),
+        );
+      }
+    } on ApiException catch (err) {
+      _showAlert(err.message, error: true);
+    } catch (e) {
       _showAlert("Erro ao criar sala: $e", error: true);
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
     }
   }
 
@@ -370,6 +391,14 @@ class _CreatePropriedadePageState extends State<CreatePropriedadePage> {
                                 controller: _nameController,
                                 labelText: "Nome da Sala",
                                 hintText: "Ex: Sala de Reunião Executive",
+                              ),
+                              const SizedBox(height: 16),
+
+                              _buildTextField(
+                                controller: _descriptionController,
+                                labelText: "Descrição",
+                                hintText: "Conte mais sobre o espaço",
+                                keyboardType: TextInputType.multiline,
                               ),
                               const SizedBox(height: 16),
 
@@ -534,8 +563,8 @@ class _CreatePropriedadePageState extends State<CreatePropriedadePage> {
                                                 ClipRRect(
                                                   borderRadius:
                                                       BorderRadius.circular(8),
-                                                  child: Image.file(
-                                                    _images[index],
+                                                  child: Image.memory(
+                                                    _images[index].bytes,
                                                     fit: BoxFit.cover,
                                                     width: double.infinity,
                                                     height: double.infinity,
@@ -728,4 +757,11 @@ class _CreatePropriedadePageState extends State<CreatePropriedadePage> {
       ],
     );
   }
+}
+
+class _SelectedImage {
+  final XFile file;
+  final Uint8List bytes;
+
+  const _SelectedImage({required this.file, required this.bytes});
 }
