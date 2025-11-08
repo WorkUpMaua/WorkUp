@@ -23,23 +23,18 @@ class ApiConfig {
   );
   static const int _catalogoPort = int.fromEnvironment(
     'WORKUP_CATALOGO_PORT',
-    defaultValue: 4000,
   );
   static const int _userPort = int.fromEnvironment(
     'WORKUP_USER_PORT',
-    defaultValue: 4001,
   );
   static const int _aluguelPort = int.fromEnvironment(
     'WORKUP_ALUGUEL_PORT',
-    defaultValue: 4002,
   );
   static const int _availabilityPort = int.fromEnvironment(
     'WORKUP_AVAILABILITY_PORT',
-    defaultValue: 4003,
   );
   static const int _propertyPort = int.fromEnvironment(
     'WORKUP_PROPERTY_PORT',
-    defaultValue: 4004,
   );
 
   String get _host => _resolveHost(_defaultHost);
