@@ -351,15 +351,22 @@ class WorkupApi {
         );
       }
       return data;
-    } on Exception catch (e) {
+    } on ApiException {
+      rethrow;
+    } on http.ClientException catch (e) {
       throw ApiException(
         message: 'Não foi possível conectar ao servidor',
-        details: e.toString(),
+        details: e.message,
       );
     } on FormatException catch (e) {
       throw ApiException(
         message: 'Resposta inválida do servidor',
         details: e.message,
+      );
+    } catch (e) {
+      throw ApiException(
+        message: 'Não foi possível conectar ao servidor',
+        details: e.toString(),
       );
     }
   }
@@ -370,15 +377,22 @@ class WorkupApi {
     try {
       final response = await request();
       return _parseResponse(response);
-    } on Exception catch (e) {
+    } on ApiException {
+      rethrow;
+    } on http.ClientException catch (e) {
       throw ApiException(
         message: 'Não foi possível conectar ao servidor',
-        details: e.toString(),
+        details: e.message,
       );
     } on FormatException catch (e) {
       throw ApiException(
         message: 'Resposta inválida do servidor',
         details: e.message,
+      );
+    } catch (e) {
+      throw ApiException(
+        message: 'Não foi possível conectar ao servidor',
+        details: e.toString(),
       );
     }
   }

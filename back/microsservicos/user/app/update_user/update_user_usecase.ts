@@ -7,11 +7,11 @@ export class UpdateUserUsecase {
 
   public execute(props: updateUserPropsType) {
 
-    if(props.cpf && !userInfoValidation.validateCPF(props.cpf)) throw new Error("Field user CPF is invalid")
+    if(props.cpf && !userInfoValidation.validateCPF(props.cpf)) throw new Error("Campo CPF inválido")
 
-    if(props.birth && !userInfoValidation.validateBirth(props.birth)) throw new Error("Field user birth must be over 18 years old")
+    if(props.birth && !userInfoValidation.validateBirth(props.birth)) throw new Error("Campo nascimento deve ter mais de 18 anos")
 
-    if((props.birth) && !userInfoValidation.validateBirth(props.birth)) throw new Error("Field user phone is invalid")
+    if((props.phone) && !userInfoValidation.validatePhone(props.phone)) throw new Error("Campo telefone inválido")
 
     const user_info = this.repo.updateUser(props)
 
