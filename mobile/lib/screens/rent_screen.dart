@@ -136,16 +136,13 @@ class _TelaAluguelPageState extends State<TelaAluguelPage> {
               Navigator.of(context).pop();
 
               try {
-                await _api.updateReservationStatus(
-                  reservationId: reservationId,
-                  status: 'CANCELLED',
-                );
+                await _api.deleteReservation(reservationId);
                 if (!mounted) return;
                 await _loadReservations();
                 if (!mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text('Reserva cancelada com sucesso'),
+                    content: Text('Reserva removida com sucesso'),
                     backgroundColor: Colors.green,
                     duration: Duration(seconds: 2),
                   ),

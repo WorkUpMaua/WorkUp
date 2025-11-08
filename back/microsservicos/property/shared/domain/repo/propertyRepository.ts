@@ -13,4 +13,6 @@ export interface PropertyRepository {
   createPropertyManagement(userID: string): PropertyManagement;
 
   createProperty(userID: string, catalog: CatalogoType): PropertyManagement;
+
+  deleteProperty(userID: string, catalogID: string): PropertyManagement;
 }

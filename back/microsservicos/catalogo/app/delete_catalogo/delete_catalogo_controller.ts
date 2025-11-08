@@ -15,16 +15,18 @@ export class DeleteCatalogoController {
         try {
 
             const id = req.params.id;
+            const userID = req.body?.userID as string | undefined;
 
             if (!id) throw new Error('ID não informado')
             if (id.length !== 36) throw new Error('ID inválido')
+            if (!userID) throw new Error('O campo userID deve ser informado')
 
             const deletedCatalogo = this.usecase.execute(id)
 
             const catalogoDeletedEvent: CatalogoEvent = {
                 eventType: CatalogoEventNames.CatalogoDeleted,
                 payload: {
-                    userID: "",
+                    userID,
                     ...deletedCatalogo
                 }
             }

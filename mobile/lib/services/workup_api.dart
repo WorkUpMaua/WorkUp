@@ -236,9 +236,15 @@ class WorkupApi {
     return Listing.fromJson(room);
   }
 
-  Future<void> deleteCatalogo(String roomId) async {
+  Future<void> deleteCatalogo(String roomId, String userId) async {
     final uri = _config.uri(WorkupService.catalogo, path: '/catalogo/$roomId');
-    await _sendJson(() => _client.delete(uri));
+    await _sendJson(
+      () => _client.delete(
+        uri,
+        headers: _jsonHeaders,
+        body: jsonEncode({'userID': userId}),
+      ),
+    );
   }
 
   Future<List<Listing>> fetchUserProperties(String userId) async {
@@ -317,6 +323,17 @@ class WorkupApi {
           _client.patch(uri, headers: _jsonHeaders, body: jsonEncode(payload)),
     );
     return Reservation.fromJson(data);
+  }
+
+  Future<void> deleteReservation(String reservationId) async {
+    final uri = _config.uri(WorkupService.aluguel, path: '/aluguel');
+    await _sendJson(
+      () => _client.delete(
+        uri,
+        headers: _jsonHeaders,
+        body: jsonEncode({'id': reservationId}),
+      ),
+    );
   }
 
   Future<Map<String, dynamic>> _sendMultipart(

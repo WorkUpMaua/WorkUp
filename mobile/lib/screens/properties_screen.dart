@@ -79,8 +79,10 @@ class _TelaPropriedadePageState extends State<TelaPropriedadePage> {
           TextButton(
             onPressed: () async {
               Navigator.of(context).pop();
+              final userId = UserStorage().userId;
+              if (userId == null) return;
               try {
-                await _api.deleteCatalogo(propertyId);
+                await _api.deleteCatalogo(propertyId, userId);
                 if (!mounted) return;
                 await _loadUserProperties();
                 if (!mounted) return;

@@ -1,4 +1,16 @@
 class Reservation {
+  static final Reservation empty = Reservation(
+    id: '',
+    userId: '',
+    workspaceId: '',
+    startDate: 0,
+    endDate: 0,
+    people: 0,
+    finalPrice: 0,
+    status: '',
+    createdAt: 0,
+    updatedAt: 0,
+  );
   final String id;
   final String userId;
   final String workspaceId;
