@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../models/listing.dart';
 import '../services/workup_api.dart';
@@ -49,14 +50,10 @@ class _WorkSpacePageState extends State<WorkSpacePage> {
     super.dispose();
   }
 
-  int _getDaysBetween(DateTime start, DateTime end) {
-    return end.difference(start).inDays;
-  }
-
   double _calculateTotalPrice() {
     if (_room == null || _startDate == null || _endDate == null) return 0;
-    final hours = _endDate!.difference(_startDate!).inHours;
-    final totalHours = hours <= 0 ? 1 : hours;
+    final minutes = _endDate!.difference(_startDate!).inMinutes;
+    final totalHours = minutes <= 0 ? 1 : (minutes / 60);
     return _room!.price * totalHours;
   }
 
@@ -91,32 +88,68 @@ class _WorkSpacePageState extends State<WorkSpacePage> {
   }
 
   Future<void> _selectDateRange() async {
-    // Seleciona data de check-in
-    final DateTime? checkIn = await _showCustomDatePicker(
-      context: context,
-      initialDate: _startDate ?? DateTime.now(),
-      firstDate: DateTime.now(),
-      lastDate: DateTime(DateTime.now().year + 2),
+    final DateTime now = DateTime.now();
+    final start = await _selectDateTime(
+      initialDate: _startDate ?? now,
+      firstDate: now,
       helpText: 'Selecione a data de Check-in',
     );
+    if (start == null) return;
 
-    if (checkIn == null) return;
-
-    // Seleciona data de check-out (deve ser após check-in)
-    final DateTime? checkOut = await _showCustomDatePicker(
-      context: context,
-      initialDate: checkIn.add(const Duration(days: 1)),
-      firstDate: checkIn.add(const Duration(days: 1)),
-      lastDate: DateTime(DateTime.now().year + 2),
+    final end = await _selectDateTime(
+      initialDate: (_endDate != null && _endDate!.isAfter(start))
+          ? _endDate!
+          : start.add(const Duration(hours: 1)),
+      firstDate: start.add(const Duration(hours: 1)),
       helpText: 'Selecione a data de Check-out',
     );
+    if (end == null) return;
 
-    if (checkOut != null) {
-      setState(() {
-        _startDate = checkIn;
-        _endDate = checkOut;
-      });
+    if (!end.isAfter(start)) {
+      _showAlert(
+        'A data/horário de check-out deve ser maior que o check-in.',
+        true,
+      );
+      return;
     }
+
+    setState(() {
+      _startDate = start;
+      _endDate = end;
+    });
+  }
+
+  Future<DateTime?> _selectDateTime({
+    required DateTime initialDate,
+    required DateTime firstDate,
+    DateTime? lastDate,
+    String? helpText,
+  }) async {
+    final pickedDate = await _showCustomDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: DateTime(firstDate.year, firstDate.month, firstDate.day),
+      lastDate: lastDate ?? DateTime(DateTime.now().year + 2),
+      helpText: helpText,
+    );
+
+    if (pickedDate == null) return null;
+
+    final initialTime = TimeOfDay.fromDateTime(initialDate);
+    final pickedTime = await showTimePicker(
+      context: context,
+      initialTime: initialTime,
+    );
+
+    if (pickedTime == null) return null;
+
+    return DateTime(
+      pickedDate.year,
+      pickedDate.month,
+      pickedDate.day,
+      pickedTime.hour,
+      pickedTime.minute,
+    );
   }
 
   Future<DateTime?> _showCustomDatePicker({
@@ -493,6 +526,31 @@ class _WorkSpacePageState extends State<WorkSpacePage> {
     Future.delayed(const Duration(seconds: 3), () {
       if (mounted) setState(() => _alertMessage = null);
     });
+  }
+
+  String _formatDateTime(DateTime date) {
+    return DateFormat('dd/MM/yyyy HH:mm').format(date);
+  }
+
+  String _formatDuration() {
+    if (_startDate == null || _endDate == null) return '';
+    final duration = _endDate!.difference(_startDate!);
+    if (duration.inMinutes <= 0) return '';
+    final days = duration.inDays;
+    final hours = duration.inHours;
+    final minutes = duration.inMinutes % 60;
+    if (hours < 24) {
+      if (minutes == 0) return '$hours horas';
+      return '${hours}h ${minutes}min';
+    }
+    final remainingHours = hours - days * 24;
+    if (remainingHours == 0 && minutes == 0) {
+      return '$days dias';
+    }
+    final buffer = StringBuffer('$days dias');
+    if (remainingHours > 0) buffer.write(' e $remainingHours h');
+    if (minutes > 0) buffer.write(' ${minutes}min');
+    return buffer.toString();
   }
 
   Widget _buildPropertyImage(String imagePath) {
@@ -904,8 +962,8 @@ class _WorkSpacePageState extends State<WorkSpacePage> {
                                   children: [
                                     Text(
                                       _startDate != null && _endDate != null
-                                          ? 'Check-in: ${_startDate!.day.toString().padLeft(2, '0')}/${_startDate!.month.toString().padLeft(2, '0')}/${_startDate!.year}'
-                                          : 'Selecione as datas',
+                                          ? 'Check-in: ${_formatDateTime(_startDate!)}'
+                                          : 'Selecione data e horário',
                                       style: TextStyle(
                                         fontSize: 14,
                                         color: _startDate != null
@@ -918,7 +976,7 @@ class _WorkSpacePageState extends State<WorkSpacePage> {
                                         _endDate != null) ...[
                                       const SizedBox(height: 4),
                                       Text(
-                                        'Check-out: ${_endDate!.day.toString().padLeft(2, '0')}/${_endDate!.month.toString().padLeft(2, '0')}/${_endDate!.year}',
+                                        'Check-out: ${_formatDateTime(_endDate!)}',
                                         style: const TextStyle(
                                           fontSize: 14,
                                           color: Color(0xFF2C3E50),
@@ -927,7 +985,7 @@ class _WorkSpacePageState extends State<WorkSpacePage> {
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
-                                        '${_getDaysBetween(_startDate!, _endDate!)} dias',
+                                        _formatDuration(),
                                         style: TextStyle(
                                           fontSize: 12,
                                           color: Colors.blue[700],
