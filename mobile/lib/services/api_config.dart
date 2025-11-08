@@ -11,6 +11,8 @@ class ApiConfig {
   ApiConfig._internal();
   static final ApiConfig instance = ApiConfig._internal();
 
+  static const String _baseOverride =
+      String.fromEnvironment('WORKUP_API_BASE', defaultValue: '');
   static const String _defaultScheme = String.fromEnvironment(
     'WORKUP_API_SCHEME',
     defaultValue: 'http',
@@ -51,6 +53,18 @@ class ApiConfig {
     Map<String, dynamic>? queryParameters,
   }) {
     final sanitizedPath = path.startsWith('/') ? path : '/$path';
+
+    if (_baseOverride.isNotEmpty) {
+      final base = Uri.parse(_baseOverride);
+      final combinedPath = _combinePaths(base.path, sanitizedPath);
+      return base.replace(
+        path: combinedPath,
+        queryParameters: _mergeQueries(
+          base.queryParameters,
+          _stringifyQuery(queryParameters),
+        ),
+      );
+    }
 
     return Uri(
       scheme: scheme,
@@ -105,5 +119,26 @@ class ApiConfig {
     }
 
     return value;
+  }
+
+  String _combinePaths(String basePath, String extraPath) {
+    if (basePath.endsWith('/')) {
+      basePath = basePath.substring(0, basePath.length - 1);
+    }
+    return '$basePath$extraPath';
+  }
+
+  Map<String, String>? _mergeQueries(
+    Map<String, String>? base,
+    Map<String, String>? extra,
+  ) {
+    if ((base == null || base.isEmpty) &&
+        (extra == null || extra.isEmpty)) {
+      return null;
+    }
+    final merged = <String, String>{};
+    if (base != null) merged.addAll(base);
+    if (extra != null) merged.addAll(extra);
+    return merged;
   }
 }
