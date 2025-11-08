@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -554,101 +553,44 @@ class _WorkSpacePageState extends State<WorkSpacePage> {
   }
 
   Widget _buildPropertyImage(String imagePath) {
-    if (imagePath.startsWith('http')) {
-      return Image.network(
-        imagePath,
-        width: double.infinity,
-        height: 320,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) {
-          return Container(
-            height: 320,
-            color: Colors.grey[300],
-            child: const Icon(
-              Icons.photo_outlined,
-              size: 50,
-              color: Colors.grey,
-            ),
-          );
-        },
-      );
-    } else {
-      final file = File(imagePath);
-      return FutureBuilder<bool>(
-        future: file.exists(),
-        builder: (context, snapshot) {
-          if (snapshot.hasData && snapshot.data == true) {
-            return Image.file(
-              file,
-              width: double.infinity,
-              height: 320,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  height: 320,
-                  color: Colors.grey[300],
-                  child: const Icon(
-                    Icons.photo_outlined,
-                    size: 50,
-                    color: Colors.grey,
-                  ),
-                );
-              },
-            );
-          } else {
-            return Container(
-              height: 320,
-              color: Colors.grey[300],
-              child: snapshot.connectionState == ConnectionState.waiting
-                  ? const Center(child: CircularProgressIndicator())
-                  : const Icon(
-                      Icons.photo_outlined,
-                      size: 50,
-                      color: Colors.grey,
-                    ),
-            );
-          }
-        },
-      );
+    if (!imagePath.startsWith('http')) {
+      return _imagePlaceholder(height: 320);
     }
+    return Image.network(
+      imagePath,
+      width: double.infinity,
+      height: 320,
+      fit: BoxFit.cover,
+      loadingBuilder: (context, child, progress) {
+        if (progress == null) return child;
+        return Container(
+          height: 320,
+          color: Colors.grey[200],
+          alignment: Alignment.center,
+          child: const CircularProgressIndicator(strokeWidth: 2),
+        );
+      },
+      errorBuilder: (context, error, stackTrace) =>
+          _imagePlaceholder(height: 320),
+    );
   }
 
   Widget _buildThumbnail(String imagePath) {
-    if (imagePath.startsWith('http')) {
-      return Image.network(
-        imagePath,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) {
-          return Container(
-            color: Colors.grey[300],
-            child: const Icon(
-              Icons.photo_outlined,
-              size: 30,
-              color: Colors.grey,
-            ),
-          );
-        },
-      );
-    } else {
-      final file = File(imagePath);
-      return FutureBuilder<bool>(
-        future: file.exists(),
-        builder: (context, snapshot) {
-          if (snapshot.hasData && snapshot.data == true) {
-            return Image.file(file, fit: BoxFit.cover);
-          } else {
-            return Container(
-              color: Colors.grey[300],
-              child: const Icon(
-                Icons.photo_outlined,
-                size: 30,
-                color: Colors.grey,
-              ),
-            );
-          }
-        },
-      );
-    }
+    if (!imagePath.startsWith('http')) return _imagePlaceholder(size: 30);
+    return Image.network(
+      imagePath,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) => _imagePlaceholder(size: 30),
+    );
+  }
+
+  Widget _imagePlaceholder({double height = 180, double size = 50}) {
+    return Container(
+      height: height,
+      color: Colors.grey[300],
+      alignment: Alignment.center,
+      child: Icon(Icons.photo_outlined, size: size, color: Colors.grey),
+    );
   }
 
   Widget _buildPhotoCarousel() {

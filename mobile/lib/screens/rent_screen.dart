@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 
 import '../models/listing.dart';
@@ -359,33 +358,26 @@ class _TelaAluguelPageState extends State<TelaAluguelPage> {
         ? room!.pictures.first
         : null;
 
-    if (imagePath != null && imagePath.startsWith('http')) {
-      return Image.network(
-        imagePath,
-        width: double.infinity,
-        height: 180,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) => _reservationPlaceholder(),
-      );
-    } else if (imagePath != null) {
-      final file = File(imagePath);
-      return FutureBuilder<bool>(
-        future: file.exists(),
-        builder: (context, snapshot) {
-          if (snapshot.hasData && snapshot.data == true) {
-            return Image.file(
-              file,
-              width: double.infinity,
-              height: 180,
-              fit: BoxFit.cover,
-            );
-          }
-          return _reservationPlaceholder();
-        },
-      );
-    } else {
+    if (imagePath == null || !imagePath.startsWith('http')) {
       return _reservationPlaceholder();
     }
+
+    return Image.network(
+      imagePath,
+      width: double.infinity,
+      height: 180,
+      fit: BoxFit.cover,
+      loadingBuilder: (context, child, progress) {
+        if (progress == null) return child;
+        return Container(
+          height: 180,
+          color: Colors.grey[200],
+          alignment: Alignment.center,
+          child: const CircularProgressIndicator(strokeWidth: 2),
+        );
+      },
+      errorBuilder: (context, error, stackTrace) => _reservationPlaceholder(),
+    );
   }
 
   Widget _reservationPlaceholder() {

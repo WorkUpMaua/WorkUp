@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 
 import '../models/listing.dart';
@@ -98,6 +96,10 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget buildRoomCard(Listing room) {
+    final imageUrl = room.pictures
+        .firstWhere((pic) => pic.trim().isNotEmpty, orElse: () => '')
+        .trim();
+
     return GestureDetector(
       onTap: () {
         // Navega para a tela de detalhes do workspace
@@ -121,12 +123,12 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (room.pictures.isNotEmpty)
+            if (imageUrl.isNotEmpty)
               ClipRRect(
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(16),
                 ),
-                child: _buildRoomImage(room.pictures.first),
+                child: _buildRoomImage(imageUrl),
               ),
             Padding(
               padding: const EdgeInsets.all(12),
@@ -177,68 +179,36 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Método para construir a imagem (local ou da internet)
   Widget _buildRoomImage(String imagePath) {
-    // Verifica se é uma URL (começa com http)
-    if (imagePath.startsWith('http')) {
-      return Image.network(
-        imagePath,
-        width: double.infinity,
-        height: 180,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) {
-          return Container(
-            height: 180,
-            color: Colors.grey[300],
-            child: const Icon(
-              Icons.photo_outlined,
-              size: 50,
-              color: Colors.grey,
-            ),
-          );
-        },
-      );
-    } else {
-      // É um arquivo local - verifica se o arquivo existe
-      final file = File(imagePath);
-      return FutureBuilder<bool>(
-        future: file.exists(),
-        builder: (context, snapshot) {
-          if (snapshot.hasData && snapshot.data == true) {
-            return Image.file(
-              file,
-              width: double.infinity,
-              height: 180,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  height: 180,
-                  color: Colors.grey[300],
-                  child: const Icon(
-                    Icons.photo_outlined,
-                    size: 50,
-                    color: Colors.grey,
-                  ),
-                );
-              },
-            );
-          } else {
-            // Arquivo não existe ou ainda carregando
-            return Container(
-              height: 180,
-              color: Colors.grey[300],
-              child: snapshot.connectionState == ConnectionState.waiting
-                  ? const Center(child: CircularProgressIndicator())
-                  : const Icon(
-                      Icons.photo_outlined,
-                      size: 50,
-                      color: Colors.grey,
-                    ),
-            );
-          }
-        },
-      );
+    final url = imagePath.trim();
+    if (!url.startsWith('http')) {
+      return _imagePlaceholder();
     }
+
+    return Image.network(
+      url,
+      width: double.infinity,
+      height: 180,
+      fit: BoxFit.cover,
+      loadingBuilder: (context, child, loadingProgress) {
+        if (loadingProgress == null) return child;
+        return Container(
+          height: 180,
+          color: Colors.grey[200],
+          alignment: Alignment.center,
+          child: const CircularProgressIndicator(strokeWidth: 2),
+        );
+      },
+      errorBuilder: (context, error, stackTrace) => _imagePlaceholder(),
+    );
+  }
+
+  Widget _imagePlaceholder() {
+    return Container(
+      height: 180,
+      color: Colors.grey[300],
+      child: const Icon(Icons.photo_outlined, size: 50, color: Colors.grey),
+    );
   }
 
   @override

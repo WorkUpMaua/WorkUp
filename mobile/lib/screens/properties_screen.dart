@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import '../models/listing.dart';
 import '../services/workup_api.dart';
@@ -277,66 +276,31 @@ class _TelaPropriedadePageState extends State<TelaPropriedadePage> {
 
   // Método para construir a imagem (local ou da internet)
   Widget _buildPropertyImage(String imagePath) {
-    // Verifica se é uma URL (começa com http)
-    if (imagePath.startsWith('http')) {
-      return Image.network(
-        imagePath,
-        width: double.infinity,
-        height: 180,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) {
-          return Container(
-            height: 180,
-            color: Colors.grey[300],
-            child: const Icon(
-              Icons.photo_outlined,
-              size: 50,
-              color: Colors.grey,
-            ),
-          );
-        },
-      );
-    } else {
-      // É um arquivo local - verifica se o arquivo existe
-      final file = File(imagePath);
-      return FutureBuilder<bool>(
-        future: file.exists(),
-        builder: (context, snapshot) {
-          if (snapshot.hasData && snapshot.data == true) {
-            return Image.file(
-              file,
-              width: double.infinity,
-              height: 180,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  height: 180,
-                  color: Colors.grey[300],
-                  child: const Icon(
-                    Icons.photo_outlined,
-                    size: 50,
-                    color: Colors.grey,
-                  ),
-                );
-              },
-            );
-          } else {
-            // Arquivo não existe ou ainda carregando
-            return Container(
-              height: 180,
-              color: Colors.grey[300],
-              child: snapshot.connectionState == ConnectionState.waiting
-                  ? const Center(child: CircularProgressIndicator())
-                  : const Icon(
-                      Icons.photo_outlined,
-                      size: 50,
-                      color: Colors.grey,
-                    ),
-            );
-          }
-        },
-      );
-    }
+    if (!imagePath.startsWith('http')) return _imagePlaceholder();
+    return Image.network(
+      imagePath,
+      width: double.infinity,
+      height: 180,
+      fit: BoxFit.cover,
+      loadingBuilder: (context, child, progress) {
+        if (progress == null) return child;
+        return Container(
+          height: 180,
+          color: Colors.grey[200],
+          alignment: Alignment.center,
+          child: const CircularProgressIndicator(strokeWidth: 2),
+        );
+      },
+      errorBuilder: (context, error, stackTrace) => _imagePlaceholder(),
+    );
+  }
+
+  Widget _imagePlaceholder() {
+    return Container(
+      height: 180,
+      color: Colors.grey[300],
+      child: const Icon(Icons.photo_outlined, size: 50, color: Colors.grey),
+    );
   }
 
   @override
