@@ -7,16 +7,16 @@ export class CreateUserUsecase {
 
   public execute(props: createUserPropsType) {
     if (!userInfoValidation.validateEmail(props.auth.username))
-      throw new Error("Field email is invalid");
+      throw new Error("Campo e-mail inválido");
 
     if (!userInfoValidation.validateCPF(props.information.cpf))
-      throw new Error("Field cpf is invalid");
+      throw new Error("Campo CPF inválido");
 
     if (!userInfoValidation.validateBirth(props.information.birth))
-      throw new Error("Field birth must be over 18 years old");
+      throw new Error("Campo nascimento deve ter mais de 18 anos");
 
     if (!userInfoValidation.validatePhone(props.information.phone))
-      throw new Error("Field phone is invalid");
+      throw new Error("Campo telefone inválido");
 
     const user_info = this.repo.createUser(props);
 

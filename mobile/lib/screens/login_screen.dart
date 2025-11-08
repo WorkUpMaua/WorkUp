@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/workup_api.dart';
 import '../utils/user_storage.dart';
 import 'home_page.dart';
 import 'register_page.dart';
@@ -15,6 +16,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  bool _isSubmitting = false;
+  final WorkupApi _api = WorkupApi();
 
   @override
   void dispose() {
@@ -26,29 +29,37 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() {});
+    setState(() => _isSubmitting = true);
 
-    // small local check against UserStorage
     final email = _emailController.text.trim();
     final password = _passwordController.text;
 
-    // simulate small delay
-    await Future.delayed(const Duration(milliseconds: 400));
+    try {
+      final session = await _api.login(email: email, password: password);
+      UserStorage().saveSession(token: session.token, profile: session.profile);
 
-    final ok = UserStorage().validateCredentials(email, password);
-    if (!mounted) return;
-    if (ok) {
+      if (!mounted) return;
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const HomePage()),
       );
-    } else {
+    } on ApiException catch (err) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Usuário não encontrado ou senha incorreta'),
+        SnackBar(content: Text(err.message), backgroundColor: Colors.red),
+      );
+    } catch (err) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erro ao fazer login: $err'),
           backgroundColor: Colors.red,
         ),
       );
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
     }
   }
 
@@ -198,7 +209,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       height: 48,
                       margin: const EdgeInsets.only(top: 16),
                       child: ElevatedButton(
-                        onPressed: _handleLogin,
+                        onPressed: _isSubmitting ? null : _handleLogin,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF34495e),
                           foregroundColor: Colors.white,
@@ -207,13 +218,24 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           elevation: 0,
                         ),
-                        child: const Text(
-                          'Entrar',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
+                        child: _isSubmitting
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.white,
+                                  ),
+                                ),
+                              )
+                            : const Text(
+                                'Entrar',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
                       ),
                     ),
                     const SizedBox(height: 16),

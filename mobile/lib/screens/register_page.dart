@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
-import '../utils/user_storage.dart';
+import '../services/workup_api.dart';
 import 'login_screen.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -35,6 +35,19 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _isError = false;
   bool _obscurePassword =
       true; // Adicionado para controlar visibilidade da senha
+  final WorkupApi _api = WorkupApi();
+
+  String _digitsOnly(String value) => value.replaceAll(RegExp(r'[^0-9]'), '');
+
+  DateTime? _parseBirthDate() {
+    final raw = _birthdateController.text.trim();
+    if (raw.isEmpty) return null;
+    try {
+      return DateFormat('dd/MM/yyyy').parseStrict(raw);
+    } catch (_) {
+      return null;
+    }
+  }
 
   Future<void> _handleSubmit() async {
     if (!_formKey.currentState!.validate()) return;
@@ -45,51 +58,25 @@ class _RegisterPageState extends State<RegisterPage> {
       _isError = false;
     });
     try {
-      final email = _emailController.text.trim();
-
-      // Checa se já existe localmente (email, cpf, telefone)
-      if (UserStorage().isEmailRegistered(email)) {
+      final birthDate = _parseBirthDate();
+      if (birthDate == null) {
         setState(() {
-          _apiMessage = 'Este e-mail já está registrado!';
+          _apiMessage = 'Data de nascimento inválida';
           _isError = true;
           _isSubmitting = false;
         });
         return;
       }
 
-      final cpf = _cpfController.text;
-      if (UserStorage().isCpfRegistered(cpf)) {
-        setState(() {
-          _apiMessage = 'CPF já em uso!';
-          _isError = true;
-          _isSubmitting = false;
-        });
-        return;
-      }
+      await _api.registerUser(
+        name: _nameController.text.trim(),
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+        cpf: _digitsOnly(_cpfController.text),
+        phone: _digitsOnly(_phoneController.text),
+        birthDate: birthDate,
+      );
 
-      final phone = _phoneController.text;
-      if (UserStorage().isPhoneRegistered(phone)) {
-        setState(() {
-          _apiMessage = 'Telefone já em uso!';
-          _isError = true;
-          _isSubmitting = false;
-        });
-        return;
-      }
-
-      // Armazena usuário localmente (temporário)
-      final userData = {
-        'name': _nameController.text.trim(),
-        'email': email,
-        'password': _passwordController.text,
-        'cpf': _cpfController.text,
-        'birthDate': _birthdateController.text,
-        'phone': _phoneController.text,
-      };
-
-      UserStorage().addUser(userData);
-
-      // Feedback e navegação para login
       if (!mounted) return;
       setState(() {
         _apiMessage = 'Registro realizado com sucesso!';
@@ -98,15 +85,20 @@ class _RegisterPageState extends State<RegisterPage> {
 
       await Future.delayed(const Duration(milliseconds: 900));
       if (!mounted) return;
-      setState(() => _isSubmitting = false);
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const LoginScreen()),
       );
-    } catch (e) {
+    } on ApiException catch (err) {
       if (!mounted) return;
       setState(() {
-        _apiMessage = 'Erro ao realizar cadastro: $e';
+        _apiMessage = err.message;
+        _isError = true;
+      });
+    } catch (err) {
+      if (!mounted) return;
+      setState(() {
+        _apiMessage = 'Erro ao realizar cadastro: $err';
         _isError = true;
       });
     } finally {
@@ -197,9 +189,15 @@ class _RegisterPageState extends State<RegisterPage> {
                         border: OutlineInputBorder(),
                         hintText: "Seu nome completo",
                       ),
-                      validator: (value) => value == null || value.isEmpty
-                          ? "Campo obrigatório"
-                          : null,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return "Campo obrigatório";
+                        }
+                        if (_parseBirthDate() == null) {
+                          return "Data inválida";
+                        }
+                        return null;
+                      },
                     ),
                     const SizedBox(height: 16),
 

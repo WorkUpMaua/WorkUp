@@ -26,12 +26,26 @@ class Property {
       id: json['id']?.toString() ?? '',
       name: json['name'] ?? '',
       price: (json['price'] is num) ? (json['price'] as num).toDouble() : 0.0,
-      images: (json['images'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
+      images:
+          (json['images'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          [],
       address: json['address'] ?? '',
       description: json['description'] ?? '',
-      rating: json['rating'] != null ? (json['rating'] as num).toDouble() : null,
-      reviewCount: json['reviewCount'] is int ? json['reviewCount'] as int : (json['reviewCount'] is num ? (json['reviewCount'] as num).toInt() : null),
-      amenities: (json['amenities'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
+      rating: json['rating'] != null
+          ? (json['rating'] as num).toDouble()
+          : null,
+      reviewCount: json['reviewCount'] is int
+          ? json['reviewCount'] as int
+          : (json['reviewCount'] is num
+                ? (json['reviewCount'] as num).toInt()
+                : null),
+      amenities:
+          (json['amenities'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          [],
     );
   }
 }

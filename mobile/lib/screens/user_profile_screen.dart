@@ -1,9 +1,15 @@
-import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-import '../widgets/custom_button.dart';
+
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
+
+import '../models/user_profile.dart';
+import '../services/workup_api.dart';
 import '../utils/profile_image_manager.dart';
 import '../utils/user_storage.dart';
+import '../widgets/custom_button.dart';
 
 class UserProfilePage extends StatefulWidget {
   const UserProfilePage({super.key});
@@ -15,15 +21,19 @@ class UserProfilePage extends StatefulWidget {
 class _UserProfilePageState extends State<UserProfilePage> {
   bool _isEditing = false;
   final ImagePicker _picker = ImagePicker();
+  final WorkupApi _api = WorkupApi();
 
   // Controllers para os campos editáveis
   final _nameController = TextEditingController();
   final _birthController = TextEditingController();
+  final _phoneController = TextEditingController();
 
   // Dados fixos do usuário
   String _email = '';
   String _cpf = '';
-  String _phone = '';
+  bool _isSaving = false;
+  UserProfile? _profile;
+  final DateFormat _birthFormat = DateFormat('dd/MM/yyyy');
 
   final Color primaryColor = const Color(0xFF34495E);
 
@@ -37,20 +47,14 @@ class _UserProfilePageState extends State<UserProfilePage> {
   void dispose() {
     _nameController.dispose();
     _birthController.dispose();
+    _phoneController.dispose();
     super.dispose();
   }
 
   void _loadUserData() {
-    final user = UserStorage().getLoggedUser();
-    if (user != null) {
-      setState(() {
-        _nameController.text = user['name'] ?? '';
-        _email = user['email'] ?? '';
-        _cpf = user['cpf'] ?? '';
-        _birthController.text = user['birthDate'] ?? '';
-        _phone = user['phone'] ?? '';
-      });
-    }
+    final user = UserStorage().loggedUser;
+    if (user == null) return;
+    _applyProfile(user);
   }
 
   Future<void> _pickImage() async {
@@ -73,32 +77,99 @@ class _UserProfilePageState extends State<UserProfilePage> {
     }
   }
 
-  void _handleSave() {
-    final updatedData = {
-      'name': _nameController.text.trim(),
-      'birthDate': _birthController.text,
-    };
+  DateTime? _parseBirthInput() {
+    final raw = _birthController.text.trim();
+    if (raw.isEmpty) return null;
+    try {
+      return _birthFormat.parseStrict(raw);
+    } catch (_) {
+      return null;
+    }
+  }
 
-    final success = UserStorage().updateLoggedUser(updatedData);
+  Future<void> _handleSave() async {
+    final user = _profile;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Nenhum usuário autenticado'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
 
-    if (success) {
-      setState(() {
-        _isEditing = false;
-      });
+    final birthDate = _parseBirthInput() ?? user.birthDate;
+    final phone = _phoneController.text.trim();
+
+    if (birthDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Informe uma data de nascimento válida.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    if (phone.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Informe um telefone válido.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isSaving = true);
+    try {
+      final updated = await _api.updateUserProfile(
+        id: user.id,
+        name: _nameController.text.trim(),
+        birthDate: birthDate,
+        phone: phone,
+        cpf: user.cpf,
+      );
+      UserStorage().updateLoggedUser(updated);
+      if (!mounted) return;
+      _applyProfile(updated, exitEditMode: true);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Informações atualizadas com sucesso!"),
           backgroundColor: Colors.green,
         ),
       );
-    } else {
+    } on ApiException catch (err) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Erro ao atualizar informações"),
+        SnackBar(content: Text(err.message), backgroundColor: Colors.red),
+      );
+    } catch (err) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erro ao atualizar informações: $err'),
           backgroundColor: Colors.red,
         ),
       );
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
     }
+  }
+
+  void _applyProfile(UserProfile profile, {bool exitEditMode = false}) {
+    setState(() {
+      _profile = profile;
+      _nameController.text = profile.name;
+      _email = profile.email;
+      _cpf = profile.cpf;
+      _phoneController.text = profile.phone;
+      _birthController.text = profile.formattedBirth();
+      if (exitEditMode) {
+        _isEditing = false;
+      }
+    });
   }
 
   void _handleCancel() {
@@ -241,8 +312,30 @@ class _UserProfilePageState extends State<UserProfilePage> {
               Icons.cake,
               _birthController,
               canEdit: true,
+              readOnly: true,
+              onTap: () async {
+                final current = _parseBirthInput() ?? DateTime(2000);
+                final selected = await showDatePicker(
+                  context: context,
+                  initialDate: current,
+                  firstDate: DateTime(1900),
+                  lastDate: DateTime.now(),
+                );
+                if (selected != null) {
+                  _birthController.text = _birthFormat.format(selected);
+                }
+              },
             ),
-            _buildFixedTextField("Telefone", Icons.phone, _phone),
+            _buildEditableTextField(
+              "Telefone",
+              Icons.phone,
+              _phoneController,
+              canEdit: true,
+              keyboardType: TextInputType.phone,
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'[0-9()+\-\s]')),
+              ],
+            ),
 
             const SizedBox(height: 30),
 
@@ -250,8 +343,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
             if (_isEditing)
               CustomButton(
                 text: "Salvar Alterações",
-                onPressed: _handleSave,
+                onPressed: _isSaving ? null : _handleSave,
                 backgroundColor: primaryColor,
+                isLoading: _isSaving,
               ),
           ],
         ),
@@ -265,12 +359,20 @@ class _UserProfilePageState extends State<UserProfilePage> {
     IconData icon,
     TextEditingController controller, {
     required bool canEdit,
+    VoidCallback? onTap,
+    bool readOnly = false,
+    TextInputType keyboardType = TextInputType.text,
+    List<TextInputFormatter>? inputFormatters,
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: TextFormField(
+        readOnly: readOnly || (onTap != null && !_isEditing),
         enabled: _isEditing && canEdit,
+        onTap: (_isEditing && canEdit && onTap != null) ? onTap : null,
         controller: controller,
+        keyboardType: keyboardType,
+        inputFormatters: inputFormatters,
         decoration: InputDecoration(
           labelText: label,
           prefixIcon: Icon(icon),
@@ -298,6 +400,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: TextFormField(
+        key: ValueKey('$label-$value'),
         enabled: false,
         initialValue: value,
         decoration: InputDecoration(

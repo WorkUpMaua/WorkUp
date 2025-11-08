@@ -1,7 +1,10 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
-import '../widgets/side_bar.dart';
+
+import '../models/listing.dart';
+import '../models/reservation.dart';
+import '../services/workup_api.dart';
 import '../utils/user_storage.dart';
+import '../widgets/side_bar.dart';
 
 class TelaAluguelPage extends StatefulWidget {
   const TelaAluguelPage({Key? key}) : super(key: key);
@@ -10,50 +13,13 @@ class TelaAluguelPage extends StatefulWidget {
   State<TelaAluguelPage> createState() => _TelaAluguelPageState();
 }
 
-class Reservation {
-  final String id;
-  final String workspaceId;
-  final String workspaceName;
-  final String workspaceImage;
-  final String startDate;
-  final String endDate;
-  String status;
-  final String address;
-  final double price;
-  final int capacity;
-
-  Reservation({
-    required this.id,
-    required this.workspaceId,
-    required this.workspaceName,
-    required this.workspaceImage,
-    required this.startDate,
-    required this.endDate,
-    required this.status,
-    required this.address,
-    required this.price,
-    required this.capacity,
-  });
-
-  factory Reservation.fromJson(Map<String, dynamic> json) {
-    return Reservation(
-      id: json['id']?.toString() ?? '',
-      workspaceId: json['workspaceId']?.toString() ?? '',
-      workspaceName: json['workspaceName'] ?? '',
-      workspaceImage: json['workspaceImage'] ?? '',
-      startDate: json['startDate'] ?? '',
-      endDate: json['endDate'] ?? '',
-      status: json['status'] ?? '',
-      address: json['address'] ?? '',
-      price: (json['price'] as num?)?.toDouble() ?? 0.0,
-      capacity: json['capacity'] ?? 0,
-    );
-  }
-}
-
 class _TelaAluguelPageState extends State<TelaAluguelPage> {
   bool _sidebarActive = false;
+  final WorkupApi _api = WorkupApi();
   List<Reservation> _reservations = [];
+  bool _isLoading = true;
+  String? _errorMessage;
+  final Set<String> _doorCodeVisible = {};
 
   @override
   void initState() {
@@ -61,63 +27,96 @@ class _TelaAluguelPageState extends State<TelaAluguelPage> {
     _loadReservations();
   }
 
-  void _loadReservations() {
-    // Não inicializa mais reservas mockadas
-    final reservationsData = UserStorage().getReservations();
+  Future<void> _loadReservations() async {
+    final userId = UserStorage().userId;
+    if (userId == null) {
+      setState(() {
+        _errorMessage = 'Faça login para visualizar suas reservas.';
+        _isLoading = false;
+      });
+      return;
+    }
 
     setState(() {
-      _reservations = reservationsData
-          .map((data) => Reservation.fromJson(data))
-          .toList();
+      _isLoading = true;
+      _errorMessage = null;
     });
-  }
 
-  String _formatDate(String dateString) {
     try {
-      final date = DateTime.parse(dateString);
-      return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
-    } catch (e) {
-      return dateString;
+      final reservations = await _api.fetchUserReservations(userId);
+      UserStorage().cacheReservations(reservations);
+      if (!mounted) return;
+      setState(() {
+        _reservations = reservations;
+      });
+    } on ApiException catch (err) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = err.message;
+      });
+    } catch (err) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = 'Erro ao carregar reservas: $err';
+      });
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
+  String _formatDate(int timestamp) {
+    final date = DateTime.fromMillisecondsSinceEpoch(timestamp);
+    return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+  }
+
   Color _getStatusColor(String status) {
-    switch (status) {
-      case 'active':
+    switch (status.toUpperCase()) {
+      case 'PENDING':
+        return Colors.orange;
+      case 'CONFIRMED':
         return Colors.green;
-      case 'completed':
-        return Colors.grey;
-      case 'cancelled':
+      case 'CANCELLED':
         return Colors.red;
+      case 'EXPIRED':
+        return Colors.grey;
       default:
         return Colors.grey;
     }
   }
 
   Color _getStatusBackgroundColor(String status) {
-    switch (status) {
-      case 'active':
+    switch (status.toUpperCase()) {
+      case 'PENDING':
+        return Colors.orange.shade100;
+      case 'CONFIRMED':
         return Colors.green.shade100;
-      case 'completed':
-        return Colors.grey.shade100;
-      case 'cancelled':
+      case 'CANCELLED':
         return Colors.red.shade100;
+      case 'EXPIRED':
+        return Colors.grey.shade200;
       default:
         return Colors.grey.shade100;
     }
   }
 
   String _getStatusText(String status) {
-    switch (status) {
-      case 'active':
-        return 'Ativa';
-      case 'completed':
-        return 'Concluída';
-      case 'cancelled':
+    switch (status.toUpperCase()) {
+      case 'PENDING':
+        return 'Pendente';
+      case 'CONFIRMED':
+        return 'Confirmada';
+      case 'CANCELLED':
         return 'Cancelada';
+      case 'EXPIRED':
+        return 'Expirada';
       default:
         return status;
     }
+  }
+
+  bool _canCancel(String status) {
+    final normalized = status.toUpperCase();
+    return normalized == 'PENDING' || normalized == 'CONFIRMED';
   }
 
   void _handleCancelReservation(String reservationId) {
@@ -133,22 +132,35 @@ class _TelaAluguelPageState extends State<TelaAluguelPage> {
             child: const Text('Não', style: TextStyle(color: Colors.grey)),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.of(context).pop();
 
-              final success = UserStorage().updateReservationStatus(
-                reservationId,
-                'cancelled',
-              );
-
-              if (success) {
-                _loadReservations();
-
+              try {
+                await _api.deleteReservation(reservationId);
+                if (!mounted) return;
+                await _loadReservations();
+                if (!mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text('Reserva cancelada com sucesso'),
+                    content: Text('Reserva removida com sucesso'),
                     backgroundColor: Colors.green,
                     duration: Duration(seconds: 2),
+                  ),
+                );
+              } on ApiException catch (err) {
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(err.message),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              } catch (err) {
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Erro ao cancelar reserva: $err'),
+                    backgroundColor: Colors.red,
                   ),
                 );
               }
@@ -164,6 +176,8 @@ class _TelaAluguelPageState extends State<TelaAluguelPage> {
   }
 
   Widget _buildReservationCard(Reservation reservation) {
+    final room = UserStorage().getCatalogRoom(reservation.workspaceId);
+
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       elevation: 5,
@@ -171,16 +185,14 @@ class _TelaAluguelPageState extends State<TelaAluguelPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Imagem
           Stack(
             children: [
               ClipRRect(
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(16),
                 ),
-                child: _buildReservationImage(reservation.workspaceImage),
+                child: _buildReservationImage(room),
               ),
-              // Badge de status
               Positioned(
                 top: 12,
                 right: 12,
@@ -209,31 +221,24 @@ class _TelaAluguelPageState extends State<TelaAluguelPage> {
               ),
             ],
           ),
-
-          // Conteúdo
           Padding(
             padding: const EdgeInsets.all(12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Nome
                 Text(
-                  reservation.workspaceName,
+                  room?.name ?? 'Espaço ${reservation.workspaceId}',
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 const SizedBox(height: 6),
-
-                // Endereço
                 Text(
-                  reservation.address,
+                  room?.address ?? 'Endereço indisponível',
                   style: const TextStyle(fontSize: 14, color: Colors.grey),
                 ),
-                const SizedBox(height: 8),
-
-                // Datas
+                const SizedBox(height: 12),
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
@@ -291,14 +296,12 @@ class _TelaAluguelPageState extends State<TelaAluguelPage> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 8),
-
-                // Preço e capacidade
+                const SizedBox(height: 12),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      "R\$ ${reservation.price.toStringAsFixed(2)} / hora",
+                      "Total: R\$ ${reservation.finalPrice.toStringAsFixed(2)}",
                       style: const TextStyle(
                         fontSize: 16,
                         color: Color(0xFF34495E),
@@ -310,7 +313,7 @@ class _TelaAluguelPageState extends State<TelaAluguelPage> {
                         const Icon(Icons.people, size: 18, color: Colors.grey),
                         const SizedBox(width: 4),
                         Text(
-                          "${reservation.capacity} pessoas",
+                          "${room?.capacity ?? '-'} pessoas",
                           style: const TextStyle(
                             fontSize: 14,
                             color: Colors.grey,
@@ -320,9 +323,11 @@ class _TelaAluguelPageState extends State<TelaAluguelPage> {
                     ),
                   ],
                 ),
-
-                // Botão de cancelar (apenas para reservas ativas)
-                if (reservation.status == 'active') ...[
+                if (reservation.doorCode != null &&
+                    reservation.doorCode!.isNotEmpty &&
+                    reservation.status.toUpperCase() == 'CONFIRMED')
+                  _buildDoorCode(reservation),
+                if (_canCancel(reservation.status)) ...[
                   const SizedBox(height: 12),
                   SizedBox(
                     width: double.infinity,
@@ -348,72 +353,101 @@ class _TelaAluguelPageState extends State<TelaAluguelPage> {
     );
   }
 
-  Widget _buildReservationImage(String imagePath) {
-    if (imagePath.isEmpty) {
-      return Container(
-        height: 180,
-        color: Colors.grey[300],
-        child: const Icon(Icons.photo_outlined, size: 50, color: Colors.grey),
-      );
+  Widget _buildReservationImage(Listing? room) {
+    final imagePath = (room?.pictures.isNotEmpty ?? false)
+        ? room!.pictures.first
+        : null;
+
+    if (imagePath == null || !imagePath.startsWith('http')) {
+      return _reservationPlaceholder();
     }
 
-    if (imagePath.startsWith('http')) {
-      return Image.network(
-        imagePath,
-        width: double.infinity,
-        height: 180,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) {
-          return Container(
-            height: 180,
-            color: Colors.grey[300],
-            child: const Icon(
-              Icons.photo_outlined,
-              size: 50,
-              color: Colors.grey,
-            ),
-          );
-        },
-      );
-    } else {
-      final file = File(imagePath);
-      return FutureBuilder<bool>(
-        future: file.exists(),
-        builder: (context, snapshot) {
-          if (snapshot.hasData && snapshot.data == true) {
-            return Image.file(
-              file,
-              width: double.infinity,
-              height: 180,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  height: 180,
-                  color: Colors.grey[300],
-                  child: const Icon(
-                    Icons.photo_outlined,
-                    size: 50,
-                    color: Colors.grey,
-                  ),
-                );
-              },
-            );
-          } else {
-            return Container(
-              height: 180,
-              color: Colors.grey[300],
-              child: snapshot.connectionState == ConnectionState.waiting
-                  ? const Center(child: CircularProgressIndicator())
-                  : const Icon(
-                      Icons.photo_outlined,
-                      size: 50,
-                      color: Colors.grey,
+    return Image.network(
+      imagePath,
+      width: double.infinity,
+      height: 180,
+      fit: BoxFit.cover,
+      loadingBuilder: (context, child, progress) {
+        if (progress == null) return child;
+        return Container(
+          height: 180,
+          color: Colors.grey[200],
+          alignment: Alignment.center,
+          child: const CircularProgressIndicator(strokeWidth: 2),
+        );
+      },
+      errorBuilder: (context, error, stackTrace) => _reservationPlaceholder(),
+    );
+  }
+
+  Widget _reservationPlaceholder() {
+    return Container(
+      height: 180,
+      color: Colors.grey[300],
+      child: const Icon(Icons.photo_outlined, size: 50, color: Colors.grey),
+    );
+  }
+
+  Widget _buildDoorCode(Reservation reservation) {
+    final isVisible = _doorCodeVisible.contains(reservation.id);
+    final masked = '•' * reservation.doorCode!.length;
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.green.shade50,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.green.shade200),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.lock, color: Colors.green),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Código da Porta',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xFF2C3E50),
                     ),
-            );
-          }
-        },
-      );
-    }
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    isVisible ? reservation.doorCode! : masked,
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 4,
+                      color: Colors.green[800],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            IconButton(
+              icon: Icon(
+                isVisible ? Icons.visibility_off : Icons.visibility,
+                color: Colors.green[700],
+              ),
+              onPressed: () {
+                setState(() {
+                  if (isVisible) {
+                    _doorCodeVisible.remove(reservation.id);
+                  } else {
+                    _doorCodeVisible.add(reservation.id);
+                  }
+                });
+              },
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -438,88 +472,129 @@ class _TelaAluguelPageState extends State<TelaAluguelPage> {
             centerTitle: true,
             elevation: 3,
           ),
-          body: SingleChildScrollView(
-            child: Column(
-              children: [
-                // Header com título
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: const Column(
-                    children: [
-                      Text(
-                        "Minhas Reservas",
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF2C3E50),
+          body: _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : _errorMessage != null
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(32),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          size: 64,
+                          color: Colors.red[300],
                         ),
-                        textAlign: TextAlign.center,
-                      ),
-                      SizedBox(height: 8),
-                      Text(
-                        "Gerencie suas reservas ativas e histórico",
-                        style: TextStyle(fontSize: 14, color: Colors.grey),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
+                        const SizedBox(height: 16),
+                        Text(
+                          _errorMessage!,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            color: Colors.red,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton.icon(
+                          onPressed: _loadReservations,
+                          icon: const Icon(Icons.refresh),
+                          label: const Text('Tentar novamente'),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              : RefreshIndicator(
+                  onRefresh: _loadReservations,
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: Column(
+                      children: [
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(24),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 10,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: const Column(
+                            children: [
+                              Text(
+                                "Minhas Reservas",
+                                style: TextStyle(
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF2C3E50),
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              SizedBox(height: 8),
+                              Text(
+                                "Gerencie suas reservas ativas e histórico",
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
+                        ),
+                        _reservations.isEmpty
+                            ? Padding(
+                                padding: const EdgeInsets.all(48),
+                                child: Column(
+                                  children: [
+                                    Icon(
+                                      Icons.calendar_today_outlined,
+                                      size: 64,
+                                      color: Colors.grey[400],
+                                    ),
+                                    const SizedBox(height: 16),
+                                    const Text(
+                                      "Você ainda não possui reservas.",
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        color: Colors.grey,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                    const SizedBox(height: 8),
+                                    const Text(
+                                      "Explore os espaços disponíveis e faça sua primeira reserva!",
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ],
+                                ),
+                              )
+                            : ListView.builder(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 16,
+                                ),
+                                itemCount: _reservations.length,
+                                itemBuilder: (context, index) {
+                                  return _buildReservationCard(
+                                    _reservations[index],
+                                  );
+                                },
+                              ),
+                      ],
+                    ),
                   ),
                 ),
-
-                // Lista de reservas
-                _reservations.isEmpty
-                    ? Padding(
-                        padding: const EdgeInsets.all(48),
-                        child: Column(
-                          children: [
-                            Icon(
-                              Icons.calendar_today_outlined,
-                              size: 64,
-                              color: Colors.grey[400],
-                            ),
-                            const SizedBox(height: 16),
-                            const Text(
-                              "Você ainda não possui reservas.",
-                              style: TextStyle(
-                                fontSize: 18,
-                                color: Colors.grey,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                            const SizedBox(height: 8),
-                            const Text(
-                              "Explore os espaços disponíveis e faça sua primeira reserva!",
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
-                      )
-                    : ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        itemCount: _reservations.length,
-                        itemBuilder: (context, index) {
-                          return _buildReservationCard(_reservations[index]);
-                        },
-                      ),
-              ],
-            ),
-          ),
         ),
         SidebarMenu(
           active: _sidebarActive,
